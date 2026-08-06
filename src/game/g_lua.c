@@ -2564,15 +2564,67 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	// start (required)
+	// start (required): single {x,y,z} or a list of them
 	lua_getfield(L, 1, "start");
-	if (!Lua_GetVec3(L, -1, def->startOrigin))
+
+	if (lua_istable(L, -1))
+	{
+		lua_rawgeti(L, -1, 1);
+
+		if (lua_isnumber(L, -1))
+		{
+			// single vec3: start = { x, y, z }
+			lua_pop(L, 1);
+
+			if (!Lua_GetVec3(L, -1, def->startOrigins[0]))
+			{
+				G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
+				lua_pop(L, 1);
+				return 0;
+			}
+
+			def->numStarts = 1;
+		}
+		else if (lua_istable(L, -1))
+		{
+			// list of vec3s: start = { {x,y,z}, ... }
+			int n = 0;
+
+			lua_pop(L, 1);
+			lua_pushnil(L);
+
+			while (lua_next(L, -2) && n < MAX_TIMERUN_STARTS)
+			{
+				if (Lua_GetVec3(L, -1, def->startOrigins[n]))
+				{
+					n++;
+				}
+				lua_pop(L, 1);   // pop the value, keep the key for the next lua_next
+			}
+
+			def->numStarts = n;
+
+			if (n == 0)
+			{
+				G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
+				lua_pop(L, 1);
+				return 0;
+			}
+		}
+		else
+		{
+			lua_pop(L, 1);   // pop start[1] (neither number nor table)
+		}
+	}
+
+	if (def->numStarts == 0)
 	{
 		G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
 		lua_pop(L, 1);
 		return 0;
 	}
-	lua_pop(L, 1);
+
+	lua_pop(L, 1);   // pop the start field
 
 	// stop (required)
 	lua_getfield(L, 1, "stop");

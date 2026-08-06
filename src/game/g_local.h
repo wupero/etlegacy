@@ -635,7 +635,8 @@ typedef struct
 {
 	char id[TIMERUN_MAX_ID];
 	char name[MAX_NETNAME];
-	vec3_t startOrigin;
+	vec3_t startOrigins[MAX_TIMERUN_STARTS];
+	int numStarts;
 	vec3_t stopOrigin;
 	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
 	int numCheckpoints;

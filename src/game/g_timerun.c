@@ -304,7 +304,11 @@ void G_InitTimeruns(void)
 	{
 		timerunDef_t *def = &level.timeruns[i];
 
-		Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigin, def->radius);
+		for (j = 0; j < def->numStarts; j++)
+		{
+			Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigins[j], def->radius);
+		}
+
 		Timerun_SpawnZone(i, TIMERUN_ZONE_STOP, def->stopOrigin, def->radius);
 
 		for (j = 0; j < def->numCheckpoints; j++)

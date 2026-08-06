@@ -355,6 +355,7 @@ extern const int aReinfSeeds[MAX_REINFSEEDS];
 
 #define MAX_TIMERUNS            32  ///< max timeruns per map (also CS_TIMERUNS configstring slots)
 #define MAX_TIMERUN_CHECKPOINTS 16  ///< max checkpoints per timerun
+#define MAX_TIMERUN_STARTS      8   ///< max start zones per timerun
 
 #ifdef FEATURE_MULTIVIEW
 // Multiview settings
