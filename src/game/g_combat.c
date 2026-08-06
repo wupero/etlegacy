@@ -462,6 +462,12 @@ void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
 		return;
 	}
 
+	// abort any active timerun on death
+	if (self->client->sess.timerunActive)
+	{
+		notify_timerun_stop(self, 0);
+	}
+
 	// don't broadcast invalid MODs (this shouldn't occure ...)
 	if (!IS_VALID_MOD(meansOfDeath))
 	{

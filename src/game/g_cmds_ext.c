@@ -118,6 +118,7 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "imsr",           CMD_USAGE_INTERMISSION_ONLY, qtrue,       qfalse, Cmd_IntermissionSkillRating_f,       ""                                                                                           },
 #endif
 	{ "imvotetally",    CMD_USAGE_INTERMISSION_ONLY, qtrue,       qfalse, G_IntermissionVoteTally_cmd,         ""                                                                                           },
+	{ "interruptRun",   CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_InterruptRun_f,                  ":^7 Interrupts the current timerun"                                                      },
 	{ "imwa",           CMD_USAGE_INTERMISSION_ONLY, qtrue,       qfalse, Cmd_IntermissionWeaponAccuracies_f,  ""                                                                                           },
 	{ "imws",           CMD_USAGE_INTERMISSION_ONLY, qtrue,       qfalse, Cmd_IntermissionWeaponStats_f,       ""                                                                                           },
 //  { "invite",         CMD_USAGE_ANY_TIME,  qtrue,        NULL,                                " <player_ID>:^7 Invites a player to join a team" },
@@ -322,6 +323,25 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	else
 	{
 		CP(va("cp \"^dLoaded ^n%d\n\"", posNum));
+	}
+}
+
+/**
+ * @brief Interrupts the current timerun
+ * @param[in] ent
+ * @param[in] dwCommand - unused
+ * @param[in] value - unused
+ */
+void Cmd_InterruptRun_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	if (ent->client && ent->client->sess.timerunActive)
+	{
+		notify_timerun_stop(ent, 0);
+		CP("cp \"^dRun ^ninterrupted\n\"");
+	}
+	else
+	{
+		CP("cp \"^dNo ^nactive ^drun\n\"");
 	}
 }
 

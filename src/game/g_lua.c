@@ -2442,6 +2442,180 @@ static int _et_G_HistoricalTrace(lua_State *L)
 /** @}*/ // doxygen addtogroup lua_etfncs
 
 // et library initialization array
+/**
+ * @brief Reads a {x, y, z} table from the lua stack into a vec3_t.
+ * @param[in] L
+ * @param[in] index stack index of the table
+ * @param[out] out
+ * @return qtrue on success
+ */
+static qboolean Lua_GetVec3(lua_State *L, int index, vec3_t out)
+{
+	int i;
+
+	if (!lua_istable(L, index))
+	{
+		return qfalse;
+	}
+
+	for (i = 0; i < 3; i++)
+	{
+		lua_rawgeti(L, index, i + 1);
+
+		if (!lua_isnumber(L, -1))
+		{
+			lua_pop(L, 1);
+			return qfalse;
+		}
+
+		out[i] = (float)lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+
+	return qtrue;
+}
+
+/**
+ * @brief et.TimerunRegister{table} - registers a timerun definition for the current map.
+ *
+ * Fields: id (required, unique), name, start {x,y,z} (required), stop {x,y,z} (required),
+ * checkpoints { {x,y,z}, ... } (max 16), radius (default 64, clamped 8..256),
+ * mincheckpoints (default 0), blockPrejump (default false).
+ */
+static int _et_TimerunRegister(lua_State *L)
+{
+	timerunDef_t *def;
+	int          i;
+
+	luaL_checktype(L, 1, LUA_TTABLE);
+
+	if (level.numTimeruns >= MAX_TIMERUNS)
+	{
+		G_Printf("Timeruns: cannot register more than %d timeruns\n", MAX_TIMERUNS);
+		return 0;
+	}
+
+	def = &level.timeruns[level.numTimeruns];
+	memset(def, 0, sizeof(*def));
+	def->radius = 64.0f;
+
+	// id (required, unique)
+	lua_getfield(L, 1, "id");
+	if (!lua_isstring(L, -1))
+	{
+		G_Printf("Timeruns: registration %d rejected - missing 'id'\n", level.numTimeruns);
+		lua_pop(L, 1);
+		return 0;
+	}
+	Q_strncpyz(def->id, lua_tostring(L, -1), sizeof(def->id));
+	lua_pop(L, 1);
+
+	for (i = 0; i < level.numTimeruns; i++)
+	{
+		if (!Q_stricmp(level.timeruns[i].id, def->id))
+		{
+			G_Printf("Timeruns: registration rejected - duplicate id '%s'\n", def->id);
+			return 0;
+		}
+	}
+
+	// name (optional, defaults to id)
+	lua_getfield(L, 1, "name");
+	if (lua_isstring(L, -1))
+	{
+		Q_strncpyz(def->name, lua_tostring(L, -1), sizeof(def->name));
+	}
+	else
+	{
+		Q_strncpyz(def->name, def->id, sizeof(def->name));
+	}
+	lua_pop(L, 1);
+
+	// radius (optional, default 64, clamped 8..256)
+	lua_getfield(L, 1, "radius");
+	if (lua_isnumber(L, -1))
+	{
+		def->radius = (float)lua_tonumber(L, -1);
+	}
+	lua_pop(L, 1);
+
+	if (def->radius < 8.0f)
+	{
+		def->radius = 8.0f;
+	}
+	else if (def->radius > 256.0f)
+	{
+		def->radius = 256.0f;
+	}
+
+	// mincheckpoints (optional, default 0)
+	lua_getfield(L, 1, "mincheckpoints");
+	if (lua_isnumber(L, -1))
+	{
+		def->mincheckpoints = (int)lua_tointeger(L, -1);
+	}
+	lua_pop(L, 1);
+
+	// blockPrejump (optional, default false)
+	lua_getfield(L, 1, "blockPrejump");
+	if (lua_isboolean(L, -1))
+	{
+		def->blockPrejump = lua_toboolean(L, -1) ? qtrue : qfalse;
+	}
+	lua_pop(L, 1);
+
+	// start (required)
+	lua_getfield(L, 1, "start");
+	if (!Lua_GetVec3(L, -1, def->startOrigin))
+	{
+		G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
+		lua_pop(L, 1);
+		return 0;
+	}
+	lua_pop(L, 1);
+
+	// stop (required)
+	lua_getfield(L, 1, "stop");
+	if (!Lua_GetVec3(L, -1, def->stopOrigin))
+	{
+		G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'stop'\n", def->id);
+		lua_pop(L, 1);
+		return 0;
+	}
+	lua_pop(L, 1);
+
+	// checkpoints (optional, max 16, ordered)
+	lua_getfield(L, 1, "checkpoints");
+	if (lua_istable(L, -1))
+	{
+		int n = 0;
+
+		lua_pushnil(L);
+		while (lua_next(L, -2) && n < MAX_TIMERUN_CHECKPOINTS)
+		{
+			if (Lua_GetVec3(L, -1, def->checkpointOrigins[n]))
+			{
+				n++;
+			}
+			lua_pop(L, 1);   // pop the value, keep the key for the next lua_next
+		}
+		def->numCheckpoints = n;
+	}
+	lua_pop(L, 1);
+
+	// mincheckpoints cannot exceed the number of checkpoints
+	if (def->mincheckpoints > def->numCheckpoints)
+	{
+		G_Printf("Timeruns: registration '%s' rejected - mincheckpoints %d > %d checkpoints\n",
+		         def->id, def->mincheckpoints, def->numCheckpoints);
+		return 0;
+	}
+
+	level.numTimeruns++;
+
+	return 0;
+}
+
 static const luaL_Reg etlib[] =
 {
 	// ET Library Calls
@@ -2528,6 +2702,7 @@ static const luaL_Reg etlib[] =
 	{ "G_SetGlobalFog",          _et_G_SetGlobalFog          },
 	{ "trap_Trace",              _et_trap_Trace              },
 	{ "G_HistoricalTrace",       _et_G_HistoricalTrace       },
+	{ "TimerunRegister",         _et_TimerunRegister         },
 	{ NULL },
 };
 
@@ -2637,6 +2812,69 @@ qboolean G_LuaRunIsolated(const char *modName)
 	}
 
 	return qfalse;
+}
+
+/**
+ * @brief Loads and runs the per-map timerun definition file
+ *        (<fs_game>/timeruns/<mapname>.lua) in a throwaway VM.
+ *        Registrations are collected by et.TimerunRegister.
+ */
+void G_LuaTimerunLoadMap(void)
+{
+	char         filename[MAX_OSPATH];
+	char         mapname[MAX_QPATH];
+	int          flen;
+	fileHandle_t f;
+	lua_vm_t     *vm;
+
+	trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
+
+	if (!mapname[0])
+	{
+		return;
+	}
+
+	Com_sprintf(filename, sizeof(filename), "timeruns/%s.lua", mapname);
+
+	flen = trap_FS_FOpenFile(filename, &f, FS_READ);
+	if (flen < 0)
+	{
+		return;    // no timerun definitions for this map
+	}
+
+	if (flen > LUA_MAX_FSIZE)
+	{
+		G_Printf("%s API: %signoring file '%s' (too big)\n", LUA_VERSION, S_COLOR_BLUE, filename);
+		trap_FS_FCloseFile(f);
+		return;
+	}
+
+	vm = (lua_vm_t *)Com_Allocate(sizeof(lua_vm_t));
+	if (vm == NULL)
+	{
+		G_Error("%s API: %svm memory allocation error for %s data\n", LUA_VERSION, S_COLOR_BLUE, filename);
+	}
+
+	vm->id        = -1;
+	vm->err       = 0;
+	vm->code      = Com_Allocate(flen + 1);
+	vm->code_size = flen;
+
+	if (vm->code == NULL)
+	{
+		G_Error("%s API: %smemory allocation error for '%s' data\n", LUA_VERSION, S_COLOR_BLUE, filename);
+	}
+
+	Q_strncpyz(vm->file_name, filename, sizeof(vm->file_name));
+	Q_strncpyz(vm->mod_name, "", sizeof(vm->mod_name));
+
+	trap_FS_Read(vm->code, flen, f);
+	*(vm->code + flen) = '\0';
+	trap_FS_FCloseFile(f);
+
+	// runs the script (errors are printed by G_LuaStartVM); the VM is throwaway
+	G_LuaStartVM(vm);
+	G_LuaStopVM(vm);
 }
 
 
@@ -3628,6 +3866,10 @@ void G_LuaHook_InitGame(int levelTime, int randomSeed, int restart)
 			}
 		}
 	}
+
+	// load per-map timerun definitions and spawn their zones
+	G_LuaTimerunLoadMap();
+	G_InitTimeruns();
 }
 
 /**

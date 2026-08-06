@@ -624,6 +624,26 @@ typedef struct
 	vec3_t vangles;
 } save_position_t;
 
+// timerun definitions (lua-defined per map, see g_timerun.c and g_lua.c)
+#define TIMERUN_MAX_ID 32    ///< max length of a timerun id
+
+/**
+ * @struct timerunDef_t
+ * @brief A timerun definition for the current map, loaded from lua
+ */
+typedef struct
+{
+	char id[TIMERUN_MAX_ID];
+	char name[MAX_NETNAME];
+	vec3_t startOrigin;
+	vec3_t stopOrigin;
+	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
+	int numCheckpoints;
+	float radius;         ///< zone half-extent in units
+	int mincheckpoints;   ///< checkpoints required before a stop counts
+	qboolean blockPrejump;///< refuse start when horizontal speed > 600 u/s
+} timerunDef_t;
+
 /**
  * @struct playerTeamStateState_t
  * @brief Weapon stat counters
@@ -729,6 +749,19 @@ typedef struct
 
 	// saved positions
 	save_position_t saves[MAX_SAVED_POSITIONS];
+
+	// timerun state
+	qboolean timerunActive;
+	int currentTimerun;                         ///< index into level.timeruns
+	int timerunStartTime;                       ///< commandTime at run start
+	int timerunStartSpeed;                      ///< horizontal speed at start
+	int timerunStopSpeed;                       ///< horizontal speed at stop
+	int timerunMaxSpeed;                        ///< highest speed during the run
+	int timerunCheckpointsPassed;
+	int timerunCheckpointTimes[MAX_TIMERUN_CHECKPOINTS];
+	int timerunLastTime[MAX_TIMERUNS];
+	int timerunBestTime[MAX_TIMERUNS];
+	int timerunBestCheckpointTimes[MAX_TIMERUNS][MAX_TIMERUN_CHECKPOINTS];
 
 } clientSession_t;
 
@@ -1426,6 +1459,11 @@ typedef struct level_locals_s
 	int demoClientBotNum;      ///< clientNum of bot that collects stats during recording, optional
 
 	uint64_t shoutcasters;     ///< clients bits of shoutcasters
+
+	// timeruns (lua-defined per map)
+	timerunDef_t timeruns[MAX_TIMERUNS];
+	int numTimeruns;
+	qboolean isTimerun;
 } level_locals_t;
 
 /**
@@ -1480,6 +1518,11 @@ void Cmd_Ignore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_UnIgnore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value);
+void Cmd_InterruptRun_f(gentity_t *ent, unsigned int dwCommand, int value);
+
+// g_timerun.c
+void G_InitTimeruns(void);
+void notify_timerun_stop(gentity_t *ent, int time);
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerKillsDeaths_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerTime_f(gentity_t *ent, unsigned int dwCommand, int value);

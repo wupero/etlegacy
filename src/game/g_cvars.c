@@ -221,6 +221,7 @@ vmCvar_t g_disableComplaints;
 // zinx etpro antiwarp
 vmCvar_t g_antiwarp;
 vmCvar_t g_maxWarp;
+vmCvar_t isTimerun;
 
 #ifdef FEATURE_LUA
 vmCvar_t lua_modules;
@@ -575,6 +576,7 @@ cvarTable_t gameCvarTable[] =
 	// zinx etpro antiwarp
 	{ &g_maxWarp,                         "g_maxWarp",                         "4",                          0,                                               0, qfalse, qfalse },
 	{ &g_antiwarp,                        "g_antiwarp",                        "1",                          0,                                               0, qfalse, qfalse },
+	{ &isTimerun,                         "isTimerun",                         "0",                          CVAR_ROM | CVAR_SYSTEMINFO,                      0, qfalse, qfalse },
 #ifdef FEATURE_LUA
 	{ &lua_modules,                       "lua_modules",                       "",                           0,                                               0, qfalse, qfalse },
 	{ &lua_allowedModules,                "lua_allowedModules",                "",                           0,                                               0, qfalse, qfalse },

@@ -2354,6 +2354,17 @@ void ClientEndFrame(gentity_t *ent)
 		ent->count2 = 0;
 	}
 
+	// track max speed for active timeruns
+	if (ent->client->sess.timerunActive)
+	{
+		int speed = (int)VectorLength(ent->client->ps.velocity);
+
+		if (speed > ent->client->sess.timerunMaxSpeed)
+		{
+			ent->client->sess.timerunMaxSpeed = speed;
+		}
+	}
+
 	// run touch functions here too, so movers don't have to wait
 	// until the next ClientThink, which will be too late for some map
 	// scripts (railgun)

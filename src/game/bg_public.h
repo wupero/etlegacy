@@ -353,6 +353,9 @@ extern const int aReinfSeeds[MAX_REINFSEEDS];
 
 #define MAX_MOTDLINES   6
 
+#define MAX_TIMERUNS            32  ///< max timeruns per map (also CS_TIMERUNS configstring slots)
+#define MAX_TIMERUN_CHECKPOINTS 16  ///< max checkpoints per timerun
+
 #ifdef FEATURE_MULTIVIEW
 // Multiview settings
 #define MAX_MVCLIENTS               32
@@ -437,7 +440,8 @@ extern const int aReinfSeeds[MAX_REINFSEEDS];
 #define CS_FIRETEAMS                    (CS_TAGCONNECTS +          MAX_TAGCONNECTS)         ///< 893 (64)
 #define CS_CUSTMOTD                     (CS_FIRETEAMS +            MAX_FIRETEAMS)           ///< 905 (12)
 #define CS_STRINGS                      (CS_CUSTMOTD +             MAX_MOTDLINES)           ///< 911 (6)
-#define CS_MAX                          (CS_STRINGS +              MAX_CSSTRINGS)           ///< 943 (32)
+#define CS_TIMERUNS                     (CS_STRINGS +              MAX_CSSTRINGS)           ///< 943 (32)
+#define CS_MAX                          (CS_TIMERUNS +             MAX_TIMERUNS)            ///< 975 (32)
 /** @}*////< doxygen addtogroup lua_etvars
 
 #if (CS_MAX) > MAX_CONFIGSTRINGS
