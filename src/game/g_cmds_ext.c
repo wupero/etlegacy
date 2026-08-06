@@ -195,6 +195,7 @@ void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
 	int             argc;
 	int             posNum;
 	save_position_t *pos;
+	float           horizontalSpeed;
 
 	argc = trap_Argc();
 
@@ -226,16 +227,20 @@ void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
-	// allow saving while airborne; on the ground require (near-)zero horizontal speed
-	if (ent->client->ps.groundEntityNum != ENTITYNUM_NONE)
+	// entity must be on the ground to save
+	if (ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
 	{
-		float horizontalSpeed = sqrt(Square(ent->client->ps.velocity[0]) + Square(ent->client->ps.velocity[1]));
+		CP("cp \"^dYou can not ^nsave ^dwhile in the air\n\"");
+		return;
+	}
 
-		if (horizontalSpeed > SAVE_MAX_GROUND_SPEED)
-		{
-			CP("cp \"^dYou can not ^nsave ^dwhile moving on the ground\n\"");
-			return;
-		}
+	// and must be (near-)stationary on the ground
+	horizontalSpeed = sqrt(Square(ent->client->ps.velocity[0]) + Square(ent->client->ps.velocity[1]));
+
+	if (horizontalSpeed > SAVE_MAX_GROUND_SPEED)
+	{
+		CP("cp \"^dYou can not ^nsave ^dwhile moving on the ground\n\"");
+		return;
 	}
 
 	pos = &ent->client->sess.saves[posNum];
