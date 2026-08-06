@@ -62,5 +62,15 @@ cp "$BUILD_DIR/legacy/ui_mac" "$TMP/ui_mac"
 
 ( cd "$TMP" && zip -qr "$OUT" . )
 
+# purge older revisions: a stale lower revision sorts BEFORE the new one and
+# would shadow its modules on the client (paks load alphabetically)
+for f in "$DEST_DIR"/legacy_timerun_${BASE_VERSION}_r*.pk3; do
+    [ -e "$f" ] || continue
+    if [ "$f" != "$OUT" ]; then
+        rm -f "$f"
+        echo "removed stale: $f"
+    fi
+done
+
 echo "wrote: $OUT ($(du -h "$OUT" | awk '{print $1}'))"
 echo "server: +set fs_game legacy-timerun  (clients auto-download this pk3)"

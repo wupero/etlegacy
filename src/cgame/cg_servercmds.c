@@ -3164,6 +3164,12 @@ static void CG_TimerunStartCommand(int spec)
 	{
 		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
 	}
+
+	if (timerun_debug.integer)
+	{
+		CG_Printf("timerun_debug: run started - timerun %d, startTime %d (+500), startSpeed %d\n",
+		          cg.currentTimerun, cg.timerunStartTime, cg.timerunStartSpeed);
+	}
 }
 
 /**
@@ -3202,6 +3208,7 @@ static void CG_TimerunCheckCommand(int spec)
 static void CG_TimerunStopCommand(int spec)
 {
 	int clientNum;
+	int time;
 
 	if (spec)
 	{
@@ -3219,12 +3226,27 @@ static void CG_TimerunStopCommand(int spec)
 	cg.timerunActive = qfalse;
 
 	// time 0 = aborted run
-	if (Q_atoi(CG_Argv(spec ? 3 : 2)))
+	time = Q_atoi(CG_Argv(spec ? 3 : 2));
+
+	if (time)
 	{
-		cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))] = Q_atoi(CG_Argv(spec ? 3 : 2));
-		cg.timerunFinishedTime[clientNum]                 = cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))];
+		cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))] = time;
+		cg.timerunFinishedTime[clientNum]                 = time;
 		cg.timerunStopSpeed                               = Q_atoi(CG_Argv(spec ? 4 : 3));
 		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
+	}
+
+	if (timerun_debug.integer)
+	{
+		if (time)
+		{
+			CG_Printf("timerun_debug: run stopped - timerun %d, time %dms, stopSpeed %d, maxSpeed %d\n",
+			          Q_atoi(CG_Argv(1)), time, cg.timerunStopSpeed, cg.runMaxSpeed);
+		}
+		else
+		{
+			CG_Printf("timerun_debug: run aborted - timerun %d\n", Q_atoi(CG_Argv(1)));
+		}
 	}
 }
 
