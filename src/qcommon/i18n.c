@@ -661,7 +661,9 @@ static void I18N_RefreshLanguage(void)
 	}
 
 	trap_Cvar_VariableStringBuffer("fs_game", gameDir, sizeof(gameDir));
-	i18nTranslateMod = !gameDir[0] || !Q_stricmp(gameDir, MODNAME);
+	// mod translations also apply to mod dirs derived from MODNAME (e.g. "legacy-timerun"):
+	// menu assets use MSGID_ keys that only match this catalog, so a prefix match is safe
+	i18nTranslateMod = !gameDir[0] || !Q_stricmpn(gameDir, MODNAME, strlen(MODNAME));
 
 	if (!Q_stricmp(language, i18nLanguage) && i18nTranslateMod == i18nTranslateModLast)
 	{
