@@ -179,8 +179,146 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "where",          CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Where_f,                         ":^7 Show the current XYZ player position"                                                   },
 	{ "ws",             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_WeaponStat_f,                    ":^7 Shows weapon stats"                                                                     },
 	{ "wstats",         CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_wStats_f,                        ""                                                                                           },
+	{ "load",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Load_f,                           " [slot]:^7 Loads a saved position"                                                    },
+	{ "save",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Save_f,                           " [slot]:^7 Saves your current position"                                                },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
+
+/**
+ * @brief Saves the current player position into a save slot
+ * @param[in] ent
+ * @param[in] dwCommand - unused
+ * @param[in] value - unused
+ */
+void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	int             argc;
+	int             posNum;
+	save_position_t *pos;
+
+	argc = trap_Argc();
+
+	if (argc == 1)
+	{
+		posNum = 0;
+	}
+	else if (argc == 2)
+	{
+		char cmd[MAX_TOKEN_CHARS];
+
+		trap_Argv(1, cmd, sizeof(cmd));
+
+		if ((posNum = atoi(cmd)) < 0 || posNum >= MAX_SAVED_POSITIONS)
+		{
+			CP("print \"^nInvalid ^dposition\n\"");
+			return;
+		}
+	}
+	else
+	{
+		CP("print \"^nUsage: ^nsave ^d[position]\n\"");
+		return;
+	}
+
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR)
+	{
+		CP("cp \"^dYou can not ^nsave ^das a spectator\n\"");
+		return;
+	}
+
+	// allow saving while airborne; on the ground require (near-)zero horizontal speed
+	if (ent->client->ps.groundEntityNum != ENTITYNUM_NONE)
+	{
+		float horizontalSpeed = sqrt(Square(ent->client->ps.velocity[0]) + Square(ent->client->ps.velocity[1]));
+
+		if (horizontalSpeed > SAVE_MAX_GROUND_SPEED)
+		{
+			CP("cp \"^dYou can not ^nsave ^dwhile moving on the ground\n\"");
+			return;
+		}
+	}
+
+	pos = &ent->client->sess.saves[posNum];
+
+	VectorCopy(ent->client->ps.origin, pos->origin);
+	VectorCopy(ent->client->ps.viewangles, pos->vangles);
+	pos->valid = qtrue;
+
+	if (posNum == 0)
+	{
+		CP("cp \"^dSaved\n\"");
+	}
+	else
+	{
+		CP(va("cp \"^dSaved ^n%d\n\"", posNum));
+	}
+}
+
+/**
+ * @brief Loads a saved position and resets the player's speed
+ * @param[in] ent
+ * @param[in] dwCommand - unused
+ * @param[in] value - unused
+ */
+void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	int             argc;
+	int             posNum;
+	save_position_t *pos;
+
+	argc = trap_Argc();
+
+	if (argc == 1)
+	{
+		posNum = 0;
+	}
+	else if (argc == 2)
+	{
+		char cmd[MAX_TOKEN_CHARS];
+
+		trap_Argv(1, cmd, sizeof(cmd));
+
+		if ((posNum = atoi(cmd)) < 0 || posNum >= MAX_SAVED_POSITIONS)
+		{
+			CP("print \"^nInvalid ^dposition\n\"");
+			return;
+		}
+	}
+	else
+	{
+		CP("print \"^nUsage: ^nload ^d[position]\n\"");
+		return;
+	}
+
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR)
+	{
+		CP("cp \"^dYou can not ^nload ^das a spectator\n\"");
+		return;
+	}
+
+	pos = &ent->client->sess.saves[posNum];
+
+	if (!pos->valid)
+	{
+		CP("cp \"^dUse ^nsave ^dfirst\n\"");
+		return;
+	}
+
+	// teleport to the saved position (toggles no-lerp bit, relinks entity)
+	TeleportPlayer(ent, pos->origin, pos->vangles);
+
+	// reset speed so no momentum carries into the loaded position
+	VectorClear(ent->client->ps.velocity);
+
+	if (posNum == 0)
+	{
+		CP("cp \"^dLoaded\n\"");
+	}
+	else
+	{
+		CP(va("cp \"^dLoaded ^n%d\n\"", posNum));
+	}
+}
 
 /**
  * @brief G_ClientIsFlooding

@@ -609,6 +609,21 @@ typedef struct
 
 } playerTeamState_t;
 
+// saved positions (see Cmd_Save_f / Cmd_Load_f in g_cmds_ext.c)
+#define MAX_SAVED_POSITIONS   6     // number of save slots per client
+#define SAVE_MAX_GROUND_SPEED 10.0f // max horizontal speed (u/s) when saving while on the ground
+
+/**
+ * @struct save_position_t
+ * @brief Saved player position
+ */
+typedef struct
+{
+	qboolean valid;
+	vec3_t origin;
+	vec3_t vangles;
+} save_position_t;
+
 /**
  * @struct playerTeamStateState_t
  * @brief Weapon stat counters
@@ -711,6 +726,9 @@ typedef struct
 	int nextCommandDecreaseTime;                        ///< next time we decrease numReliableCommands
 
 	int tvflags;
+
+	// saved positions
+	save_position_t saves[MAX_SAVED_POSITIONS];
 
 } clientSession_t;
 
@@ -1460,6 +1478,8 @@ void Cmd_Score_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Vote_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Ignore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_UnIgnore_f(gentity_t *ent, unsigned int dwCommand, int value);
+void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value);
+void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerKillsDeaths_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerTime_f(gentity_t *ent, unsigned int dwCommand, int value);
