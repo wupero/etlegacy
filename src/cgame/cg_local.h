@@ -1621,6 +1621,21 @@ typedef struct
 	                                                  ///< instead of iterating through whole CMD_BACKUP array every frame
 
 	qboolean mapConfigLoaded; // qtrue if map-specific autoexec was loaded
+
+	// timerun state (server commands from g_timerun.c)
+	qboolean timerunActive;
+	int currentTimerun;                       ///< index of the active timerun
+	int timerunStartTime;                     ///< run start (server sends startTime+500; draw with -500)
+	int timerunStartSpeed;                    ///< horizontal speed at start
+	int timerunStopSpeed;                     ///< horizontal speed at stop
+	int runMaxSpeed;                          ///< highest speed during the run
+	int timerunCheckPointChecked;             ///< number of checkpoints received
+	int timerunCheckPointDiff[MAX_TIMERUN_CHECKPOINTS];    ///< delta vs best checkpoint
+	int timerunCheckPointTime[MAX_TIMERUN_CHECKPOINTS];    ///< absolute time at checkpoint
+	int timerunCheckStatus[MAX_TIMERUN_CHECKPOINTS];       ///< 0 first / 1 equal / 2 faster / 3 slower
+	int timerunFinishedTime[MAX_CLIENTS];                  ///< last finish per player
+	int timerunBestTime[MAX_CLIENTS][MAX_TIMERUNS];        ///< personal best per player/run
+	int timerunLastTime[MAX_CLIENTS][MAX_TIMERUNS];        ///< last time per player/run
 } cg_t;
 
 #define MAX_LOCKER_DEBRIS 5

@@ -3116,12 +3116,118 @@ void CG_AddToBannerPrint(const char *str)
 #define BP_HASH             25102
 #define XPGAIN_HASH         78572
 #define AUTH_SHOW_MSG_HASH  92849
+#define TIMERUN_START_HASH      178147
+#define TIMERUN_START_SPEC_HASH 248089
+#define TIMERUN_CHECK_HASH      171966
+#define TIMERUN_CHECK_SPEC_HASH 241908
+#define TIMERUN_STOP_HASH       164497
+#define TIMERUN_STOP_SPEC_HASH  233917
 // -----------
 
 /**
  * @brief The string has been tokenized and can be retrieved with
  * Cmd_Argc() / Cmd_Argv()
  */
+/**
+ * @brief Handles the timerun_start / timerun_start_spec server commands.
+ * @param[in] spec qtrue for the spectator variant
+ */
+static void CG_TimerunStartCommand(int spec)
+{
+	int clientNum;
+
+	if (spec)
+	{
+		if (cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR)
+		{
+			return;
+		}
+		clientNum = Q_atoi(CG_Argv(2));
+	}
+	else
+	{
+		clientNum = cg.clientNum;
+	}
+
+	cg.timerunActive            = qtrue;
+	cg.timerunCheckPointChecked = 0;
+	cg.currentTimerun           = Q_atoi(CG_Argv(1));
+	cg.timerunStartTime         = Q_atoi(CG_Argv(spec ? 3 : 2));
+	cg.timerunStartSpeed        = Q_atoi(CG_Argv(spec ? 4 : 3));
+
+	cg.runMaxSpeed      = 0;
+	cg.timerunStopSpeed = 0;
+
+	// promote the last run's time to best so the HUD can compare during the run
+	if (!cg.timerunBestTime[clientNum][cg.currentTimerun] ||
+	    cg.timerunLastTime[clientNum][cg.currentTimerun] < cg.timerunBestTime[clientNum][cg.currentTimerun])
+	{
+		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
+	}
+}
+
+/**
+ * @brief Handles the timerun_check / timerun_check_spec server commands.
+ * @param[in] spec qtrue for the spectator variant
+ */
+static void CG_TimerunCheckCommand(int spec)
+{
+	int idx;
+
+	if (spec)
+	{
+		if (cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR)
+		{
+			return;
+		}
+	}
+
+	idx = cg.timerunCheckPointChecked;
+
+	if (idx >= MAX_TIMERUN_CHECKPOINTS)
+	{
+		return;
+	}
+
+	cg.timerunCheckPointDiff[idx]   = Q_atoi(CG_Argv(1));
+	cg.timerunCheckPointTime[idx]   = Q_atoi(CG_Argv(2));
+	cg.timerunCheckStatus[idx]      = Q_atoi(CG_Argv(3));
+	cg.timerunCheckPointChecked++;
+}
+
+/**
+ * @brief Handles the timerun_stop / timerun_stop_spec server commands.
+ * @param[in] spec qtrue for the spectator variant
+ */
+static void CG_TimerunStopCommand(int spec)
+{
+	int clientNum;
+
+	if (spec)
+	{
+		if (cgs.clientinfo[cg.clientNum].team != TEAM_SPECTATOR)
+		{
+			return;
+		}
+		clientNum = Q_atoi(CG_Argv(2));
+	}
+	else
+	{
+		clientNum = cg.clientNum;
+	}
+
+	cg.timerunActive = qfalse;
+
+	// time 0 = aborted run
+	if (Q_atoi(CG_Argv(spec ? 3 : 2)))
+	{
+		cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))] = Q_atoi(CG_Argv(spec ? 3 : 2));
+		cg.timerunFinishedTime[clientNum]                 = cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))];
+		cg.timerunStopSpeed                               = Q_atoi(CG_Argv(spec ? 4 : 3));
+		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
+	}
+}
+
 static void CG_ServerCommand(void)
 {
 	const char *cmd;
@@ -3768,6 +3874,24 @@ static void CG_ServerCommand(void)
 		break;
 	}
 #endif
+	case TIMERUN_START_HASH:          // "timerun_start"
+		CG_TimerunStartCommand(qfalse);
+		return;
+	case TIMERUN_START_SPEC_HASH:     // "timerun_start_spec"
+		CG_TimerunStartCommand(qtrue);
+		return;
+	case TIMERUN_CHECK_HASH:          // "timerun_check"
+		CG_TimerunCheckCommand(qfalse);
+		return;
+	case TIMERUN_CHECK_SPEC_HASH:     // "timerun_check_spec"
+		CG_TimerunCheckCommand(qtrue);
+		return;
+	case TIMERUN_STOP_HASH:           // "timerun_stop"
+		CG_TimerunStopCommand(qfalse);
+		return;
+	case TIMERUN_STOP_SPEC_HASH:      // "timerun_stop_spec"
+		CG_TimerunStopCommand(qtrue);
+		return;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);
 		break;
