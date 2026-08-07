@@ -225,8 +225,8 @@ static void Timerun_StopRun(gentity_t *ent, int index, timerunDef_t *def)
 		return;
 	}
 
-	// not enough checkpoints passed -> the run does not count
-	if (client->sess.timerunCheckpointsPassed < def->mincheckpoints)
+	// speedrun mod: a run only counts when ALL checkpoints were reached
+	if (client->sess.timerunCheckpointsPassed < def->numCheckpoints)
 	{
 		notify_timerun_stop(ent, 0);
 		return;

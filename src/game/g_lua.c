@@ -2480,7 +2480,7 @@ static qboolean Lua_GetVec3(lua_State *L, int index, vec3_t out)
  *
  * Fields: id (required, unique), name, start {x,y,z} (required), stop {x,y,z} (required),
  * checkpoints { {x,y,z}, ... } (max 16), radius (default 64, clamped 8..256),
- * mincheckpoints (default 0), blockPrejump (default false).
+ * blockPrejump (default false). A run only counts when ALL checkpoints were reached.
  */
 static int _et_TimerunRegister(lua_State *L)
 {
@@ -2547,14 +2547,6 @@ static int _et_TimerunRegister(lua_State *L)
 	{
 		def->radius = 256.0f;
 	}
-
-	// mincheckpoints (optional, default 0)
-	lua_getfield(L, 1, "mincheckpoints");
-	if (lua_isnumber(L, -1))
-	{
-		def->mincheckpoints = (int)lua_tointeger(L, -1);
-	}
-	lua_pop(L, 1);
 
 	// blockPrejump (optional, default false)
 	lua_getfield(L, 1, "blockPrejump");
@@ -2654,14 +2646,6 @@ static int _et_TimerunRegister(lua_State *L)
 		def->numCheckpoints = n;
 	}
 	lua_pop(L, 1);
-
-	// mincheckpoints cannot exceed the number of checkpoints
-	if (def->mincheckpoints > def->numCheckpoints)
-	{
-		G_Printf("Timeruns: registration '%s' rejected - mincheckpoints %d > %d checkpoints\n",
-		         def->id, def->mincheckpoints, def->numCheckpoints);
-		return 0;
-	}
 
 	level.numTimeruns++;
 

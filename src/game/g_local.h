@@ -641,7 +641,6 @@ typedef struct
 	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
 	int numCheckpoints;
 	float radius;         ///< zone half-extent in units
-	int mincheckpoints;   ///< checkpoints required before a stop counts
 	qboolean blockPrejump;///< refuse start when horizontal speed > 600 u/s
 } timerunDef_t;
 
