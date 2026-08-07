@@ -214,7 +214,7 @@ static void Timerun_Checkpoint(gentity_t *ent, int index)
  * @param[in] index
  * @param[in] def
  */
-static void Timerun_StopRun(gentity_t *ent, int index, timerunDef_t *def)
+static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunDef_t *def)
 {
 	gclient_t *client = ent->client;
 	int       time;
@@ -225,10 +225,18 @@ static void Timerun_StopRun(gentity_t *ent, int index, timerunDef_t *def)
 		return;
 	}
 
-	// speedrun mod: a run only counts when ALL checkpoints were reached
+	// speedrun mod: a run only counts when ALL checkpoints were reached —
+	// otherwise the stop zone does nothing and the run keeps going
 	if (client->sess.timerunCheckpointsPassed < def->numCheckpoints)
 	{
-		notify_timerun_stop(ent, 0);
+		// hint at most once per second (the zone touch repeats every frame)
+		if (level.time >= zone->s.time)
+		{
+			trap_SendServerCommand(ent - g_entities,
+			                       va("cp \"^3Missing %d checkpoint(s) - get them all to finish!\n\"",
+			                          def->numCheckpoints - client->sess.timerunCheckpointsPassed));
+			zone->s.time = level.time + 1000;
+		}
 		return;
 	}
 
@@ -295,7 +303,7 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 		Timerun_Checkpoint(other, self->count);
 		break;
 	case TIMERUN_ZONE_STOP:
-		Timerun_StopRun(other, self->count, def);
+		Timerun_StopRun(other, self, self->count, def);
 		break;
 	default:
 		break;
