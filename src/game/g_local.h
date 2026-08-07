@@ -465,6 +465,7 @@ struct gentity_s
 	int flameQuota, flameQuotaTime, flameBurnEnt;
 
 	int count2;
+	int count3;                     ///< speedrun mod: checkpoint ordinal (sequential order)
 
 	int grenadeExplodeTime;         ///< we've caught a grenade, which was due to explode at this time
 	int grenadeFired;               ///< the grenade entity we last fired

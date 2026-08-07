@@ -159,11 +159,12 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 /**
  * @brief Records a checkpoint for the active timerun
  * @param[in] ent
- * @param[in] index
+ * @param[in] zone the checkpoint zone touched (its count3 is the ordinal)
  */
-static void Timerun_Checkpoint(gentity_t *ent, int index)
+static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 {
 	gclient_t *client = ent->client;
+	int       index   = zone->count;
 	int       cp, delta, best, status, time;
 
 	if (!client->sess.timerunActive || client->sess.currentTimerun != index)
@@ -171,10 +172,21 @@ static void Timerun_Checkpoint(gentity_t *ent, int index)
 		return;
 	}
 
-	if (client->sess.timerunCheckpointsPassed >= MAX_TIMERUN_CHECKPOINTS)
+	// sequential checkpoints: only the checkpoint whose ordinal equals the
+	// count reached so far may fire (cp0 first, then cp1, ...). Out-of-order
+	// touches leave the zone armed (s.time stays 0) so it can fire later
+	// when its turn comes.
+	if (client->sess.timerunCheckpointsPassed != zone->count3)
 	{
 		return;
 	}
+
+	// fire once per run: the touch repeats every frame while overlapping
+	if (zone->s.time)
+	{
+		return;
+	}
+	zone->s.time = 1;
 
 	cp   = client->sess.timerunCheckpointsPassed++;
 	time = client->ps.commandTime - client->sess.timerunStartTime;
@@ -292,15 +304,7 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 		Timerun_StartRun(other, self->count, def);
 		break;
 	case TIMERUN_ZONE_CHECKPOINT:
-		// fire only once per run: the touch repeats every frame while the
-		// player overlaps the zone, which would spam timerun_check and blow
-		// through MAX_TIMERUN_CHECKPOINTS (re-armed at run start)
-		if (self->s.time)
-		{
-			break;
-		}
-		self->s.time = 1;
-		Timerun_Checkpoint(other, self->count);
+		Timerun_Checkpoint(other, self);
 		break;
 	case TIMERUN_ZONE_STOP:
 		Timerun_StopRun(other, self, self->count, def);
@@ -317,7 +321,7 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
  * @param[in] origin
  * @param[in] radius
  */
-static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, float radius)
+static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, float radius, int ordinal)
 {
 	gentity_t *zone = G_Spawn();
 
@@ -327,6 +331,7 @@ static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, floa
 	zone->touch      = Timerun_ZoneTouch;
 	zone->count      = index;
 	zone->count2     = zoneType;
+	zone->count3     = ordinal;   ///< checkpoint ordinal (definition order)
 	zone->r.svFlags |= SVF_NOCLIENT;
 
 	VectorCopy(origin, zone->s.origin);
@@ -352,14 +357,14 @@ void G_InitTimeruns(void)
 
 		for (j = 0; j < def->numStarts; j++)
 		{
-			Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigins[j], def->radius);
+			Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigins[j], def->radius, 0);
 		}
 
-		Timerun_SpawnZone(i, TIMERUN_ZONE_STOP, def->stopOrigin, def->radius);
+		Timerun_SpawnZone(i, TIMERUN_ZONE_STOP, def->stopOrigin, def->radius, 0);
 
 		for (j = 0; j < def->numCheckpoints; j++)
 		{
-			Timerun_SpawnZone(i, TIMERUN_ZONE_CHECKPOINT, def->checkpointOrigins[j], def->radius);
+			Timerun_SpawnZone(i, TIMERUN_ZONE_CHECKPOINT, def->checkpointOrigins[j], def->radius, j);
 		}
 
 		trap_SetConfigstring(CS_TIMERUNS + i, def->name);
