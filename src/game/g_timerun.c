@@ -148,7 +148,7 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 static void Timerun_Checkpoint(gentity_t *ent, int index)
 {
 	gclient_t *client = ent->client;
-	int       cp, delta, best, status;
+	int       cp, delta, best, status, time;
 
 	if (!client->sess.timerunActive || client->sess.currentTimerun != index)
 	{
@@ -160,31 +160,35 @@ static void Timerun_Checkpoint(gentity_t *ent, int index)
 		return;
 	}
 
-	cp    = client->sess.timerunCheckpointsPassed++;
-	delta = client->ps.commandTime - client->sess.timerunStartTime;
+	cp   = client->sess.timerunCheckpointsPassed++;
+	time = client->ps.commandTime - client->sess.timerunStartTime;
 
-	client->sess.timerunCheckpointTimes[cp] = delta;
+	client->sess.timerunCheckpointTimes[cp] = time;
 
 	best = client->sess.timerunBestCheckpointTimes[index][cp];
 
 	if (best == 0)
 	{
 		status = 0;      // first-ever
+		delta  = 0;
 	}
-	else if (delta == best)
+	else if (time == best)
 	{
 		status = 1;      // equal
+		delta  = 0;
 	}
-	else if (delta < best)
+	else if (time < best)
 	{
 		status = 2;      // faster
+		delta  = best - time;
 	}
 	else
 	{
 		status = 3;      // slower
+		delta  = time - best;
 	}
 
-	trap_SendServerCommand(ent - g_entities, va("timerun_check %d %d %d", delta, client->ps.commandTime, status));
+	trap_SendServerCommand(ent - g_entities, va("timerun_check %d %d %d", delta, time, status));
 	Timerun_SendToSpectators(ent, va("timerun_check_spec %d %d %d", delta, client->ps.commandTime, status));
 }
 

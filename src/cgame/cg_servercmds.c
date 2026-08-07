@@ -3242,7 +3242,9 @@ static void CG_TimerunStopCommand(int spec)
 	else
 	{
 		// speedrun mod: aborted run (death/load/kill) clears the shown final time
+		// and the checkpoint line
 		cg.timerunFinishedTime[clientNum] = 0;
+		cg.timerunCheckPointChecked       = 0;
 	}
 
 	if (speedrun_debug.integer)
