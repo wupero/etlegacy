@@ -1143,6 +1143,7 @@ typedef enum
 	MOD_BAZOOKA, // Allied panzerfaust
 	MOD_BACKSTAB,
 	MOD_MP34, // Allied Sten alternative
+	MOD_TIMERUN_MISSING_CP,   // speedrun mod: stop zone reached without all checkpoints
 
 	MOD_NUM_MODS
 

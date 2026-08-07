@@ -312,7 +312,15 @@ static void CG_Obituary(entityState_t *ent)
 		// check for self kill messages
 		else if (attacker == target)
 		{
-			message = GetMODTableData(mod)->obituarySelfKillMessage;
+			if (mod == MOD_TIMERUN_MISSING_CP)
+			{
+				// speedrun mod: the missing checkpoint count rides in the weapon field
+				message = va("Missing %d checkpoint(s) - get them all to finish!", weapon);
+			}
+			else
+			{
+				message = GetMODTableData(mod)->obituarySelfKillMessage;
+			}
 		}
 
 		if (message)
