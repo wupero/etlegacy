@@ -1299,12 +1299,9 @@ static void CG_Kill_f(void)
 		return;
 	}
 
-	if (cgs.gamestate == GS_PLAYING && !cg_allowSelfKillSpawnProtection.integer && cg.spawnInvulnerability && cg.snap->ps.powerups[PW_INVULNERABLE] > cg.time)
-	{
-		CG_CenterPrint("You are invulnerable - ^3/kill^7 is disabled.");
-		return;
-	}
-
+	// timerun mod: /kill is always enabled — players respawn close to run starts,
+	// and the spawn-protection invulnerability block is removed (players are
+	// invulnerable on the server anyway, /kill is the only way to reposition)
 	trap_SendClientCommand("kill");
 }
 
