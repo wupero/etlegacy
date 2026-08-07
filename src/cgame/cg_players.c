@@ -2789,13 +2789,35 @@ void CG_AnimPlayerConditions(bg_character_t *character, centity_t *cent)
  * @details speedrun mod: render a player refEntity translucent (silhouette
  * ghost with the configured opacity)
  */
-static void CG_SpeedrunGhostRefEntity(refEntity_t *re)
+static void CG_SpeedrunGhostRefEntity(refEntity_t *re, int team)
 {
-	re->customShader  = cgs.media.speedrunGhostShader;
-	re->shaderRGBA[0] = 255;
-	re->shaderRGBA[1] = 255;
-	re->shaderRGBA[2] = 255;
-	re->shaderRGBA[3] = (int)(speedrun_playerOpacity.value * 255);
+	float opacity = speedrun_playerOpacity.value;
+
+	// clamp to the 0..1 range
+	opacity = opacity < 0.f ? 0.f : (opacity > 1.f ? 1.f : opacity);
+
+	re->customShader = cgs.media.speedrunGhostShader;
+	re->shaderRGBA[3] = (int)(opacity * 255);
+
+	// solid team color (nolightmap shader keeps it constant, no glow)
+	if (team == TEAM_AXIS)
+	{
+		re->shaderRGBA[0] = 255;
+		re->shaderRGBA[1] = 96;
+		re->shaderRGBA[2] = 64;
+	}
+	else if (team == TEAM_ALLIES)
+	{
+		re->shaderRGBA[0] = 64;
+		re->shaderRGBA[1] = 128;
+		re->shaderRGBA[2] = 255;
+	}
+	else
+	{
+		re->shaderRGBA[0] = 255;
+		re->shaderRGBA[1] = 255;
+		re->shaderRGBA[2] = 255;
+	}
 }
 
 void CG_Player(centity_t *cent)
@@ -3014,7 +3036,7 @@ void CG_Player(centity_t *cent)
 
 	if (ghostOther)
 	{
-		CG_SpeedrunGhostRefEntity(&body);
+		CG_SpeedrunGhostRefEntity(&body, ci->team);
 	}
 	CG_AddRefEntityWithPowerups(&body, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 
@@ -3101,7 +3123,7 @@ void CG_Player(centity_t *cent)
 	// set blinking flag
 	if (ghostOther)
 	{
-		CG_SpeedrunGhostRefEntity(&head);
+		CG_SpeedrunGhostRefEntity(&head, ci->team);
 	}
 	CG_AddRefEntityWithPowerups(&head, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 
@@ -3174,7 +3196,7 @@ void CG_Player(centity_t *cent)
 				CG_PositionEntityOnTag(&acc, &body, "tag_weapon", 0, NULL);
 				if (ghostOther)
 				{
-					CG_SpeedrunGhostRefEntity(&acc);
+					CG_SpeedrunGhostRefEntity(&acc, ci->team);
 				}
 				CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 			}
@@ -3198,7 +3220,7 @@ void CG_Player(centity_t *cent)
 		CG_PositionEntityOnTag(&acc, &body, "tag_weapon", 0, NULL);
 		if (ghostOther)
 		{
-			CG_SpeedrunGhostRefEntity(&acc);
+			CG_SpeedrunGhostRefEntity(&acc, ci->team);
 		}
 		CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 	}
@@ -3276,7 +3298,7 @@ void CG_Player(centity_t *cent)
 
 			if (ghostOther)
 			{
-				CG_SpeedrunGhostRefEntity(&acc);
+				CG_SpeedrunGhostRefEntity(&acc, ci->team);
 			}
 			CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 		}
