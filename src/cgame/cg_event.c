@@ -446,8 +446,9 @@ void CG_TimerunMisscpCommand(void)
 		}
 		Q_strcat(targetName, MAX_NAME_LENGTH, S_COLOR_WHITE);
 
+		// shader 0 = no death icon; this is a feed text hint, not a kill
 		CG_AddPMItemEx(PM_DEATH, va("%s %s.", targetName, CG_TranslateString(message)), " ",
-		               cgs.media.pmImages[PM_DEATH], 0, 0, colorYellow, i);
+		               0, 0, 0, colorYellow, i);
 	}
 }
 
