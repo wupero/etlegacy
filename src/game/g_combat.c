@@ -1459,6 +1459,13 @@ void G_DamageExt(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec
 		return;
 	}
 
+	// g_timerunNoDamage: players are protected outside runs as well — no damage, no
+	// knockback. Shooting still works, so objects (windows, etc.) stay destructible.
+	if (g_timerunNoDamage.integer && targ->client)
+	{
+		return;
+	}
+
 	// timerun: explosives fired by a runner harm no one (no self-boost, no collateral damage)
 	if (Timerun_ClientIsRunning(attacker) &&
 	    (mod == MOD_GRENADE || mod == MOD_GRENADE_LAUNCHER || mod == MOD_GRENADE_PINEAPPLE ||

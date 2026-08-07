@@ -278,6 +278,7 @@ extern vmCvar_t g_intermissionReadyPercent;
 extern vmCvar_t g_mapScriptDirectory;
 extern vmCvar_t g_mapConfigs;
 extern vmCvar_t g_customConfig;
+extern vmCvar_t g_timerunNoDamage;
 
 extern vmCvar_t g_moverScale;
 
