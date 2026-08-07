@@ -1448,6 +1448,26 @@ void G_InitGame(int levelTime, int randomSeed, int restart, int etLegacyServer, 
 
 	G_InitMemory();
 
+	// speedrun mod: reset every client's run state on every map load —
+	// the warmup -> match restart keeps clients connected, so a run started
+	// during warmup would otherwise stay active and block starting a new one
+	// (selfkill/load only abort while the handler can reach the state)
+	for (i = 0; i < MAX_CLIENTS; i++)
+	{
+		gclient_t *client = &level.clients[i];
+
+		client->sess.timerunActive            = qfalse;
+		client->sess.currentTimerun           = 0;
+		client->sess.timerunStartTime         = 0;
+		client->sess.timerunCheckpointsPassed = 0;
+		client->sess.timerunStopSpeed         = 0;
+		client->sess.timerunMaxSpeed          = 0;
+		memset(client->sess.timerunCheckpointTimes, 0, sizeof(client->sess.timerunCheckpointTimes));
+		memset(client->sess.timerunBestCheckpointTimes, 0, sizeof(client->sess.timerunBestCheckpointTimes));
+		memset(client->sess.timerunBestTime, 0, sizeof(client->sess.timerunBestTime));
+		memset(client->sess.timerunLastTime, 0, sizeof(client->sess.timerunLastTime));
+	}
+
 	G_InitSkillLevels();
 
 	// intialize gamestate
