@@ -1453,15 +1453,10 @@ void G_DamageExt(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec
 		return;
 	}
 
-	// timerun: runners are invulnerable — no damage, no knockback, no stun
-	if (Timerun_ClientIsRunning(targ))
-	{
-		return;
-	}
-
-	// g_timerunNoDamage: players are protected outside runs as well — no damage, no
-	// knockback. Shooting still works, so objects (windows, etc.) stay destructible.
-	if (g_timerunNoDamage.integer && targ->client)
+	// timerun mod: players can NEVER be damaged — no damage, no knockback, no stun,
+	// whether a run is active or not. Shooting still works, so objects (windows,
+	// etc.) stay destructible; only player entities are immune.
+	if (targ->client)
 	{
 		return;
 	}

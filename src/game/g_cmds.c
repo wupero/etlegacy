@@ -4562,7 +4562,8 @@ void Cmd_Activate2_f(gentity_t *ent)
 
 			if (traceEnt->client)
 			{
-				G_PushPlayer(ent, traceEnt);
+				// timerun mod: shoving players is disabled (a shove could give a
+				// runner free momentum)
 				return;
 			}
 		}

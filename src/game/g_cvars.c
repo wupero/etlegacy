@@ -288,7 +288,6 @@ vmCvar_t g_intermissionReadyPercent;
 vmCvar_t g_mapScriptDirectory;
 vmCvar_t g_mapConfigs;
 vmCvar_t g_customConfig;
-vmCvar_t g_timerunNoDamage;
 
 vmCvar_t g_moverScale;
 
@@ -634,7 +633,6 @@ cvarTable_t gameCvarTable[] =
 	{ &g_mapScriptDirectory,              "g_mapScriptDirectory",              "mapscripts",                 0,                                               0, qfalse, qfalse },
 	{ &g_mapConfigs,                      "g_mapConfigs",                      "",                           0,                                               0, qfalse, qfalse },
 	{ &g_customConfig,                    "g_customConfig",                    "defaultpublic",              CVAR_ARCHIVE,                                    0, qfalse, qfalse },
-	{ &g_timerunNoDamage,                  "g_timerunNoDamage",                  "0",                          CVAR_ARCHIVE,                                    0, qfalse, qfalse },
 	{ &g_moverScale,                      "g_moverScale",                      "1.0",                        0,                                               0, qfalse, qfalse },
 	{ &g_fixedphysics,                    "g_fixedphysics",                    "1",                          CVAR_ARCHIVE,                                    0, qfalse, qfalse },
 	{ &g_fixedphysicsfps,                 "g_fixedphysicsfps",                 "125",                        CVAR_ARCHIVE,                                    0, qfalse, qfalse },
