@@ -1014,6 +1014,9 @@ static void CG_RegisterGraphics(void)
 	// blood cloud
 	cgs.media.bloodCloudShader = trap_R_RegisterShader("bloodCloud");
 
+	// speedrun mod: translucent other players
+	cgs.media.speedrunGhostShader = trap_R_RegisterShader("speedrun/ghost");
+
 #ifdef FEATURE_MULTIVIEW // commented, kept as reminder
 	// MV cursor @multiview
 	//cgs.media.cursor = trap_R_RegisterShaderNoMip( "ui/assets/mvcursor.tga" );
