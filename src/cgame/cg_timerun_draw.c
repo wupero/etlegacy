@@ -114,19 +114,23 @@ void CG_DrawTimer(void)
 		// final time stays visible until the next run starts or an abort;
 		// show the delta vs the previous best run next to it when known
 		t = cg.timerunFinishedTime[clientNum];
-		min   = t / 60000;
-		t    -= min * 60000;
-		sec   = t / 1000;
-		milli = t - sec * 1000;
 
 		if (best > 0)
 		{
 			int d, dmin, dsec, dmilli;
 
+			// the delta needs the RAW time: compute it before the MM:SS.mmm
+			// split below mutates t (a >= 1:00 finish would otherwise delta
+			// against its sub-minute part only, faking a green new best)
 			d      = t - best;
 			dmin   = abs(d) / 60000;
 			dsec   = (abs(d) / 1000) % 60;
 			dmilli = abs(d) % 1000;
+
+			min   = t / 60000;
+			t    -= min * 60000;
+			sec   = t / 1000;
+			milli = t - sec * 1000;
 
 			if (d < 0)
 			{
@@ -148,6 +152,11 @@ void CG_DrawTimer(void)
 		}
 		else
 		{
+			min   = t / 60000;
+			t    -= min * 60000;
+			sec   = t / 1000;
+			milli = t - sec * 1000;
+
 			Com_sprintf(status, sizeof(status), "%02d:%02d.%03d", min, sec, milli);
 		}
 

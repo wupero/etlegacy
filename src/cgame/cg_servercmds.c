@@ -3253,8 +3253,13 @@ static void CG_TimerunStopCommand(int spec)
 	{
 		if (time)
 		{
+			int runIndex = Q_atoi(CG_Argv(1));
+
 			CG_Printf("speedrun_debug: run stopped - timerun %d, time %dms, stopSpeed %d, maxSpeed %d\n",
-			          Q_atoi(CG_Argv(1)), time, cg.timerunStopSpeed, cg.runMaxSpeed);
+			          runIndex, time, cg.timerunStopSpeed, cg.runMaxSpeed);
+			CG_Printf("speedrun_debug: delta %dms vs best %dms\n",
+			          time - cg.timerunBestTime[clientNum][runIndex],
+			          cg.timerunBestTime[clientNum][runIndex]);
 		}
 		else
 		{
