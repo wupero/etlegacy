@@ -13,12 +13,12 @@
  */
 static void CG_DrawCheckpointLine(void)
 {
-	int    idx, d, dmin, dsec, dmilli;
+	int    idx, t, d, min, sec, milli, dmin, dsec, dmilli;
 	char   status[32];
 	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
 	float  x, y, w;
 
-	// only during an active run, and only when a delta vs best exists
+	// only during an active run
 	if (!cg.timerunActive || !cg.timerunCheckPointChecked)
 	{
 		return;
@@ -26,37 +26,52 @@ static void CG_DrawCheckpointLine(void)
 
 	idx = cg.timerunCheckPointChecked - 1;   // latest checkpoint
 
-	if (cg.timerunCheckStatus[idx] != 2 && cg.timerunCheckStatus[idx] != 3)
+	if (cg.timerunCheckStatus[idx] == 0)
 	{
-		return;   // first-ever or equal: nothing to compare
-	}
-
-	d      = cg.timerunCheckPointDiff[idx];
-	dmin   = d / 60000;
-	d     -= dmin * 60000;
-	dsec   = d / 1000;
-	dmilli = d - dsec * 1000;
-
-	if (cg.timerunCheckStatus[idx] == 2)
-	{
-		color[0] = 0.f;   // faster than best: green
-		color[1] = 1.f;
-		color[2] = 0.f;
-		Com_sprintf(status, sizeof(status), "-%02d:%02d.%03d", dmin, dsec, dmilli);
+		// no previous checkpoint time: show the full time of reaching it
+		t     = cg.timerunCheckPointTime[idx];
+		min   = t / 60000;
+		t    -= min * 60000;
+		sec   = t / 1000;
+		milli = t - sec * 1000;
+		Com_sprintf(status, sizeof(status), "%02d:%02d.%03d", min, sec, milli);
 	}
 	else
 	{
-		color[0] = 1.f;   // slower than best: red
-		color[1] = 0.2f;
-		color[2] = 0.2f;
-		Com_sprintf(status, sizeof(status), "+%02d:%02d.%03d", dmin, dsec, dmilli);
+		// previous checkpoint time known: show the delta
+		d      = cg.timerunCheckPointDiff[idx];
+		dmin   = d / 60000;
+		d     -= dmin * 60000;
+		dsec   = d / 1000;
+		dmilli = d - dsec * 1000;
+
+		if (cg.timerunCheckStatus[idx] == 2)
+		{
+			color[0] = 0.f;   // faster than best: green
+			color[1] = 1.f;
+			color[2] = 0.f;
+			Com_sprintf(status, sizeof(status), "-%02d:%02d.%03d", dmin, dsec, dmilli);
+		}
+		else if (cg.timerunCheckStatus[idx] == 3)
+		{
+			color[0] = 1.f;   // slower than best: red
+			color[1] = 0.2f;
+			color[2] = 0.2f;
+			Com_sprintf(status, sizeof(status), "+%02d:%02d.%03d", dmin, dsec, dmilli);
+		}
+		else
+		{
+			// exactly equal
+			Com_sprintf(status, sizeof(status), "+00:00.000");
+		}
 	}
 
-	w = CG_Text_Width_Ext(status, 0.2f, 0, &cgs.media.limboFont1);
+	// just below the main timer, smaller font
+	w = CG_Text_Width_Ext(status, 0.15f, 0, &cgs.media.limboFont1);
 	x = 320.f + cgs.wideXoffset - 0.5f * w;
-	y = 480.f - 40.f;
+	y = 480.f - 72.f + CG_Text_Height_Ext(status, 0.3f, 0, &cgs.media.limboFont1) + 4.f;
 
-	CG_Text_Paint_Ext(x, y, 0.2f, 0.2f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
+	CG_Text_Paint_Ext(x, y, 0.15f, 0.15f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 }
 
 /**
