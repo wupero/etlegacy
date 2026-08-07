@@ -1424,7 +1424,10 @@ void ClientThink_real(gentity_t *ent)
 	}
 	else
 	{
-		pm.tracemask = MASK_PLAYERSOLID;
+		// timerun mod: no player-player collision — drop CONTENTS_BODY so players
+		// pass through each other (engine collides when contentmask & r.contents,
+		// and players' r.contents is CONTENTS_BODY)
+		pm.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;
 	}
 	// We've gone back to using normal bbox traces
 	//pm.trace = trap_Trace;

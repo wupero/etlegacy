@@ -1108,7 +1108,8 @@ void CG_PredictPlayerState(void)
 	}
 	else
 	{
-		cg_pmove.tracemask = MASK_PLAYERSOLID;
+		// timerun mod: no player-player collision — matches the server pmove
+		cg_pmove.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;
 	}
 
 	if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) || (cg.snap->ps.pm_flags & PMF_LIMBO)) // limbo
