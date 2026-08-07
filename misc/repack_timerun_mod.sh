@@ -60,6 +60,16 @@ unzip -qo "$SOURCE_PK3" -d "$TMP"
 cp "$BUILD_DIR/legacy/cgame_mac" "$TMP/cgame_mac"
 cp "$BUILD_DIR/legacy/ui_mac" "$TMP/ui_mac"
 
+# cross-compiled Windows modules (optional: if the win64/win32 cross builds
+# exist, replace the stock release modules so Windows clients get the same
+# cgame/ui fixes as the Mac build)
+for mod in cgame_mp_x64.dll ui_mp_x64.dll; do
+    [ -f "$ROOT/build-win64/legacy/$mod" ] && cp "$ROOT/build-win64/legacy/$mod" "$TMP/$mod"
+done
+for mod in cgame_mp_x86.dll ui_mp_x86.dll; do
+    [ -f "$ROOT/build-win32/legacy/$mod" ] && cp "$ROOT/build-win32/legacy/$mod" "$TMP/$mod"
+done
+
 ( cd "$TMP" && zip -qr "$OUT" . )
 
 # purge older revisions: a stale lower revision sorts BEFORE the new one and
