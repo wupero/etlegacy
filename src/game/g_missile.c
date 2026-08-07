@@ -1859,7 +1859,9 @@ gentity_t *fire_missile(gentity_t *self, vec3_t start, vec3_t dir, int weapon)
 	if (self->client && self->client->sess.timerunActive &&
 	    (weapon == WP_GRENADE_LAUNCHER || weapon == WP_GRENADE_PINEAPPLE ||
 	     weapon == WP_GPG40 || weapon == WP_M7 || weapon == WP_PANZERFAUST ||
-	     weapon == WP_DYNAMITE || weapon == WP_SATCHEL))
+	     weapon == WP_DYNAMITE || weapon == WP_SATCHEL ||
+	     weapon == WP_ARTY || weapon == WP_AIRSTRIKE ||
+	     weapon == WP_MORTAR_SET || weapon == WP_MORTAR2_SET))
 	{
 		bolt->damage       = 0;
 		bolt->splashDamage = 0;

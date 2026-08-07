@@ -1470,7 +1470,9 @@ void G_DamageExt(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec
 	if (Timerun_ClientIsRunning(attacker) &&
 	    (mod == MOD_GRENADE || mod == MOD_GRENADE_LAUNCHER || mod == MOD_GRENADE_PINEAPPLE ||
 	     mod == MOD_GPG40 || mod == MOD_M7 || mod == MOD_PANZERFAUST ||
-	     mod == MOD_DYNAMITE || mod == MOD_SATCHEL))
+	     mod == MOD_DYNAMITE || mod == MOD_SATCHEL || mod == MOD_LANDMINE ||
+	     mod == MOD_ARTY || mod == MOD_AIRSTRIKE ||
+	     mod == MOD_MAPMORTAR || mod == MOD_MAPMORTAR_SPLASH))
 	{
 		return;
 	}
