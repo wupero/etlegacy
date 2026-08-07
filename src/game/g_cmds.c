@@ -2114,6 +2114,15 @@ qboolean G_IsClassFull(gentity_t *ent, int playerType, team_t team)
 		return qfalse;
 	}
 
+	// speedrun mod: only medic is selectable — hardcoded, the class-limit
+	// cvars below are not reliable (bare-args server restarts and
+	// configs/mapscripts can override them)
+	if (playerType != PC_MEDIC)
+	{
+		CP("cp \"^1Only ^2Medic^1 is available on this server! Choose Medic!\n\"");
+		return qtrue;
+	}
+
 	count  = G_ClassCount(ent, playerType, team);
 	tcount = G_NumPlayersOnTeam(team);
 	if (ent->client->sess.sessionTeam != team)
