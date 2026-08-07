@@ -486,7 +486,7 @@ static qboolean G_IsPositionOK(gentity_t *ent, vec3_t newOrigin)
 {
 	trace_t trace;
 
-	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, newOrigin, ent->s.number, MASK_PLAYERSOLID);
+	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, newOrigin, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 
 	if (trace.fraction == 1.f)
 	{
@@ -519,7 +519,7 @@ static void G_StepSlideCorpse(gentity_t *ent, vec3_t newOrigin)
 		VectorCopy(ent->s.pos.trBase, down);
 		down[2] -= 16;
 		// item code is using these
-		trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID);
+		trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 		if (trace.fraction == 1.f)
 		{
 			// begin with falling again
@@ -538,7 +538,7 @@ static void G_StepSlideCorpse(gentity_t *ent, vec3_t newOrigin)
 
 	down[2] -= 18;
 
-	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID);
+	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 
 	VectorSet(up, 0, 0, 1);
 	// never step up when you still have up velocity
@@ -553,7 +553,7 @@ static void G_StepSlideCorpse(gentity_t *ent, vec3_t newOrigin)
 	up[2] += 18;
 
 	// test the player position if they were a stepheight higher
-	trap_TraceCapsule(&trace, start, ent->r.mins, ent->r.maxs, up, ent->s.number, MASK_PLAYERSOLID);
+	trap_TraceCapsule(&trace, start, ent->r.mins, ent->r.maxs, up, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 
 	if (trace.allsolid)
 	{
@@ -571,7 +571,7 @@ static void G_StepSlideCorpse(gentity_t *ent, vec3_t newOrigin)
 
 	Com_Memset(&trace, 0, sizeof(trace));
 
-	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID);
+	trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 
 	if (!trace.allsolid)
 	{
@@ -583,7 +583,7 @@ static void G_StepSlideCorpse(gentity_t *ent, vec3_t newOrigin)
 	{
 		down[2] -= 16;
 		// item code is using these
-		trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID);
+		trap_TraceCapsule(&trace, ent->s.pos.trBase, ent->r.mins, ent->r.maxs, down, ent->s.number, MASK_PLAYERSOLID & ~CONTENTS_BODY); // timerun mod: players do not block positions
 		if (trace.fraction == 1.f)
 		{
 			// begin with falling again

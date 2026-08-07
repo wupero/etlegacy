@@ -4251,13 +4251,14 @@ void PM_UpdateLean(playerState_t *ps, usercmd_t *cmd, pmove_t *tpm)
 	VectorSet(tmins, -8, -8, -7);   // NOTE: ATVI Wolfenstein Misc #472, bumped from -4 to cover gun clipping issue
 	VectorSet(tmaxs, 8, 8, 4);
 
+	// timerun mod: lean is not blocked by other players
 	if (pm)
 	{
-		pm->trace(&trace, start, tmins, tmaxs, end, ps->clientNum, MASK_PLAYERSOLID);
+		pm->trace(&trace, start, tmins, tmaxs, end, ps->clientNum, MASK_PLAYERSOLID & ~CONTENTS_BODY);
 	}
 	else
 	{
-		tpm->trace(&trace, start, tmins, tmaxs, end, ps->clientNum, MASK_PLAYERSOLID);
+		tpm->trace(&trace, start, tmins, tmaxs, end, ps->clientNum, MASK_PLAYERSOLID & ~CONTENTS_BODY);
 	}
 
 	ps->leanf = leanofs * trace.fraction;
