@@ -357,16 +357,9 @@ void CG_TransformAutomapEntity(void)
 	mapEntityData_t *mEnt;
 	int             i;
 	float           w = 100.f, h = 100.f;
-	hudStucture_t   *hud = CG_GetActiveHUD();
 
-	if (hud)
-	{
-		// subtract surrounding decoration of the compass
-		w = hud->compass.location.w - (hud->compass.location.w * 0.25f);
-		h = hud->compass.location.h - (hud->compass.location.h * 0.25f);
-
-		w = h = hypotf(w, h);
-	}
+	// speedrun mod: the HUD compass component was removed, so the automap
+	// keeps its default scale (the compass was 132x132 minus 25% decoration)
 
 	for (i = 0; i < mapEntityCount; i++)
 	{
@@ -2147,9 +2140,9 @@ void CG_DrawAutoMap(float basex, float basey, float basew, float baseh, int styl
 			continue;
 		}
 
-		icon = CG_GetCompassIcon(&snap->entities[i], qfalse, qtrue, CG_GetActiveHUD()->compass.style & COMPASS_PRIMARY_OBJECTIVES,
-		                         CG_GetActiveHUD()->compass.style & COMPASS_SECONDARY_OBJECTIVES, CG_GetActiveHUD()->compass.style & COMPASS_ITEM,
-		                         qtrue, NULL);
+		// speedrun mod: the HUD compass component was removed; the command
+		// map keeps its default icon set (prim/sec objectives + items)
+		icon = CG_GetCompassIcon(&snap->entities[i], qfalse, qtrue, qtrue, qtrue, qtrue, qtrue, NULL);
 
 		if (icon)
 		{

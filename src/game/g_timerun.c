@@ -238,17 +238,11 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	}
 
 	// speedrun mod: a run only counts when ALL checkpoints were reached —
-	// otherwise the stop zone does nothing and the run keeps going
+	// otherwise the stop zone silently does nothing and the run keeps going
+	// (no "missing checkpoint" hint: a stop zone stacked on the last
+	// checkpoint position would otherwise spam confusing feed entries)
 	if (client->sess.timerunCheckpointsPassed < def->numCheckpoints)
 	{
-		// runner-only feed hint at most once per second (the zone touch repeats
-		// every frame); a broadcast obituary event was noise for every other player
-		if (level.time >= zone->s.time)
-		{
-			trap_SendServerCommand(ent - g_entities, va("timerun_misscp %d",
-			                                            def->numCheckpoints - client->sess.timerunCheckpointsPassed));
-			zone->s.time = level.time + 1000;
-		}
 		return;
 	}
 

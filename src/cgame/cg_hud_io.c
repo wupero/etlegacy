@@ -46,10 +46,7 @@ typedef struct
 	qboolean calcAnchors;                               //< added in version 2
 	qboolean replaceNumberByName;                       //< added in version 3
 	char numberToNameTableReminder[MAXHUDS][MAX_QPATH]; //< added in version 3
-	qboolean shiftHealthBarDynamicColorStyle;           //< added in version 4
-	qboolean replaceWeaponIconStyle;                    //< added in version 5
 	qboolean addNoEchoToPopupmessageFilter;             //< added in version 5
-	qboolean shiftHealthBarDynamicColorStyle2;          //< added in version 6
 	qboolean moveBarStyleIntoOwnField;                 //< added in version 7
 } hudFileUpgrades_t;
 
@@ -1652,11 +1649,6 @@ static hudStucture_t *CG_ReadHudJsonObject(cJSON *hud, hudFileUpgrades_t *upgr, 
 		}
 	}
 
-	if (upgr->replaceWeaponIconStyle)
-	{
-		CLEARBIT(tmpHud->weaponicon.style, 1);
-	}
-
 	if (upgr->addNoEchoToPopupmessageFilter)
 	{
 		int numPopUp;
@@ -1694,38 +1686,6 @@ static hudStucture_t *CG_ReadHudJsonObject(cJSON *hud, hudFileUpgrades_t *upgr, 
 		}
 	}
 
-	if (upgr->shiftHealthBarDynamicColorStyle)
-	{
-		// Ensure dynamic coloration style is applied due to insertion of needle style from bar
-		if (tmpHud->healthbar.style & BAR_NEEDLE)
-		{
-			tmpHud->healthbar.style |= (BAR_NEEDLE << 1);
-		}
-		else
-		{
-			tmpHud->healthbar.style |= BAR_NEEDLE;   // by default, needle will be active
-		}
-	}
-
-	if (upgr->shiftHealthBarDynamicColorStyle2)
-	{
-		// Ensure dynamic coloration style is applied due to insertion of needle style from bar
-		if (tmpHud->crosshairbar.style & BAR_CIRCULAR << 2)
-		{
-			tmpHud->crosshairbar.style |= (BAR_CIRCULAR << 4);
-		}
-
-		tmpHud->crosshairbar.style &= ~(BAR_CIRCULAR << 2);    // by default, circular bar will be desactivate
-
-		// Ensure dynamic coloration style is applied due to insertion of circular style from bar
-		if (tmpHud->healthbar.style & BAR_CIRCULAR)
-		{
-			tmpHud->healthbar.style |= (BAR_CIRCULAR << 1);
-		}
-
-		tmpHud->healthbar.style &= ~BAR_CIRCULAR;    // by default, circular bar will be desactivate
-	}
-
 	if (upgr->moveBarStyleIntoOwnField)
 	{
 		int tmp = 0;
@@ -1748,26 +1708,10 @@ static hudStucture_t *CG_ReadHudJsonObject(cJSON *hud, hudFileUpgrades_t *upgr, 
 			tmpHud->weaponheatbar.style    = 0; // clear all
 		}
 
-		if (!parentHud || (tmpHud->weaponchargebar.style != parentHud->weaponchargebar.style))
-		{
-			tmpHud->weaponchargebar.barStyle = tmpHud->weaponchargebar.style;
-			tmpHud->weaponchargebar.style    = 0;   // clear all
-		}
-
 		if (!parentHud || (tmpHud->cursorhintsbar.style != parentHud->cursorhintsbar.style))
 		{
 			tmpHud->cursorhintsbar.barStyle = tmpHud->cursorhintsbar.style;
 			tmpHud->cursorhintsbar.style    = 0;    // clear all
-		}
-
-		if (!parentHud || (tmpHud->healthbar.style != parentHud->healthbar.style))
-		{
-			tmpHud->healthbar.barStyle = tmpHud->healthbar.style;
-			if (tmpHud->healthbar.style & (BAR_CIRCULAR << 1))
-			{
-				tmpHud->healthbar.style     = 1; // keep dynamic coloration style only
-				tmpHud->healthbar.barStyle &= ~(BAR_CIRCULAR << 1);   // remove dynamic coloration style from bar style
-			}
 		}
 
 		if (!parentHud || (tmpHud->weaponstability.style != parentHud->weaponstability.style))
@@ -1846,14 +1790,14 @@ static void CG_CheckJsonFileUpgrades(cJSON *root, hudFileUpgrades_t *ret)
 		ret->replaceNumberByName = qtrue;
 	// fall through
 	case 3:         // 2.82.1 - needle style has been added for health bar, requiring shifting Dynamic Color style value
-		ret->shiftHealthBarDynamicColorStyle = qtrue;
+		// (health bar HUD element removed by the speedrun mod)
 	// fall through
 	case 4:         // 2.84 - weapon icon dynamic health style replace by only ticking style due to split with weapon heat bar
-		ret->replaceWeaponIconStyle        = qtrue;
+		// (weapon icon HUD element removed by the speedrun mod)
 		ret->addNoEchoToPopupmessageFilter = qtrue;
 	// fall through
 	case 5:         // 2.84 - circular style has been added for bar, requiring shifting Dynamic Color style value
-		ret->shiftHealthBarDynamicColorStyle2 = qtrue;
+		// (health bar HUD element removed by the speedrun mod)
 	// fall through
 	case 6:         // 2.84 - move all bar style into his own field varible to be separated from real style option
 		ret->moveBarStyleIntoOwnField = qtrue;

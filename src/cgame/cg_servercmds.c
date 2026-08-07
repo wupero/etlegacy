@@ -3125,7 +3125,6 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_CHECK_SPEC_HASH 241908
 #define TIMERUN_STOP_HASH       164497
 #define TIMERUN_STOP_SPEC_HASH  233917
-#define TIMERUN_MISS_CP_HASH    190986
 // -----------
 
 /**
@@ -3931,9 +3930,6 @@ static void CG_ServerCommand(void)
 		return;
 	case TIMERUN_STOP_SPEC_HASH:      // "timerun_stop_spec"
 		CG_TimerunStopCommand(qtrue);
-		return;
-	case TIMERUN_MISS_CP_HASH:        // "timerun_misscp"
-		CG_TimerunMisscpCommand();
 		return;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

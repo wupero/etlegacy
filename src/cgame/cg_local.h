@@ -2862,13 +2862,6 @@ enum
 	LOCALTIME_12HOUR = BIT(1),
 };
 
-// reinforcement/spawn timer flags
-enum
-{
-	REINFORCEMENT_TIMER_DOUBLE_DIGITS  = BIT(0),
-	REINFORCEMENT_TIMER_COLOR_GRADIENT = BIT(1),
-};
-
 // crosshairs flags
 enum
 {
@@ -3998,7 +3991,6 @@ void CG_UpdatePMLists(void);
 qboolean CG_CheckPMItemFilter(popupMessageType_t type, int filter);
 void CG_AddPMItem(popupMessageType_t type, const char *message, const char *message2, qhandle_t shader, qhandle_t weaponShader, int scaleShader, vec3_t color);
 void CG_AddPMItemEx(popupMessageType_t type, const char *message, const char *message2, qhandle_t shader, qhandle_t weaponShader, int scaleShader, vec3_t color, int stackNum);
-void CG_TimerunMisscpCommand(void);
 void CG_AddPMItemBig(popupMessageBigType_t type, const char *message, qhandle_t shader);
 void CG_AddPMItemXP(popupMessageXPGainType_t type, const char *message, const char *message2, qhandle_t shader);
 const char *CG_GetPMItemText(centity_t *cent);
@@ -4260,18 +4252,18 @@ typedef struct hudStructure_s
 	char parent[MAX_QPATH];
 	qboolean isEditable;
 
-	hudComponent_t compass;
+
 	hudComponent_t staminabar;
 	hudComponent_t breathbar;
-	hudComponent_t healthbar;
-	hudComponent_t weaponchargebar;
-	hudComponent_t healthtext;
+
+
+
 	hudComponent_t xptext;
 	hudComponent_t ranktext;
 	hudComponent_t statsdisplay;
 	// 10
 	hudComponent_t weaponheatbar;
-	hudComponent_t weaponicon;
+
 	hudComponent_t weaponammo;
 	hudComponent_t clipbar;
 	hudComponent_t fireteam;
@@ -4289,8 +4281,6 @@ typedef struct hudStructure_s
 	hudComponent_t weaponstability;
 	hudComponent_t livesleft;
 	hudComponent_t roundtimer;
-	hudComponent_t reinforcement;
-	hudComponent_t spawntimer;
 	hudComponent_t localtime;
 	hudComponent_t votetext;
 	// 30
@@ -4301,7 +4291,7 @@ typedef struct hudStructure_s
 	hudComponent_t missilecamera;
 	hudComponent_t sprinttext;
 	hudComponent_t breathtext;
-	hudComponent_t weaponchargetext;
+
 	hudComponent_t fps;
 	hudComponent_t snapshot;
 	// 40
@@ -4409,7 +4399,6 @@ void CG_GenerateHudAnchors(hudStucture_t *hud);
 void CG_ComputeComponentPositions(hudStucture_t *hud);
 void CG_CalculateComponentLocation(hudComponent_t *comp, int depth, rectDef_t *out);
 
-void CG_DrawNewCompass(hudComponent_t *comp);
 void CG_DrawFireTeamOverlay(hudComponent_t *comp);
 void CG_DrawPM(hudComponent_t *comp);
 void CG_DrawVote(hudComponent_t *comp);
@@ -4435,26 +4424,19 @@ void CG_DrawCrosshair(hudComponent_t *comp);
 void CG_DrawIconFeed(hudComponent_t *comp);
 
 void CG_DrawPlayerStatusHead(hudComponent_t *comp);
-void CG_DrawGunIcon(hudComponent_t *comp);
 void CG_DrawGunHeatBar(hudComponent_t *comp);
 void CG_DrawAmmoCount(hudComponent_t *comp);
 void CG_DrawClipBar(hudComponent_t *comp);
 void CG_DrawPowerUps(hudComponent_t *comp);
 void CG_DrawObjectiveStatus(hudComponent_t *comp);
-void CG_DrawPlayerHealthBar(hudComponent_t *comp);
 void CG_DrawStaminaBar(hudComponent_t *comp);
 void CG_DrawBreathBar(hudComponent_t *comp);
-void CG_DrawWeapRecharge(hudComponent_t *comp);
-void CG_DrawPlayerHealth(hudComponent_t *comp);
 void CG_DrawPlayerSprint(hudComponent_t *comp);
 void CG_DrawPlayerBreath(hudComponent_t *comp);
-void CG_DrawWeaponCharge(hudComponent_t *comp);
 void CG_DrawSkills(hudComponent_t *comp);
 void CG_DrawXP(hudComponent_t *comp);
 void CG_DrawRank(hudComponent_t *comp);
 void CG_DrawLivesLeft(hudComponent_t *comp);
-void CG_DrawRespawnTimer(hudComponent_t *comp);
-void CG_DrawSpawnTimer(hudComponent_t *comp);
 void CG_DrawLocalTime(hudComponent_t *comp);
 void CG_DrawRoundTimer(hudComponent_t *comp);
 void CG_DrawDemoMessage(hudComponent_t *comp);
