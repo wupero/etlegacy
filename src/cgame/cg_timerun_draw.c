@@ -7,26 +7,40 @@
 
 /**
  * @brief CG_DrawTimer
- * @details speedrun mod: always-visible run timer on timerun maps.
- * Shows the current run time while a run is active (MM:SS.mmm) and
- * 00:00.000 otherwise.
+ * @details speedrun mod: always-visible run timer on timerun maps, bottom-center.
+ * Shows the current run time while a run is active (MM:SS.mmm), the final time
+ * after a finished run (until the next run starts or the run is aborted by
+ * death/load/kill), and 00:00.000 otherwise. Room is left below the timer for
+ * the checkpoint/delta line (drawn in a smaller font).
  */
 void CG_DrawTimer(void)
 {
-	int   t, min, sec, milli;
-	char  status[32];
+	int    clientNum = cg.clientNum;
+	int    t, min, sec, milli;
+	char   status[32];
 	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
-	float x, y, w;
+	float  x, y, w;
 
 	if (!isTimerun.integer)
 	{
 		return;
 	}
 
+	// spectators watch the followed player's finished time
+	if (cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR)
+	{
+		clientNum = cg.snap->ps.clientNum;
+	}
+
 	if (cg.timerunActive)
 	{
 		// server sent startTime+500; keep the ETrun +/-500 symmetry
 		t = cg.time - (cg.timerunStartTime - 500);
+	}
+	else if (cg.timerunFinishedTime[clientNum])
+	{
+		// final time stays visible until the next run starts or an abort
+		t = cg.timerunFinishedTime[clientNum];
 	}
 	else
 	{
@@ -45,10 +59,11 @@ void CG_DrawTimer(void)
 
 	Com_sprintf(status, sizeof(status), "%02d:%02d.%03d", min, sec, milli);
 
-	// top-center (HUD virtual space is 640 wide)
+	// bottom-center (HUD virtual space is 640x480); the checkpoint/delta
+	// line will sit below the timer, in a smaller font
 	w = CG_Text_Width_Ext(status, 0.3f, 0, &cgs.media.limboFont1);
 	x = 320.f + cgs.wideXoffset - 0.5f * w;
-	y = 30.f;
+	y = 480.f - 72.f;
 
 	CG_Text_Paint_Ext(x, y, 0.3f, 0.3f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 }

@@ -3153,6 +3153,7 @@ static void CG_TimerunStartCommand(int spec)
 	}
 
 	cg.timerunActive            = qtrue;
+	cg.timerunFinishedTime[clientNum] = 0; // speedrun mod: new run clears the shown final time
 	cg.timerunCheckPointChecked = 0;
 	cg.currentTimerun           = Q_atoi(CG_Argv(1));
 	cg.timerunStartTime         = Q_atoi(CG_Argv(spec ? 3 : 2));
@@ -3237,6 +3238,11 @@ static void CG_TimerunStopCommand(int spec)
 		cg.timerunFinishedTime[clientNum]                 = time;
 		cg.timerunStopSpeed                               = Q_atoi(CG_Argv(spec ? 4 : 3));
 		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
+	}
+	else
+	{
+		// speedrun mod: aborted run (death/load/kill) clears the shown final time
+		cg.timerunFinishedTime[clientNum] = 0;
 	}
 
 	if (speedrun_debug.integer)
