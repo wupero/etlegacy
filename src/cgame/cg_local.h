@@ -1733,7 +1733,6 @@ typedef struct
 	qhandle_t binocShaderSimple;
 
 	qhandle_t fleshSmokePuffShader;                 ///< for bullet hit flesh smoke puffs
-	qhandle_t speedrunGhostShader;                  ///< speedrun mod: translucent player ghost
 
 	qhandle_t smokePuffShader;
 	// qhandle_t smokePuffRageProShader;

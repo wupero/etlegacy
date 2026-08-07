@@ -60,8 +60,6 @@ unzip -qo "$SOURCE_PK3" -d "$TMP"
 cp "$BUILD_DIR/legacy/cgame_mac" "$TMP/cgame_mac"
 cp "$BUILD_DIR/legacy/ui_mac" "$TMP/ui_mac"
 
-# speedrun mod shader (translucent player ghost for speedrun_playerOpacity)
-cp "$ROOT/etmain/scripts/speedrun.shader" "$TMP/scripts/speedrun.shader"
 
 # cross-compiled Windows modules (optional: if the win64/win32 cross builds
 # exist, replace the stock release modules so Windows clients get the same

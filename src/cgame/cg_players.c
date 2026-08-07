@@ -2784,25 +2784,6 @@ void CG_AnimPlayerConditions(bg_character_t *character, centity_t *cent)
  * @brief CG_Player
  * @param[in,out] cent
  */
-/**
- * @brief CG_SpeedrunGhostRefEntity
- * @details speedrun mod: render a player refEntity translucent (silhouette
- * ghost with the configured opacity)
- */
-static void CG_SpeedrunGhostRefEntity(refEntity_t *re)
-{
-	float opacity = speedrun_playerOpacity.value;
-
-	// clamp to the 0..1 range
-	opacity = opacity < 0.f ? 0.f : (opacity > 1.f ? 1.f : opacity);
-
-	re->customShader  = cgs.media.speedrunGhostShader;
-	re->shaderRGBA[0] = 255;
-	re->shaderRGBA[1] = 255;
-	re->shaderRGBA[2] = 255;
-	re->shaderRGBA[3] = (int)(opacity * 255);
-}
-
 void CG_Player(centity_t *cent)
 {
 	clientInfo_t   *ci;
@@ -2813,7 +2794,6 @@ void CG_Player(centity_t *cent)
 	int            clientNum, i;
 	int            renderfx = 0, rank, team;
 	qboolean       shadow      = qfalse; // gjd added to make sure it was initialized;
-	qboolean       ghostOther  = qfalse; // speedrun mod: translucent other players
 	float          shadowPlane = 0;
 	qboolean       usingBinocs = qfalse;
 	bg_character_t *character;
@@ -2826,15 +2806,11 @@ void CG_Player(centity_t *cent)
 		return;
 	}
 
-	// speedrun mod: hide or translucently render other players — the local
-	// player's own model is never affected
-	if (cent->currentState.number != cg.snap->ps.clientNum)
+	// speedrun mod: hide other player models (speedrun_hidePlayers 1) — the
+	// local player's own model stays visible
+	if (speedrun_hidePlayers.integer && cent->currentState.number != cg.snap->ps.clientNum)
 	{
-		if (speedrun_hidePlayers.integer || speedrun_playerOpacity.value <= 0.f)
-		{
-			return;
-		}
-		ghostOther = qtrue;
+		return;
 	}
 
 	// the client number is stored in clientNum.  It can't be derived
@@ -3017,10 +2993,6 @@ void CG_Player(centity_t *cent)
 	// only need to set this once...
 	VectorCopy(lightorigin, acc.lightingOrigin);
 
-	if (ghostOther)
-	{
-		CG_SpeedrunGhostRefEntity(&body);
-	}
 	CG_AddRefEntityWithPowerups(&body, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 
 #if 0
@@ -3104,10 +3076,6 @@ void CG_Player(centity_t *cent)
 	}
 
 	// set blinking flag
-	if (ghostOther)
-	{
-		CG_SpeedrunGhostRefEntity(&head);
-	}
 	CG_AddRefEntityWithPowerups(&head, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 
 	// show blooded face
@@ -3177,10 +3145,6 @@ void CG_Player(centity_t *cent)
 			{
 				acc.hModel = cg_weapons[WP_SATCHEL_DET].weaponModel[W_TP_MODEL].model;
 				CG_PositionEntityOnTag(&acc, &body, "tag_weapon", 0, NULL);
-				if (ghostOther)
-				{
-					CG_SpeedrunGhostRefEntity(&acc);
-				}
 				CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 			}
 			else
@@ -3201,10 +3165,6 @@ void CG_Player(centity_t *cent)
 	{
 		acc.hModel = cgs.media.thirdPersonBinocModel;
 		CG_PositionEntityOnTag(&acc, &body, "tag_weapon", 0, NULL);
-		if (ghostOther)
-		{
-			CG_SpeedrunGhostRefEntity(&acc);
-		}
 		CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 	}
 
@@ -3279,10 +3239,6 @@ void CG_Player(centity_t *cent)
 				continue;
 			}
 
-			if (ghostOther)
-			{
-				CG_SpeedrunGhostRefEntity(&acc);
-			}
 			CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
 		}
 	}
