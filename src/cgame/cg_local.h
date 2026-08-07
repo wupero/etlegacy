@@ -4264,7 +4264,6 @@ typedef struct hudStructure_s
 	// 10
 	hudComponent_t weaponheatbar;
 
-	hudComponent_t weaponammo;
 	hudComponent_t clipbar;
 	hudComponent_t fireteam;
 	hudComponent_t popupmessages;
@@ -4425,7 +4424,6 @@ void CG_DrawIconFeed(hudComponent_t *comp);
 
 void CG_DrawPlayerStatusHead(hudComponent_t *comp);
 void CG_DrawGunHeatBar(hudComponent_t *comp);
-void CG_DrawAmmoCount(hudComponent_t *comp);
 void CG_DrawClipBar(hudComponent_t *comp);
 void CG_DrawPowerUps(hudComponent_t *comp);
 void CG_DrawObjectiveStatus(hudComponent_t *comp);

@@ -58,7 +58,6 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(statsdisplay),       CG_DrawSkills,                    HUD_COMP_TYPE_SPECIFIC,  0.25f, { "Column" } },
 	{ HUDF(weaponheatbar),      CG_DrawGunHeatBar,                HUD_COMP_TYPE_BAR,       0.19f, { 0 } },
 
-	{ HUDF(weaponammo),         CG_DrawAmmoCount,                 HUD_COMP_TYPE_TEXT,      0.25f, { "Dynamic Color" } },
 	{ HUDF(clipbar),            CG_DrawClipBar,                   HUD_COMP_TYPE_BAR,       0.25f, { "Dynamic Color" } },
 	{ HUDF(fireteam),           CG_DrawFireTeamOverlay,           HUD_COMP_TYPE_SPECIFIC,  0.20f, { "Latched Class", "No Header",    "Colorless Name", "Status Color Name", "Status Color Row", "Spawn Point", "Spawn Point Location", "Minor Spawn Point", "Health Text", "Mini Health Bar"} }, // FIXME: outside cg_draw_hud
 	{ HUDF(popupmessages),      CG_DrawPM,                        HUD_COMP_TYPE_FEED,      0.22f, { "No Connect",    "No TeamJoin",  "No Mission",     "No Pickup", "No Death", "No Echo", "Weapon Icon", "Alt Weap Icons", "Swap V<->K", "Force Colors", "Scroll Down"} }, // FIXME: outside cg_draw_hud
@@ -201,7 +200,6 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->ranktext           = CG_getComponent(167, 465, 57, 14, qfalse, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.20f, 0, 0, 0, CG_DrawRank);    // disable
 	hud->statsdisplay       = CG_getComponent(116, 394, 42, 70, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.25f, 0, 0, 0, CG_DrawSkills);
 	hud->weaponheatbar      = CG_getComponent(SCREEN_WIDTH - 88, SCREEN_HEIGHT - 52, 60, 32, qtrue, 0, BAR_LEFT | BAR_BG | BAR_LERP_COLOR, 100.f, (vec4_t) { 1, 1, 0, 0.3f }, (vec4_t) { 1, 0, 0, 0.7f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawGunHeatBar);
-	hud->weaponammo         = CG_getComponent(SCREEN_WIDTH - 82, 458, 57, 14, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_RIGHT, qfalse, 0.25f, 0, 0, 0, CG_DrawAmmoCount);
 	hud->clipbar            = CG_getComponent(SCREEN_WIDTH - 30, SCREEN_HEIGHT - 92, 12, 72, qfalse, 0, BAR_LEFT | BAR_VERT | BAR_BG | BAR_BGSPACING_X0Y0 | BAR_LERP_COLOR | BAR_DECOR | BAR_ICON, 100.f, (vec4_t) { 1.0f, 1.0f, 1.0f, 0.75f }, (vec4_t) { 1.0f, 0.0f, 0.0f, 0.25f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawClipBar);
 	hud->fireteam           = CG_getComponent(10, 10, 350, 100, qtrue, FT_LATCHED_CLASS | FT_HEALTH_TEXT, 0, 100.f, colorWhite, HUD_Background, qtrue, HUD_BackgroundAlt, qtrue, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.20f, 0, 0, 0, CG_DrawFireTeamOverlay);
 	hud->popupmessages      = CG_getComponent(4, 245, 422, 96, qtrue, 192, 0, 89.7f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 0, 2000, 2500, CG_DrawPM);
@@ -1030,53 +1028,6 @@ void CG_DrawGunHeatBar(hudComponent_t *comp)
 		CG_FilledBar(comp->location.x, comp->location.y, comp->location.w, comp->location.h, comp->colorMain, comp->colorSecondary,
 		             comp->colorBackground, comp->colorBorder, (float)cg.snap->ps.curWeapHeat / 255.0f, 0.f, comp->barStyle, -1);
 	}
-}
-
-/**
- * @brief CG_DrawAmmoCount
- */
-void CG_DrawAmmoCount(hudComponent_t *comp)
-{
-	int    value, value2, value3;
-	char   buffer[16] = { 0 };
-	vec4_t *color     = &comp->colorMain;
-
-	if (cgs.clientinfo[cg.clientNum].shoutcaster)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-	{
-		return;
-	}
-
-	// Draw ammo
-	CG_PlayerAmmoValue(&value, &value2, &value3, NULL, (comp->style & 1) ? &color : NULL);
-
-	if (value3 >= 0)
-	{
-		Com_sprintf(buffer, sizeof(buffer), "%i:%i/%i", value3, value, value2);
-	}
-	else if (value2 >= 0)
-	{
-		Com_sprintf(buffer, sizeof(buffer), "%i/%i", value, value2);
-	}
-	else if (value >= 0)
-	{
-		Com_sprintf(buffer, sizeof(buffer), "%i", value);
-	}
-	else
-	{
-		return;
-	}
-
-	CG_DrawCompText(comp, buffer, *color, comp->styleText, &cgs.media.limboFont1);
 }
 
 /**
