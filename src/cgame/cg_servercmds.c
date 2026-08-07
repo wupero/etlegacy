@@ -3203,6 +3203,7 @@ static void CG_TimerunCheckCommand(int spec)
 	cg.timerunCheckPointTime[idx]   = Q_atoi(CG_Argv(2));
 	cg.timerunCheckStatus[idx]      = Q_atoi(CG_Argv(3));
 	cg.timerunCheckPointChecked++;
+	cg.timerunCheckpointDrawTime    = cg.time;   // speedrun mod: line vanishes after 2s
 }
 
 /**

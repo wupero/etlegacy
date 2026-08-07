@@ -1630,6 +1630,7 @@ typedef struct
 	int timerunStopSpeed;                     ///< horizontal speed at stop
 	int runMaxSpeed;                          ///< highest speed during the run
 	int timerunCheckPointChecked;             ///< number of checkpoints received
+	int timerunCheckpointDrawTime;            ///< cg.time of the latest checkpoint (line fades after 2s)
 	int timerunCheckPointDiff[MAX_TIMERUN_CHECKPOINTS];    ///< delta vs best checkpoint
 	int timerunCheckPointTime[MAX_TIMERUN_CHECKPOINTS];    ///< absolute time at checkpoint
 	int timerunCheckStatus[MAX_TIMERUN_CHECKPOINTS];       ///< 0 first / 1 equal / 2 faster / 3 slower

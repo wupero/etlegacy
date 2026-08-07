@@ -18,8 +18,9 @@ static void CG_DrawCheckpointLine(void)
 	vec4_t color = { 1.f, 1.f, 1.f, 1.f };
 	float  x, y, w;
 
-	// only during an active run
-	if (!cg.timerunActive || !cg.timerunCheckPointChecked)
+	// only during an active run, and only for 2 seconds after the checkpoint
+	if (!cg.timerunActive || !cg.timerunCheckPointChecked
+	    || cg.time - cg.timerunCheckpointDrawTime > 2000)
 	{
 		return;
 	}
