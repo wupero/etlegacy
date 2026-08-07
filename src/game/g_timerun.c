@@ -229,17 +229,12 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	// otherwise the stop zone does nothing and the run keeps going
 	if (client->sess.timerunCheckpointsPassed < def->numCheckpoints)
 	{
-		// feed hint at most once per second (the zone touch repeats every frame);
-		// rendered in the obituary feed by the client (self-kill style event)
+		// runner-only feed hint at most once per second (the zone touch repeats
+		// every frame); a broadcast obituary event was noise for every other player
 		if (level.time >= zone->s.time)
 		{
-			gentity_t *event = G_TempEntityNotLinked(EV_OBITUARY);
-
-			VectorCopy(client->ps.origin, event->s.origin);
-			event->s.eventParm       = MOD_TIMERUN_MISSING_CP;
-			event->s.otherEntityNum  = ent - g_entities;
-			event->s.otherEntityNum2 = ent - g_entities;
-			event->s.weapon          = def->numCheckpoints - client->sess.timerunCheckpointsPassed;
+			trap_SendServerCommand(ent - g_entities, va("timerun_misscp %d",
+			                                            def->numCheckpoints - client->sess.timerunCheckpointsPassed));
 			zone->s.time = level.time + 1000;
 		}
 		return;

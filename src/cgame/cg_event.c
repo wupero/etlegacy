@@ -312,15 +312,7 @@ static void CG_Obituary(entityState_t *ent)
 		// check for self kill messages
 		else if (attacker == target)
 		{
-			if (mod == MOD_TIMERUN_MISSING_CP)
-			{
-				// speedrun mod: the missing checkpoint count rides in the weapon field
-				message = va("Missing %d checkpoint(s) - get them all to finish!", weapon);
-			}
-			else
-			{
-				message = GetMODTableData(mod)->obituarySelfKillMessage;
-			}
+			message = GetMODTableData(mod)->obituarySelfKillMessage;
 		}
 
 		if (message)
@@ -420,6 +412,45 @@ static void CG_Obituary(entityState_t *ent)
 		trap_Print(va("^7%s ^7%s\n", ci->name, CG_TranslateString("died")));
 	}
 }
+
+/**
+ * @brief Handles the targeted timerun_misscp server command.
+ * The runner hit the stop zone without all checkpoints - the hint shows in the
+ * runner's own obituary feed (broadcast feed entries were noise for other players).
+ */
+void CG_TimerunMisscpCommand(void)
+{
+	const char     *message;
+	char           targetName[MAX_NAME_LENGTH];
+	clientInfo_t   *ci;
+	hudComponent_t *pmComp;
+	int            i;
+	int            missing = Q_atoi(CG_Argv(1));
+
+	ci      = &cgs.clientinfo[cg.clientNum];
+	message = va("Missing %d checkpoint(s) - get them all to finish!", missing);
+
+	for (i = 0; i < 3; ++i)
+	{
+		pmComp = (hudComponent_t *)((byte *)&CG_GetActiveHUD()->popupmessages + i * sizeof(hudComponent_t));
+
+		if (!pmComp->visible)
+		{
+			continue;
+		}
+
+		Q_strncpyz(targetName, ci->name, sizeof(targetName) - 2);
+		if (pmComp->style & POPUP_FORCE_COLORS)
+		{
+			CG_ColorObituaryEntName(ci, pmComp->colorMain, targetName, qfalse);
+		}
+		Q_strcat(targetName, MAX_NAME_LENGTH, S_COLOR_WHITE);
+
+		CG_AddPMItemEx(PM_DEATH, va("%s %s.", targetName, CG_TranslateString(message)), " ",
+		               cgs.media.pmImages[PM_DEATH], 0, 0, colorYellow, i);
+	}
+}
+
 
 //==========================================================================
 
