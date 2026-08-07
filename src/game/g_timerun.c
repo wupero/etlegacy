@@ -66,6 +66,16 @@ static void Timerun_SendToSpectators(gentity_t *ent, const char *cmd)
 }
 
 /**
+ * @brief Whether ent is a client currently running a timerun
+ * @param[in] ent
+ * @return qtrue when the client has an active run
+ */
+qboolean Timerun_ClientIsRunning(gentity_t *ent)
+{
+	return ent && ent->client && ent->client->sess.timerunActive;
+}
+
+/**
  * @brief Aborts (time 0) or ends a timerun, notifying the client and its spectators
  * @param[in] ent
  * @param[in] time final time, or 0 when the run was aborted

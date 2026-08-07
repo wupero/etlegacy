@@ -1854,6 +1854,17 @@ gentity_t *fire_missile(gentity_t *self, vec3_t start, vec3_t dir, int weapon)
 	                         self->client ? self->client->ps.clientNum : self->s.clientNum,
 	                         self, start, dir);
 
+	// timerun: explosives thrown by a runner are inert — zero the damage so the
+	// explosion hurts no one (neither the runner nor other players)
+	if (self->client && self->client->sess.timerunActive &&
+	    (weapon == WP_GRENADE_LAUNCHER || weapon == WP_GRENADE_PINEAPPLE ||
+	     weapon == WP_GPG40 || weapon == WP_M7 || weapon == WP_PANZERFAUST ||
+	     weapon == WP_DYNAMITE || weapon == WP_SATCHEL))
+	{
+		bolt->damage       = 0;
+		bolt->splashDamage = 0;
+	}
+
 	// no self->client for shooter_grenade's
 	// if grenade time left, add it to next think and reset it, else add default value
 	if (GetWeaponTableData(weapon)->grenadeTime && self->client && self->client->ps.grenadeTimeLeft)

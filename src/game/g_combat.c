@@ -1453,6 +1453,21 @@ void G_DamageExt(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec
 		return;
 	}
 
+	// timerun: runners are invulnerable — no damage, no knockback, no stun
+	if (Timerun_ClientIsRunning(targ))
+	{
+		return;
+	}
+
+	// timerun: explosives fired by a runner harm no one (no self-boost, no collateral damage)
+	if (Timerun_ClientIsRunning(attacker) &&
+	    (mod == MOD_GRENADE || mod == MOD_GRENADE_LAUNCHER || mod == MOD_GRENADE_PINEAPPLE ||
+	     mod == MOD_GPG40 || mod == MOD_M7 || mod == MOD_PANZERFAUST ||
+	     mod == MOD_DYNAMITE || mod == MOD_SATCHEL))
+	{
+		return;
+	}
+
 	if (!inflictor)
 	{
 		inflictor = &g_entities[ENTITYNUM_WORLD];
