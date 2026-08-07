@@ -1428,6 +1428,11 @@ void G_InitGame(int levelTime, int randomSeed, int restart, int etLegacyServer, 
 
 	G_RegisterCvars();
 
+	// timerun mod: spawn time is hardcoded to 1s for both teams — force the limbo
+	// timers so the client countdown matches and neither config nor Lua can change them
+	trap_Cvar_Set("g_redlimbotime", "1000");
+	trap_Cvar_Set("g_bluelimbotime", "1000");
+
 	// enforcemaxlives stuff
 
 	// we need to clear the list even if enforce maxlives is not active

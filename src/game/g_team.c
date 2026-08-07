@@ -1892,8 +1892,9 @@ qboolean G_teamJoinCheck(team_t nTeam, gentity_t *ent)
 		teamInfo[nTeam].team_lock = qfalse;
 	}
 
-	// Check for locked teams
-	if ((nTeam == TEAM_AXIS || nTeam == TEAM_ALLIES))
+	// timerun mod: no per-team player limit and no team locks — joining is
+	// unrestricted (only the same-team early-out and the shoutcaster restriction remain)
+	if (nTeam == TEAM_AXIS || nTeam == TEAM_ALLIES)
 	{
 		if (ent->client->sess.sessionTeam == nTeam)
 		{
@@ -1904,36 +1905,6 @@ qboolean G_teamJoinCheck(team_t nTeam, gentity_t *ent)
 		if (ent->client->sess.shoutcaster)
 		{
 			return qfalse;
-		}
-
-		if (g_gametype.integer != GT_WOLF_LMS)
-		{
-			// Check for full teams
-			if (team_maxplayers.integer > 0 && team_maxplayers.integer <= cnt)
-			{
-				G_printFull(va("The %s team is full!", aTeams[nTeam]), ent);
-				return qfalse;
-
-				// Check for locked teams
-			}
-			else if (teamInfo[nTeam].team_lock && (!(ent->client->pers.invite & nTeam)))
-			{
-				G_printFull(va("The %s team is LOCKED!", aTeams[nTeam]), ent);
-				return qfalse;
-			}
-		}
-		else
-		{
-			if (team_maxplayers.integer > 0 && team_maxplayers.integer <= cnt)
-			{
-				G_printFull(va("The %s team is full!", aTeams[nTeam]), ent);
-				return qfalse;
-			}
-			else if (g_gamestate.integer == GS_PLAYING && g_lms_lockTeams.integer && (!(ent->client->pers.invite & nTeam)))
-			{
-				G_printFull(va("The %s team is LOCKED!", aTeams[nTeam]), ent);
-				return qfalse;
-			}
 		}
 	}
 

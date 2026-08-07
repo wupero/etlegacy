@@ -1508,27 +1508,7 @@ qboolean SetTeam(gentity_t *ent, const char *s, qboolean force, weapon_t w1, wea
 			return qfalse;  // ignore the request
 		}
 
-		if (((g_gametype.integer == GT_WOLF_LMS && g_lms_teamForceBalance.integer) || g_teamForceBalance.integer) && !force)
-		{
-			int counts[TEAM_NUM_TEAMS];
-
-			counts[TEAM_ALLIES] = TeamCount(ent - g_entities, TEAM_ALLIES);
-			counts[TEAM_AXIS]   = TeamCount(ent - g_entities, TEAM_AXIS);
-
-			// We allow a spread of one
-			if (team == TEAM_AXIS && counts[TEAM_AXIS] - counts[TEAM_ALLIES] >= 1)
-			{
-				CP("cp \"The Axis has too many players.\n\"");
-				return qfalse; // ignore the request
-			}
-			if (team == TEAM_ALLIES && counts[TEAM_ALLIES] - counts[TEAM_AXIS] >= 1)
-			{
-				CP("cp \"The Allies have too many players.\n\"");
-				return qfalse; // ignore the request
-			}
-
-			// It's ok, the team we are switching to has less or same number of players
-		}
+		// timerun mod: team balance is hardcoded off — anyone can join any team
 	}
 
 	oldTeam = client->sess.sessionTeam;

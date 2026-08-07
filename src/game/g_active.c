@@ -1812,11 +1812,11 @@ void SpectatorClientEndFrame(gentity_t *ent)
 		gclient_t *cl;
 		qboolean  do_respawn = qfalse;
 
+		// timerun mod: instant respawn ('g_forcerespawn -1') is disabled — the spawn
+		// time is hardcoded to 1s and must not be configurable
 		if (
-			// Players can instantly respawn when 'g_forcerespawn == -1'
-			(g_forcerespawn.integer == -1 && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 			// Players can instantly respawn in warmup
-			|| (g_gamestate.integer != GS_PLAYING && ent->client->respawnTime <= level.timeCurrent &&
+			(g_gamestate.integer != GS_PLAYING && ent->client->respawnTime <= level.timeCurrent &&
 			    ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 			)
 		{
@@ -1834,13 +1834,13 @@ void SpectatorClientEndFrame(gentity_t *ent)
 		}
 		else if (ent->client->sess.sessionTeam == TEAM_AXIS)
 		{
-			testtime                            = (level.dwRedReinfOffset + level.timeCurrent - level.startTime) % g_redlimbotime.integer;
+			testtime                            = (level.dwRedReinfOffset + level.timeCurrent - level.startTime) % 1000; // timerun mod: hardcoded 1s spawn
 			do_respawn                          = (testtime < ent->client->pers.lastReinforceTime);
 			ent->client->pers.lastReinforceTime = testtime;
 		}
 		else if (ent->client->sess.sessionTeam == TEAM_ALLIES)
 		{
-			testtime                            = (level.dwBlueReinfOffset + level.timeCurrent - level.startTime) % g_bluelimbotime.integer;
+			testtime                            = (level.dwBlueReinfOffset + level.timeCurrent - level.startTime) % 1000; // timerun mod: hardcoded 1s spawn
 			do_respawn                          = (testtime < ent->client->pers.lastReinforceTime);
 			ent->client->pers.lastReinforceTime = testtime;
 		}
