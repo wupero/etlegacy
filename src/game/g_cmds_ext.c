@@ -228,6 +228,13 @@ void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
+	// no save-scumming while a timerun is active
+	if (ent->client->sess.timerunActive)
+	{
+		CP("cp \"^dYou can not ^nsave ^dduring a run\n\"");
+		return;
+	}
+
 	// entity must be on the ground to save
 	if (ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
 	{
@@ -308,6 +315,13 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	{
 		CP("cp \"^dUse ^nsave ^dfirst\n\"");
 		return;
+	}
+
+	// loading resets any active timerun so the run can be restarted
+	if (ent->client->sess.timerunActive)
+	{
+		notify_timerun_stop(ent, 0);
+		CP("cp \"^dRun ^ninterrupted\n\"");
 	}
 
 	// teleport to the saved position (toggles no-lerp bit, relinks entity)
