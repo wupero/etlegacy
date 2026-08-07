@@ -363,6 +363,9 @@ void CG_ParseSysteminfo(void)
 
 	cgs.sv_fps = Q_atoi(Info_ValueForKey(info, "sv_fps"));
 
+	// speedrun mod: server flags timerun maps via the isTimerun systeminfo cvar
+	isTimerun.integer = Q_atoi(Info_ValueForKey(info, "isTimerun"));
+
 	if (!cgs.sv_fps)
 	{
 		// no way to know for sure, assume default

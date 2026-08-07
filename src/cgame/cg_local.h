@@ -4414,6 +4414,7 @@ void CG_DrawVote(hudComponent_t *comp);
 void CG_DrawSpectatorMessage(hudComponent_t *comp);
 void CG_DrawLimboMessage(hudComponent_t *comp);
 void CG_DrawFollow(hudComponent_t *comp);
+void CG_DrawTimer(void);   // speedrun mod: always-visible run timer
 void CG_DrawMissileCamera(hudComponent_t *comp);
 void CG_DrawTeamInfo(hudComponent_t *comp);
 void CG_DrawSpectator(hudComponent_t *comp);

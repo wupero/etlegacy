@@ -4421,6 +4421,9 @@ static void CG_Draw2D(void)
 		// window updates
 		CG_windowDraw();
 	}
+
+	// speedrun mod: always-visible run timer
+	CG_DrawTimer();
 }
 
 /**
