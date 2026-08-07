@@ -2340,11 +2340,15 @@ void ClientEndFrame(gentity_t *ent)
 
 	BG_PlayerStateToEntityState(&ent->client->ps, &ent->s, level.time, qfalse);
 
+#if 0 // timerun mod: players may stand inside each other — the anti-stuck push-out
+	// (StuckInClient -> CONTENTS_CORPSE -> WolfReviveBbox -> WolfRevivePushEnt)
+	// is disabled; ETrun removed this whole system from its fork.
 	if (ent->health > 0 && StuckInClient(ent))
 	{
 		G_DPrintf("%s is stuck in a client.\n", ent->client->pers.netname);
 		ent->r.contents = CONTENTS_CORPSE;
 	}
+#endif
 
 	if (ent->health > 0 && ent->r.contents == CONTENTS_CORPSE && !(ent->s.eFlags & EF_MOUNTEDTANK))
 	{
