@@ -125,6 +125,22 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	client->sess.timerunActive            = qtrue;
 	client->sess.currentTimerun           = index;
 	client->sess.timerunStartTime         = client->ps.commandTime;
+
+	// speedrun mod: re-arm this run's checkpoint zones for the new run
+	{
+		int i;
+
+		for (i = 0; i < MAX_GENTITIES; i++)
+		{
+			gentity_t *zone = &g_entities[i];
+
+			if (zone->inuse && zone->classname && !Q_stricmp(zone->classname, "timerun_zone")
+			    && zone->count == index && zone->count2 == TIMERUN_ZONE_CHECKPOINT)
+			{
+				zone->s.time = 0;
+			}
+		}
+	}
 	client->sess.timerunStartSpeed        = Timerun_HorizontalSpeed(ent);
 	client->sess.timerunStopSpeed         = 0;
 	client->sess.timerunMaxSpeed          = 0;
@@ -268,6 +284,14 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 		Timerun_StartRun(other, self->count, def);
 		break;
 	case TIMERUN_ZONE_CHECKPOINT:
+		// fire only once per run: the touch repeats every frame while the
+		// player overlaps the zone, which would spam timerun_check and blow
+		// through MAX_TIMERUN_CHECKPOINTS (re-armed at run start)
+		if (self->s.time)
+		{
+			break;
+		}
+		self->s.time = 1;
 		Timerun_Checkpoint(other, self->count);
 		break;
 	case TIMERUN_ZONE_STOP:
