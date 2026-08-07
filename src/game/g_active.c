@@ -1535,6 +1535,13 @@ void ClientThink_real(gentity_t *ent)
 
 	// link entity now, after any personal teleporters have been used
 	trap_LinkEntity(ent);
+
+	// speedrun mod: ghost players — SV_LinkEntity encodes the bbox into
+	// s.solid from r.contents; clear it so even a STOCK client's prediction
+	// never collides with player entities (it only traces entities with a
+	// non-zero solid field)
+	ent->s.solid = 0;
+
 	if (!ent->client->noclip)
 	{
 		G_TouchTriggers(ent);
