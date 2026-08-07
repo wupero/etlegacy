@@ -192,7 +192,7 @@ float CG_ClientHitboxMaxZ(entityState_t *hitEnt, float def)
  * @param[in,out] tr
  */
 static void CG_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-                                  int skipNumber, int mask, qboolean capsule, trace_t *tr)
+                                  int skipNumber, int mask, qboolean capsule, qboolean skipPlayers, trace_t *tr)
 {
 	int           i, x, zd, zu;
 	trace_t       trace;
@@ -208,6 +208,12 @@ static void CG_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 		ent  = &cent->currentState;
 
 		if (ent->number == skipNumber)
+		{
+			continue;
+		}
+
+		// timerun mod: option to ignore player entities entirely (ETrun-style)
+		if (skipPlayers && ent->eType == ET_PLAYER)
 		{
 			continue;
 		}
@@ -402,7 +408,7 @@ void CG_Trace(trace_t *result, const vec3_t start, const vec3_t mins, const vec3
 	trap_CM_BoxTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0f ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// check all other solid models
-	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qfalse, &t);
+	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qfalse, qfalse, &t);
 
 	*result = t;
 }
@@ -471,7 +477,25 @@ void CG_TraceCapsule(trace_t *result, const vec3_t start, const vec3_t mins, con
 	trap_CM_CapsuleTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0f ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// check all other solid models
-	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qtrue, &t);
+	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qtrue, qfalse, &t);
+
+	*result = t;
+}
+
+/**
+ * @brief CG_TraceCapsuleNoPlayers
+ * @details timerun mod: capsule trace that ignores player entities entirely
+ * (ETrun-style "ghost players") — used for client-side movement prediction so
+ * passing through other players is perfectly smooth
+ */
+void CG_TraceCapsuleNoPlayers(trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask)
+{
+	trace_t t;
+
+	trap_CM_CapsuleTrace(&t, start, end, mins, maxs, 0, mask);
+	t.entityNum = t.fraction != 1.0f ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
+	// check all other solid models, but skip players
+	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qtrue, qtrue, &t);
 
 	*result = t;
 }
@@ -1091,7 +1115,8 @@ void CG_PredictPlayerState(void)
 
 	cg_pmove.skill = cgs.clientinfo[cg.snap->ps.clientNum].skill;
 
-	cg_pmove.trace = CG_TraceCapsule;
+	// timerun mod: ghost players — prediction never collides with player entities
+	cg_pmove.trace = CG_TraceCapsuleNoPlayers;
 	//cg_pmove.trace = CG_Trace;
 	cg_pmove.pointcontents = CG_PointContents;
 	if (cg_pmove.ps->pm_type == PM_DEAD)
