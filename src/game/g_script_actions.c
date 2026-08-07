@@ -3265,23 +3265,12 @@ qboolean G_ScriptAction_EntityScriptName(gentity_t *ent, char *params)
  */
 qboolean G_ScriptAction_AxisRespawntime(gentity_t *ent, char *params)
 {
-	char *pString = params, *token;
-
-	token = COM_Parse(&pString);
-	if (!token[0])
-	{
-		G_Error("G_ScriptAction_AxisRespawntime: time parameter required\n");
-	}
-
-	if (g_userAxisRespawnTime.integer)
-	{
-		trap_Cvar_Set("g_redlimbotime", va("%i", g_userAxisRespawnTime.integer * 1000));
-	}
-	else
-	{
-		trap_Cvar_Set("g_redlimbotime", va("%s000", token));
-	}
-
+	// timerun mod: spawn time is hardcoded to 1s — mapscript respawntime
+	// overrides are ignored. NOTE: trap_Cvar_Set calls Cvar_Set which forces,
+	// so CVAR_ROM alone cannot stop these (radar.script's wm_axis_respawntime
+	// 30 was overriding the hardcoded 1000ms regardless of the ROM flag).
+	(void)ent;
+	(void)params;
 	return qtrue;
 }
 
@@ -3294,23 +3283,10 @@ qboolean G_ScriptAction_AxisRespawntime(gentity_t *ent, char *params)
  */
 qboolean G_ScriptAction_AlliedRespawntime(gentity_t *ent, char *params)
 {
-	char *pString = params, *token;
-
-	token = COM_Parse(&pString);
-	if (!token[0])
-	{
-		G_Error("G_ScriptAction_AlliedRespawntime: time parameter required\n");
-	}
-
-	if (g_userAlliedRespawnTime.integer)
-	{
-		trap_Cvar_Set("g_bluelimbotime", va("%i", g_userAlliedRespawnTime.integer * 1000));
-	}
-	else
-	{
-		trap_Cvar_Set("g_bluelimbotime", va("%s000", token));
-	}
-
+	// timerun mod: spawn time is hardcoded to 1s — mapscript respawntime
+	// overrides are ignored (see G_ScriptAction_AxisRespawntime).
+	(void)ent;
+	(void)params;
 	return qtrue;
 }
 
