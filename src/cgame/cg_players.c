@@ -2806,6 +2806,13 @@ void CG_Player(centity_t *cent)
 		return;
 	}
 
+	// speedrun mod: hide other player models (speedrun_hidePlayers 1) — the
+	// local player's own model stays visible
+	if (speedrun_hidePlayers.integer && cent->currentState.number != cg.snap->ps.clientNum)
+	{
+		return;
+	}
+
 	// the client number is stored in clientNum.  It can't be derived
 	// from the entity number, because a single client may have
 	// multiple corpses on the level using the same clientinfo

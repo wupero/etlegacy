@@ -327,7 +327,8 @@ vmCvar_t cg_scopeReticleLineThickness;
 vmCvar_t cg_scopeReticleDotThickness;
 
 vmCvar_t cg_commandMapTime;
-vmCvar_t timerun_debug;
+vmCvar_t speedrun_debug;
+vmCvar_t speedrun_hidePlayers;
 
 typedef struct
 {
@@ -639,7 +640,8 @@ static cvarTable_t cvarTable[] =
 	{ &cg_scopeReticleDotThickness,           "cg_scopeReticleDotThickness",           "2.0",         CVAR_ARCHIVE,                 0 },
 
 	{ &cg_commandMapTime,                     "cg_commandMapTime",                     "0",           CVAR_ARCHIVE,                 0 },
-	{ &timerun_debug,                         "timerun_debug",                         "0",           CVAR_ARCHIVE,                 0 },
+	{ &speedrun_debug,                        "speedrun_debug",                        "0",           CVAR_ARCHIVE,                 0 },
+	{ &speedrun_hidePlayers,                  "speedrun_hidePlayers",                  "0",           CVAR_ARCHIVE,                 0 },
 };
 
 static const unsigned int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);

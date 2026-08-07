@@ -3165,9 +3165,9 @@ static void CG_TimerunStartCommand(int spec)
 		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
 	}
 
-	if (timerun_debug.integer)
+	if (speedrun_debug.integer)
 	{
-		CG_Printf("timerun_debug: run started - timerun %d, startTime %d (+500), startSpeed %d\n",
+		CG_Printf("speedrun_debug: run started - timerun %d, startTime %d (+500), startSpeed %d\n",
 		          cg.currentTimerun, cg.timerunStartTime, cg.timerunStartSpeed);
 	}
 }
@@ -3236,16 +3236,16 @@ static void CG_TimerunStopCommand(int spec)
 		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
 	}
 
-	if (timerun_debug.integer)
+	if (speedrun_debug.integer)
 	{
 		if (time)
 		{
-			CG_Printf("timerun_debug: run stopped - timerun %d, time %dms, stopSpeed %d, maxSpeed %d\n",
+			CG_Printf("speedrun_debug: run stopped - timerun %d, time %dms, stopSpeed %d, maxSpeed %d\n",
 			          Q_atoi(CG_Argv(1)), time, cg.timerunStopSpeed, cg.runMaxSpeed);
 		}
 		else
 		{
-			CG_Printf("timerun_debug: run aborted - timerun %d\n", Q_atoi(CG_Argv(1)));
+			CG_Printf("speedrun_debug: run aborted - timerun %d\n", Q_atoi(CG_Argv(1)));
 		}
 	}
 }

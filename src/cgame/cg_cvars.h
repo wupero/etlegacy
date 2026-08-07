@@ -107,7 +107,8 @@ extern vmCvar_t cg_zoomStepSniper;
 extern vmCvar_t cg_thirdPersonRange;
 extern vmCvar_t cg_thirdPersonAngle;
 extern vmCvar_t cg_thirdPerson;
-extern vmCvar_t timerun_debug;
+extern vmCvar_t speedrun_debug;
+extern vmCvar_t speedrun_hidePlayers;
 extern vmCvar_t cg_scopedSensitivityScaler;
 #ifdef ALLOW_GSYNC
 extern vmCvar_t cg_synchronousClients;
