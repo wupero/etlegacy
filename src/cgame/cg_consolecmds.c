@@ -3517,7 +3517,7 @@ static void CG_Speedrun_f(void)
 		if (name[0])
 		{
 			n++;
-			CG_Printf("%d. %s\n", n, name);
+			CG_Printf("^2%d.^7 %s\n", n, name);
 		}
 	}
 
