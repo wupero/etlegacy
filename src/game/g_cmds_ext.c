@@ -330,6 +330,11 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	// reset speed so no momentum carries into the loaded position
 	VectorClear(ent->client->ps.velocity);
 
+	// speedrun mod: loading a save restores full stamina (stamina lives in
+	// ps.stats[STAT_SPRINTTIME], server-authoritative via pmove; SPRINTTIME = max)
+	ent->client->ps.stats[STAT_SPRINTTIME] = SPRINTTIME;
+	ent->client->ps.sprintExertTime        = 0;
+
 	if (posNum == 0)
 	{
 		CP("cp \"^dLoaded\n\"");
