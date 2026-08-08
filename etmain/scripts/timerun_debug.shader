@@ -1,7 +1,8 @@
-// speedrun mod: solid blue debug boxes for timerun zones.
-// cull none (twosided) so every wall renders from inside AND outside the box.
-// depthwrite: blended surfaces drop the depth mask unless explicitly requested,
-// which made walls pile up additively; writing depth restores proper occlusion.
+// speedrun mod: semi-transparent blue debug boxes for timerun zones.
+// cull none (twosided): every wall renders from inside AND outside.
+// low-alpha additive + no depthwrite: walls stay see-through, so all 6
+// faces of a zone are visible at once (ETrun-style trigger boxes). An
+// opaque box would only show the 3 faces facing the camera.
 gfx/2d/timerun_debug
 {
 	cull none
@@ -9,8 +10,7 @@ gfx/2d/timerun_debug
 	{
 		map $whiteimage
 		blendFunc GL_SRC_ALPHA GL_ONE
-		depthwrite
+		alphaGen const 0.25
 		rgbGen vertex
-		alphaGen vertex
 	}
 }
