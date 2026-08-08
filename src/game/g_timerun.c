@@ -234,7 +234,7 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 
 	// speedrun mod: private center-print confirmation (only the runner sees it;
 	// display gated client-side on speedrun_debug)
-	trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Run started: ^n%s\n\"", def->name));
+	trap_SendServerCommand(ent - g_entities, "timerun_cp \"^2Run started\n\"");
 }
 
 /**
@@ -375,8 +375,8 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	{
 		int    min = time / 60000, t = time - min * 60000, sec = t / 1000, milli = t - sec * 1000;
 
-		trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Run finished: ^n%s^7 in ^2%02d:%02d.%03d\n\"",
-		                                            def->name, min, sec, milli));
+		trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Run finished^7 in ^2%02d:%02d.%03d\n\"",
+		                                            min, sec, milli));
 	}
 
 	client->sess.timerunActive = qfalse;

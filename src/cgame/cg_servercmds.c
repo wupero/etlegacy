@@ -3170,11 +3170,6 @@ static void CG_TimerunStartCommand(int spec)
 		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
 	}
 
-	if (speedrun_debug.integer)
-	{
-		CG_Printf("speedrun_debug: run started - timerun %d, startTime %d (+500), startSpeed %d\n",
-		          cg.currentTimerun, cg.timerunStartTime, cg.timerunStartSpeed);
-	}
 }
 
 /**
@@ -3206,12 +3201,6 @@ static void CG_TimerunCheckCommand(int spec)
 	cg.timerunCheckPointChecked++;
 	cg.timerunCheckpointDrawTime    = cg.time;   // speedrun mod: line vanishes after 2s
 
-	if (speedrun_debug.integer)
-	{
-		CG_Printf("speedrun_debug: checkpoint %d - time %dms, delta %dms, status %d\n",
-		          idx + 1, cg.timerunCheckPointTime[idx], cg.timerunCheckPointDiff[idx],
-		          cg.timerunCheckStatus[idx]);
-	}
 }
 
 /**
@@ -3262,8 +3251,6 @@ static void CG_TimerunStopCommand(int spec)
 		{
 			int runIndex = Q_atoi(CG_Argv(1));
 
-			CG_Printf("speedrun_debug: run stopped - timerun %d, time %dms, stopSpeed %d, maxSpeed %d\n",
-			          runIndex, time, cg.timerunStopSpeed, cg.runMaxSpeed);
 			CG_Printf("speedrun_debug: delta %dms vs best %dms\n",
 			          time - cg.timerunBestTime[clientNum][runIndex],
 			          cg.timerunBestTime[clientNum][runIndex]);
