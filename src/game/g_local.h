@@ -1527,6 +1527,7 @@ void G_InitTimeruns(void);
 void notify_timerun_stop(gentity_t *ent, int time);
 qboolean Timerun_ClientIsRunning(gentity_t *ent);
 qboolean Timerun_DefAllowedByConfig(const timerunDef_t *def);
+void Timerun_StopAllRuns(void);
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerKillsDeaths_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerTime_f(gentity_t *ent, unsigned int dwCommand, int value);

@@ -148,6 +148,28 @@ void notify_timerun_stop(gentity_t *ent, int time)
 }
 
 /**
+ * @brief speedrun mod: ends every active timerun (e.g. on a config change)
+ *
+ * Runs live in client->sess, which survives map_restart — the path a config
+ * vote takes (G_configSet queues map_restart 0 GS_RESET) — so without this
+ * a run would keep ticking through a config change. Called from G_configSet.
+ */
+void Timerun_StopAllRuns(void)
+{
+	int i;
+
+	for (i = 0; i < level.maxclients; i++)
+	{
+		gentity_t *ent = g_entities + i;
+
+		if (ent->client && ent->client->sess.timerunActive)
+		{
+			notify_timerun_stop(ent, 0);
+		}
+	}
+}
+
+/**
  * @brief Starts a timerun for ent
  * @param[in] ent
  * @param[in] index index into level.timeruns

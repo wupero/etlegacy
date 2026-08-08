@@ -510,6 +510,12 @@ qboolean G_configSet(const char *configname)
 
 	G_Printf(">> %s settings loaded!\n", (level.config.publicConfig) ? "Public" : "Competition");
 
+	// speedrun mod: a config change must end all active runs — run state lives
+	// in client->sess which survives the map_restart queued below (only a full
+	// map change wipes it), so without this a run would keep ticking through
+	// the config switch
+	Timerun_StopAllRuns();
+
 	trap_Cvar_Set("g_customConfig", filename);
 
 	if (!level.config.publicConfig && g_gamestate.integer == GS_WARMUP_COUNTDOWN)
