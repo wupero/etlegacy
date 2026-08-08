@@ -431,6 +431,8 @@
 #define CV_SVF_POLL             1048576
 #define CV_SVF_MAPRESTART       2097152
 #define CV_SVF_COINTOSS         4194304
+#define CV_SVF_STARTMATCH       8388608
+#define CV_SVF_CAMPAIGN         16777216
 
 // referee level
 #define RL_NONE                 0

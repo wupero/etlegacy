@@ -68,9 +68,12 @@ rm -f "$TMP/configs/defaultpublic.config"
 mkdir -p "$TMP/configs"
 cp "$ROOT/etmain/configs/"*.config "$TMP/configs/"
 
-# speedrun mod: overlay the repo's ui/ menus (the official pk3's vote menus
-# still reference the deleted configs; the repo etmain/ui is their source)
+# speedrun mod: overlay the repo's ui/ menus + menudef.h (the official pk3's
+# vote menus still reference the deleted configs; the repo etmain/ui is their
+# source. menudef.h MUST be overlaid too: the menu parser expands its #defines
+# at load time, and new CV_SVF_* flags only exist in the repo's copy)
 cp "$ROOT/etmain/ui/"*.menu "$TMP/ui/"
+cp "$ROOT/etmain/ui/menudef.h" "$TMP/ui/menudef.h"
 
 # speedrun mod: ship the cull-none debug shader for the timerun zone boxes
 # (scripts/ is the classic renderer's shader dir; materials/ is renderer2-only)

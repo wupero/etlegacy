@@ -174,6 +174,8 @@ vmCvar_t vote_allow_nextcampaign;
 vmCvar_t vote_allow_poll;
 vmCvar_t vote_allow_maprestart;
 vmCvar_t vote_allow_cointoss;
+vmCvar_t vote_allow_startmatch;
+vmCvar_t vote_allow_campaign;
 
 vmCvar_t refereePassword;
 vmCvar_t shoutcastPassword;
@@ -515,6 +517,8 @@ cvarTable_t gameCvarTable[] =
 	{ &vote_allow_poll,                   "vote_allow_poll",                   "1",                          0,                                               0, qfalse, qfalse },
 	{ &vote_allow_maprestart,             "vote_allow_maprestart",             "1",                          0,                                               0, qfalse, qfalse },
 	{ &vote_allow_cointoss,               "vote_allow_cointoss",               "1",                          0,                                               0, qfalse, qfalse },
+	{ &vote_allow_startmatch,              "vote_allow_startmatch",              "1",                          0,                                               0, qfalse, qfalse },
+	{ &vote_allow_campaign,                "vote_allow_campaign",                "1",                          0,                                               0, qfalse, qfalse },
 
 	{ &g_voting,                          "g_voting",                          "0",                          0,                                               0, qfalse, qfalse },
 
@@ -965,7 +969,8 @@ void G_UpdateCvars(void)
 				    cv->vmCvar == &vote_allow_muting          || cv->vmCvar == &vote_allow_surrender      ||
 				    cv->vmCvar == &vote_allow_restartcampaign || cv->vmCvar == &vote_allow_nextcampaign   ||
 				    cv->vmCvar == &vote_allow_poll            || cv->vmCvar == &vote_allow_maprestart     ||
-				    cv->vmCvar == &vote_allow_cointoss)
+				    cv->vmCvar == &vote_allow_cointoss        || cv->vmCvar == &vote_allow_startmatch     ||
+				    cv->vmCvar == &vote_allow_campaign)
 				{
 					fVoteFlags = qtrue;
 				}

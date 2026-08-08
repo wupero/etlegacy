@@ -740,7 +740,7 @@ int G_Campaign_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2
 
 		trap_GetServerinfo(serverinfo, sizeof(serverinfo));
 
-		if (!vote_allow_map.integer && ent && !ent->client->sess.referee)
+		if ((!vote_allow_map.integer || !vote_allow_campaign.integer) && ent && !ent->client->sess.referee)
 		{
 			G_voteDisableMessage(ent, arg);
 			if (g_gametype.integer == GT_WOLF_CAMPAIGN)
@@ -1105,6 +1105,12 @@ int G_StartMatch_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *ar
 				G_refPrintf(ent, "Usage: ^3%s %s%s\n", ((fRefereeCmd) ? "\\ref" : "\\callvote"), arg, aVoteInfo[dwVoteIndex].pszVoteHelp);
 				return G_INVALID;
 			}
+		}
+
+		else if (!vote_allow_startmatch.integer && ent && !ent->client->sess.referee)
+		{
+			G_voteDisableMessage(ent, arg);
+			return G_INVALID;
 		}
 
 		if (g_gamestate.integer == GS_PLAYING || g_gamestate.integer == GS_INTERMISSION)

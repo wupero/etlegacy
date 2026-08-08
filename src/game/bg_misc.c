@@ -4590,7 +4590,9 @@ const voteType_t voteToggles[] =
 	{ "vote_allow_nextcampaign",           CV_SVF_NEXTCAMPAIGN           },
 	{ "vote_allow_poll",                   CV_SVF_POLL                   },
 	{ "vote_allow_maprestart",             CV_SVF_MAPRESTART             },
-	{ "vote_allow_cointoss",               CV_SVF_COINTOSS               }
+	{ "vote_allow_cointoss",               CV_SVF_COINTOSS               },
+	{ "vote_allow_startmatch",            CV_SVF_STARTMATCH            },
+	{ "vote_allow_campaign",              CV_SVF_CAMPAIGN              }
 };
 
 int numVotesAvailable = sizeof(voteToggles) / sizeof(voteType_t);

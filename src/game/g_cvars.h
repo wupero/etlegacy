@@ -200,6 +200,8 @@ extern vmCvar_t vote_allow_nextcampaign;
 extern vmCvar_t vote_allow_poll;
 extern vmCvar_t vote_allow_maprestart;
 extern vmCvar_t vote_allow_cointoss;
+extern vmCvar_t vote_allow_startmatch;
+extern vmCvar_t vote_allow_campaign;
 
 extern vmCvar_t g_debugSkills;
 extern vmCvar_t g_heavyWeaponRestriction;
