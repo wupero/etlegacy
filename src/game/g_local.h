@@ -627,6 +627,7 @@ typedef struct
 
 // timerun definitions (lua-defined per map, see g_timerun.c and g_lua.c)
 #define TIMERUN_MAX_ID 32    ///< max length of a timerun id
+#define TIMERUN_MAX_NAME 64  ///< speedrun mod: max length of a timerun name (longer than MAX_NETNAME so descriptive names survive the configstring)
 
 /**
  * @struct timerunDef_t
@@ -635,7 +636,7 @@ typedef struct
 typedef struct
 {
 	char id[TIMERUN_MAX_ID];
-	char name[MAX_NETNAME];
+	char name[TIMERUN_MAX_NAME];
 	char type[16];        ///< speedrun mod: run category, matched against the active config
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
 	int numStarts;
