@@ -3510,6 +3510,14 @@ static void CG_Speedrun_f(void)
 {
 	int i, n = 0;
 
+	// speedrun mod: /speedrun <num> forwards to the server, which teleports to
+	// the run's 'teleport' spot (see Cmd_SpeedrunTp_f in g_cmds_ext.c)
+	if (trap_Argc() >= 2)
+	{
+		trap_SendClientCommand(va("speedrun_tp %s", CG_Argv(1)));
+		return;
+	}
+
 	for (i = 0; i < MAX_TIMERUNS; i++)
 	{
 		const char *name = CG_ConfigString(CS_TIMERUNS + i);

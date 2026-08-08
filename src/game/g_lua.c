@@ -2649,6 +2649,18 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
+	// teleport (optional, single {x,y,z}): spot for /speedrun <num> (speedrun mod)
+	lua_getfield(L, 1, "teleport");
+	if (lua_istable(L, -1))
+	{
+		def->hasTeleport = Lua_GetVec3(L, -1, def->teleportOrigin);
+		if (!def->hasTeleport)
+		{
+			G_Printf("Timeruns: registration '%s' - invalid 'teleport' ignored\n", def->id);
+		}
+	}
+	lua_pop(L, 1);
+
 	// checkpoints (optional, max 16, ordered)
 	lua_getfield(L, 1, "checkpoints");
 	if (lua_istable(L, -1))

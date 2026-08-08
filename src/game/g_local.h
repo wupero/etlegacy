@@ -641,6 +641,8 @@ typedef struct
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
 	int numStarts;
 	vec3_t stopOrigin;
+	vec3_t teleportOrigin;///< speedrun mod: optional spot for /speedrun <num> teleport
+	qboolean hasTeleport; ///< speedrun mod: true when the lua 'teleport' property was given
 	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
 	int numCheckpoints;
 	float radius;         ///< zone half-extent in units
@@ -1521,6 +1523,7 @@ void Cmd_Ignore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_UnIgnore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value);
+void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value);   // speedrun mod
 void Cmd_InterruptRun_f(gentity_t *ent, unsigned int dwCommand, int value);
 
 // g_timerun.c

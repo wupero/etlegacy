@@ -182,6 +182,7 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "wstats",         CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_wStats_f,                        ""                                                                                           },
 	{ "load",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Load_f,                           " [slot]:^7 Loads a saved position"                                                    },
 	{ "save",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Save_f,                           " [slot]:^7 Saves your current position"                                                },
+	{ "speedrun_tp",    CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_SpeedrunTp_f,                    " [num]:^7 Teleports to the selected run's teleport spot (speedrun mod)"                      },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
 
@@ -343,6 +344,60 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	{
 		CP(va("cp \"^dLoaded ^n%d\n\"", posNum));
 	}
+}
+
+/**
+ * @brief Teleports the player to a run's teleport spot (speedrun mod)
+ * @param[in] ent
+ * @param[in] dwCommand - unused
+ * @param[in] value - unused
+ *
+ * Backs the client-side \"/speedrun <num>\" command. The number is 1-based,
+ * matching the order shown by /speedrun (lua definition order, config-filtered).
+ */
+void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	int num;
+
+	if (!ent->client || ent->client->sess.sessionTeam == TEAM_SPECTATOR)
+	{
+		CP("cp \"^dYou can not use ^nspeedrun ^das a spectator\n\"");
+		return;
+	}
+
+	{
+		char arg[MAX_TOKEN_CHARS];
+
+		trap_Argv(1, arg, sizeof(arg));
+		num = atoi(arg) - 1;   // user-facing numbers are 1-based
+	}
+
+	if (num < 0 || num >= level.numTimeruns)
+	{
+		CP(va("cp \"^dNo such speedrun: ^n%d\n\"", num + 1));
+		return;
+	}
+
+	if (!level.timeruns[num].hasTeleport)
+	{
+		CP(va("cp \"^dNo teleport defined for run ^n%d\n\"", num + 1));
+		return;
+	}
+
+	// teleporting resets any active timerun so a fresh run can be started at the
+	// teleport spot (same behaviour as /load)
+	if (ent->client->sess.timerunActive)
+	{
+		notify_timerun_stop(ent, 0);
+		CP("cp \"^dRun ^ninterrupted\n\"");
+	}
+
+	// teleport to the run's teleport spot, keeping the player's view direction
+	// (the lua property only provides an origin)
+	TeleportPlayer(ent, level.timeruns[num].teleportOrigin, ent->client->ps.viewangles);
+	VectorClear(ent->client->ps.velocity);
+
+	CP(va("cp \"^2Teleported to run ^n%d\n\"", num + 1));
 }
 
 /**
