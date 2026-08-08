@@ -312,7 +312,6 @@ extern vmCvar_t g_xpSaver;
 extern vmCvar_t g_xpSaverMaxAge;
 
 extern vmCvar_t g_debugForSingleClient;
-extern vmCvar_t speedrun_debug;   // speedrun mod: timerun center prints
 extern vmCvar_t g_debugEvents;
 
 

@@ -3125,6 +3125,7 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_CHECK_SPEC_HASH 241908
 #define TIMERUN_STOP_HASH       164497
 #define TIMERUN_STOP_SPEC_HASH  233917
+#define TIMERUN_CP_HASH         133074
 // -----------
 
 /**
@@ -3204,6 +3205,13 @@ static void CG_TimerunCheckCommand(int spec)
 	cg.timerunCheckStatus[idx]      = Q_atoi(CG_Argv(3));
 	cg.timerunCheckPointChecked++;
 	cg.timerunCheckpointDrawTime    = cg.time;   // speedrun mod: line vanishes after 2s
+
+	if (speedrun_debug.integer)
+	{
+		CG_Printf("speedrun_debug: checkpoint %d - time %dms, delta %dms, status %d\n",
+		          idx + 1, cg.timerunCheckPointTime[idx], cg.timerunCheckPointDiff[idx],
+		          cg.timerunCheckStatus[idx]);
+	}
 }
 
 /**
@@ -3264,6 +3272,20 @@ static void CG_TimerunStopCommand(int spec)
 		{
 			CG_Printf("speedrun_debug: run aborted - timerun %d\n", Q_atoi(CG_Argv(1)));
 		}
+	}
+}
+
+/**
+ * @brief speedrun mod: private center-print log from the server (timerun events).
+ * Display is gated on the CLIENT's speedrun_debug cvar — the server always
+ * sends it to the runner only, so no other player ever sees it.
+ */
+static void CG_TimerunCpCommand(void)
+{
+	if (speedrun_debug.integer)
+	{
+		CG_Printf("speedrun_debug: %s\n", CG_Argv(1));
+		CG_PriorityCenterPrint(CG_Argv(1), 1);
 	}
 }
 
@@ -3930,6 +3952,9 @@ static void CG_ServerCommand(void)
 		return;
 	case TIMERUN_STOP_SPEC_HASH:      // "timerun_stop_spec"
 		CG_TimerunStopCommand(qtrue);
+		return;
+	case TIMERUN_CP_HASH:             // "timerun_cp"
+		CG_TimerunCpCommand();
 		return;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

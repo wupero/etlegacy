@@ -232,11 +232,9 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	                                 index, (int)(ent - g_entities), client->ps.commandTime + 500,
 	                                 client->sess.timerunStartSpeed));
 
-	// speedrun mod: private center-print confirmation (only the runner sees it)
-	if (speedrun_debug.integer)
-	{
-		CP(va("cp \"^2Run started: ^n%s\n\"", def->name));
-	}
+	// speedrun mod: private center-print confirmation (only the runner sees it;
+	// display gated client-side on speedrun_debug)
+	trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Run started: ^n%s\n\"", def->name));
 }
 
 /**
@@ -259,10 +257,8 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 		if (!zone->s.time2)
 		{
 			zone->s.time2 = 1;
-			if (speedrun_debug.integer)
-			{
-				CP(va("cp \"^2Checkpoint ^n%d^7 touched - ^dno run started\n\"", zone->count3 + 1));
-			}
+			trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Checkpoint ^n%d^7 touched - ^dno run started\n\"",
+			                                            zone->count3 + 1));
 		}
 		return;
 	}
@@ -320,12 +316,11 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 	Timerun_SendToSpectators(ent, va("timerun_check_spec %d %d %d", delta, client->ps.commandTime, status));
 
 	// speedrun mod: private center-print checkpoint confirmation (only the runner)
-	if (speedrun_debug.integer)
 	{
 		int    min = time / 60000, t = time - min * 60000, sec = t / 1000, milli = t - sec * 1000;
 
-		CP(va("cp \"^2Checkpoint ^n%d^7 reached - ^2%02d:%02d.%03d\n\"",
-		      cp + 1, min, sec, milli));
+		trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Checkpoint ^n%d^7 reached - ^2%02d:%02d.%03d\n\"",
+		                                            cp + 1, min, sec, milli));
 	}
 }
 
@@ -377,12 +372,11 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	                                 client->sess.timerunStopSpeed, client->sess.timerunMaxSpeed));
 
 	// speedrun mod: private center-print result (only the runner sees it)
-	if (speedrun_debug.integer)
 	{
 		int    min = time / 60000, t = time - min * 60000, sec = t / 1000, milli = t - sec * 1000;
 
-		CP(va("cp \"^2Run finished: ^n%s^7 in ^2%02d:%02d.%03d\n\"",
-		      def->name, min, sec, milli));
+		trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Run finished: ^n%s^7 in ^2%02d:%02d.%03d\n\"",
+		                                            def->name, min, sec, milli));
 	}
 
 	client->sess.timerunActive = qfalse;
