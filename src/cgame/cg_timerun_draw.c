@@ -272,7 +272,7 @@ void CG_DrawTimerunZones(void)
 					verts[v].modulate[2] = 255;
 					verts[v].modulate[3] = 255;
 				}
-				trap_R_AddPolyToScene(cgs.media.whiteShader, 4, verts);
+				trap_R_AddPolyToScene(cgs.media.timerunDebugShader, 4, verts);
 			}
 		}
 	}

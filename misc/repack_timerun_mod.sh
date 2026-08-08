@@ -72,6 +72,11 @@ cp "$ROOT/etmain/configs/"*.config "$TMP/configs/"
 # still reference the deleted configs; the repo etmain/ui is their source)
 cp "$ROOT/etmain/ui/"*.menu "$TMP/ui/"
 
+# speedrun mod: ship the cull-none debug shader for the timerun zone boxes
+# (scripts/ is the classic renderer's shader dir; materials/ is renderer2-only)
+mkdir -p "$TMP/scripts"
+cp "$ROOT/etmain/scripts/timerun_debug.shader" "$TMP/scripts/"
+
 
 # cross-compiled Windows modules (optional: if the win64/win32 cross builds
 # exist, replace the stock release modules so Windows clients get the same

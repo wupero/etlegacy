@@ -1666,6 +1666,7 @@ typedef struct
 	qhandle_t charsetPropGlow;
 	qhandle_t charsetPropB;
 	qhandle_t whiteShader;
+	qhandle_t timerunDebugShader;   // speedrun mod: cull-none solid box shader for zone debug
 
 	qhandle_t hudSprintBar;
 	qhandle_t hudSprintBarHorizontal;
