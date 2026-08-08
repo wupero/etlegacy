@@ -3500,6 +3500,33 @@ static void CG_ShoutcasterSwapTeamLabels(void)
 	trap_Cvar_Set("cg_shoutcastTeamScoreBlue", va("%i", score));
 }
 
+/**
+ * @brief speedrun mod: lists the active timeruns (config-filtered, lua order)
+ *        in the console. Reads the CS_TIMERUNS configstrings the server fills
+ *        from G_InitTimeruns - rejected defs never get a slot, so this always
+ *        matches what the current config allows.
+ */
+static void CG_Speedrun_f(void)
+{
+	int i, n = 0;
+
+	for (i = 0; i < MAX_TIMERUNS; i++)
+	{
+		const char *name = CG_ConfigString(CS_TIMERUNS + i);
+
+		if (name[0])
+		{
+			n++;
+			CG_Printf("%d. %s\n", n, name);
+		}
+	}
+
+	if (!n)
+	{
+		CG_Printf("No timeruns active for this map/config\n");
+	}
+}
+
 static consoleCommand_t commands[] =
 {
 	{ "testgun",                CG_TestGun_f                 },
@@ -3659,6 +3686,9 @@ static consoleCommand_t commands[] =
 	{ "scMinusBlueScore",       CG_ShoutcasterMinusBlueScore },
 	{ "scResetBlueScore",       CG_ShoutcasterResetBlueScore },
 	{ "scSwapTeamLabels",       CG_ShoutcasterSwapTeamLabels },
+
+	// speedrun mod
+	{ "speedrun",               CG_Speedrun_f                },
 
 	{ NULL,                     NULL                         }
 };
