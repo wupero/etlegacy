@@ -3127,6 +3127,7 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_STOP_SPEC_HASH  233917
 #define TIMERUN_CP_HASH         133074
 #define TIMERUN_ZONES_HASH     178252
+#define TIMERUN_ZONES_CLEAR_HASH 260876
 // -----------
 
 /**
@@ -3274,6 +3275,22 @@ static void CG_TimerunCpCommand(void)
 	{
 		CG_Printf("speedrun_debug: %s\n", CG_Argv(1));
 		CG_PriorityCenterPrint(CG_Argv(1), 1);
+	}
+}
+
+/**
+ * @brief speedrun mod: drops all previously received zone geometry.
+ * @details Sent by the server before every zone batch (ClientBegin / map
+ * restart) so boxes of runs that are no longer allowed by the active config
+ * never linger on screen after a config change.
+ */
+static void CG_TimerunZonesClearCommand(void)
+{
+	int run;
+
+	for (run = 0; run < MAX_TIMERUNS; run++)
+	{
+		cg.timerunDebugZoneCount[run] = 0;
 	}
 }
 
@@ -3976,7 +3993,10 @@ static void CG_ServerCommand(void)
 		return;
 	case TIMERUN_ZONES_HASH:          // "timerun_zones"
 		CG_TimerunZonesCommand();
-		return;
+		break;
+	case TIMERUN_ZONES_CLEAR_HASH:    // "timerun_zones_clear"
+		CG_TimerunZonesClearCommand();
+		break;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);
 		break;

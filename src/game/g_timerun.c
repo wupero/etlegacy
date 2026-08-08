@@ -548,6 +548,12 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 {
 	int i, j;
 
+	// speedrun mod: tell the client to drop any previously received zone
+	// geometry first, so a config change (map_restart re-sends the batch on
+	// ClientBegin) can't leave boxes of runs that are no longer allowed by the
+	// active config on screen.
+	trap_SendServerCommand(clientNum, "timerun_zones_clear");
+
 	for (i = 0; i < level.numTimeruns; i++)
 	{
 		timerunDef_t *def = &level.timeruns[i];
