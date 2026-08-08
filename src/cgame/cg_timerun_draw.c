@@ -217,9 +217,11 @@ void CG_DrawTimerunZones(void)
 		{
 			vec3_t    center;
 			float     r = cg.timerunDebugZoneRadius[run][i];
+			float     yaw = cg.timerunDebugZoneYaw[run][i];
+			float     c, s;
 			vec3_t    corners[8];
 			polyVert_t verts[4];
-			int       face, c;
+			int       face, v;
 			static const int faceVerts[6][4] =
 			{
 				{ 0, 1, 2, 3 },   // bottom
@@ -229,33 +231,46 @@ void CG_DrawTimerunZones(void)
 				{ 2, 3, 7, 6 },   // back
 				{ 3, 0, 4, 7 }    // left
 			};
-			int k;
+			int k, corner;
 
 			VectorCopy(cg.timerunDebugZoneOrigins[run][i], center);
 
-			// 8 corners of the cube (half-extent r around the zone origin)
-			VectorSet(corners[0], center[0] - r, center[1] - r, center[2] - r);
-			VectorSet(corners[1], center[0] + r, center[1] - r, center[2] - r);
-			VectorSet(corners[2], center[0] + r, center[1] + r, center[2] - r);
-			VectorSet(corners[3], center[0] - r, center[1] + r, center[2] - r);
-			VectorSet(corners[4], center[0] - r, center[1] - r, center[2] + r);
-			VectorSet(corners[5], center[0] + r, center[1] - r, center[2] + r);
-			VectorSet(corners[6], center[0] + r, center[1] + r, center[2] + r);
-			VectorSet(corners[7], center[0] - r, center[1] + r, center[2] + r);
+			if (yaw != 0.0f)
+			{
+				c = cosf(DEG2RAD(yaw));
+				s = sinf(DEG2RAD(yaw));
+			}
+			else
+			{
+				c = 1.0f;
+				s = 0.0f;
+			}
+
+			// 8 corners of the (possibly rotated) cube around the zone origin
+			for (corner = 0; corner < 8; corner++)
+			{
+				float x = (corner & 1) ? r : -r;
+				float y = (corner & 2) ? r : -r;
+				float z = (corner & 4) ? r : -r;
+
+				corners[corner][0] = center[0] + c * x - s * y;
+				corners[corner][1] = center[1] + s * x + c * y;
+				corners[corner][2] = center[2] + z;
+			}
 
 			for (face = 0; face < 6; face++)
 			{
-				for (c = 0; c < 4; c++)
+				for (v = 0; v < 4; v++)
 				{
-					k = faceVerts[face][c];
-					VectorCopy(corners[k], verts[c].xyz);
-					verts[c].st[0] = 0;
-					verts[c].st[1] = 0;
+					k = faceVerts[face][v];
+					VectorCopy(corners[k], verts[v].xyz);
+					verts[v].st[0] = 0;
+					verts[v].st[1] = 0;
 					// solid blue, fully opaque
-					verts[c].modulate[0] = 0;
-					verts[c].modulate[1] = 0;
-					verts[c].modulate[2] = 255;
-					verts[c].modulate[3] = 255;
+					verts[v].modulate[0] = 0;
+					verts[v].modulate[1] = 0;
+					verts[v].modulate[2] = 255;
+					verts[v].modulate[3] = 255;
 				}
 				trap_R_AddPolyToScene(cgs.media.whiteShader, 4, verts);
 			}

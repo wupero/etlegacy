@@ -3284,14 +3284,9 @@ static void CG_TimerunCpCommand(void)
 static void CG_TimerunZonesCommand(void)
 {
 	int    run, type, count;
-	float  x, y, z, radius;
 
-	run    = Q_atoi(CG_Argv(1));
-	type   = Q_atoi(CG_Argv(2));
-	x      = Q_atof(CG_Argv(3));
-	y      = Q_atof(CG_Argv(4));
-	z      = Q_atof(CG_Argv(5));
-	radius = Q_atof(CG_Argv(6));
+	run  = Q_atoi(CG_Argv(1));
+	type = Q_atoi(CG_Argv(2));
 
 	if (run < 0 || run >= MAX_TIMERUNS)
 	{
@@ -3305,8 +3300,9 @@ static void CG_TimerunZonesCommand(void)
 		return;
 	}
 
-	VectorSet(cg.timerunDebugZoneOrigins[run][count], x, y, z);
-	cg.timerunDebugZoneRadius[run][count] = radius;
+	VectorSet(cg.timerunDebugZoneOrigins[run][count], Q_atof(CG_Argv(3)), Q_atof(CG_Argv(4)), Q_atof(CG_Argv(5)));
+	cg.timerunDebugZoneRadius[run][count] = Q_atof(CG_Argv(6));
+	cg.timerunDebugZoneYaw[run][count]    = Q_atof(CG_Argv(7));
 	cg.timerunDebugZoneTypes[run][count]  = type;
 	cg.timerunDebugZoneCount[run]++;
 }

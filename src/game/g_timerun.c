@@ -382,6 +382,8 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	client->sess.timerunActive = qfalse;
 }
 
+static qboolean Timerun_ZoneContains(const gentity_t *zone, const vec3_t point);   // speedrun mod
+
 /**
  * @brief Zone touch: starts, checkpoints or stops runs based on the zone type
  * @param[in] self
@@ -404,6 +406,13 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 
 	def = &level.timeruns[self->count];
 
+	// speedrun mod: the engine's contact test only sees the enclosing AABB of a
+	// rotated zone - re-check the player against the real cube
+	if (!Timerun_ZoneContains(self, other->client->ps.origin))
+	{
+		return;
+	}
+
 	switch (self->count2)
 	{
 	case TIMERUN_ZONE_START:
@@ -421,15 +430,57 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 }
 
 /**
- * @brief Spawns one invisible touch zone for a timerun
- * @param[in] index
- * @param[in] zoneType
- * @param[in] origin
- * @param[in] radius
+ * @brief speedrun mod: precise containment test for a (possibly rotated) cube
+ *        zone. The engine's trigger contact only sees the axis-aligned bounds
+ *        enclosing the rotated cube, so the touch handler re-checks the player
+ *        against the real cube (inverse-rotated by yaw).
+ * @return qtrue when the point lies inside the zone's cube.
  */
-static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, float radius, int ordinal)
+static qboolean Timerun_ZoneContains(const gentity_t *zone, const vec3_t point)
+{
+	vec3_t local;
+	float  yaw, c, s;
+
+	VectorSubtract(point, zone->r.currentOrigin, local);
+	yaw = zone->TargetAngles[2];
+
+	if (yaw != 0.0f)
+	{
+		// rotate the offset back into the zone's local frame (yaw around Z)
+		c = cosf(DEG2RAD(yaw));
+		s = sinf(DEG2RAD(yaw));
+
+		float x = local[0], y = local[1];
+
+		local[0] =  c * x + s * y;
+		local[1] = -s * x + c * y;
+	}
+
+	return (fabs(local[0]) <= zone->rotate[0]
+	        && fabs(local[1]) <= zone->rotate[0]
+	        && fabs(local[2]) <= zone->rotate[0]);
+}
+
+/**
+ * @brief Spawns one invisible touch zone for a timerun
+ * @param[in] index    run index
+ * @param[in] zoneType start/stop/checkpoint
+ * @param[in] origin   zone center
+ * @param[in] radius   half-extent of the cube
+ * @param[in] yaw      rotation around Z in degrees
+ * @param[in] ordinal  checkpoint ordinal (definition order)
+ *
+ * @details The trigger's linked bounds are the axis-aligned box enclosing the
+ * (possibly rotated) cube so the engine fires the touch; Timerun_ZoneContains
+ * does the exact rotated-cube test before dispatching. The real radius and yaw
+ * are kept on the entity (rotate[0] / TargetAngles[2]).
+ */
+static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, float radius, float yaw, int ordinal)
 {
 	gentity_t *zone = G_Spawn();
+	vec3_t    corners[8];
+	float     c = 0, s = 0;
+	int       i;
 
 	zone->classname  = "timerun_zone";
 	zone->s.eType    = ET_TRIGGER_MULTIPLE;
@@ -442,8 +493,47 @@ static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, floa
 
 	VectorCopy(origin, zone->s.origin);
 	VectorCopy(origin, zone->r.currentOrigin);
-	VectorSet(zone->r.mins, -radius, -radius, -radius);
-	VectorSet(zone->r.maxs, radius, radius, radius);
+	VectorSet(zone->rotate, radius, radius, radius);
+	zone->TargetAngles[2] = yaw;
+
+	if (yaw != 0.0f)
+	{
+		c = cosf(DEG2RAD(yaw));
+		s = sinf(DEG2RAD(yaw));
+	}
+
+	// compute the 8 rotated corners and take their AABB for the engine bounds
+	for (i = 0; i < 8; i++)
+	{
+		float x = (i & 1) ? radius : -radius;
+		float y = (i & 2) ? radius : -radius;
+		float z = (i & 4) ? radius : -radius;
+
+		if (yaw != 0.0f)
+		{
+			corners[i][0] = c * x - s * y;
+			corners[i][1] = s * x + c * y;
+		}
+		else
+		{
+			corners[i][0] = x;
+			corners[i][1] = y;
+		}
+		corners[i][2] = z;
+	}
+
+	VectorCopy(corners[0], zone->r.mins);
+	VectorCopy(corners[0], zone->r.maxs);
+
+	for (i = 1; i < 8; i++)
+	{
+		zone->r.mins[0] = corners[i][0] < zone->r.mins[0] ? corners[i][0] : zone->r.mins[0];
+		zone->r.mins[1] = corners[i][1] < zone->r.mins[1] ? corners[i][1] : zone->r.mins[1];
+		zone->r.mins[2] = corners[i][2] < zone->r.mins[2] ? corners[i][2] : zone->r.mins[2];
+		zone->r.maxs[0] = corners[i][0] > zone->r.maxs[0] ? corners[i][0] : zone->r.maxs[0];
+		zone->r.maxs[1] = corners[i][1] > zone->r.maxs[1] ? corners[i][1] : zone->r.maxs[1];
+		zone->r.maxs[2] = corners[i][2] > zone->r.maxs[2] ? corners[i][2] : zone->r.maxs[2];
+	}
 
 	trap_LinkEntity(zone);
 }
@@ -464,23 +554,23 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 
 		for (j = 0; j < def->numStarts; j++)
 		{
-			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f %f",
 			                                     i, TIMERUN_ZONE_START,
 			                                     def->startOrigins[j][0], def->startOrigins[j][1], def->startOrigins[j][2],
-			                                     def->radius));
+			                                     def->startRadius[j], def->startYaw[j]));
 		}
 
-		trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+		trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f %f",
 		                                     i, TIMERUN_ZONE_STOP,
 		                                     def->stopOrigin[0], def->stopOrigin[1], def->stopOrigin[2],
-		                                     def->radius));
+		                                     def->stopRadius, def->stopYaw));
 
 		for (j = 0; j < def->numCheckpoints; j++)
 		{
-			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f %f",
 			                                     i, TIMERUN_ZONE_CHECKPOINT,
 			                                     def->checkpointOrigins[j][0], def->checkpointOrigins[j][1], def->checkpointOrigins[j][2],
-			                                     def->radius));
+			                                     def->checkpointRadius[j], def->checkpointYaw[j]));
 		}
 	}
 }
@@ -500,14 +590,14 @@ void G_InitTimeruns(void)
 
 		for (j = 0; j < def->numStarts; j++)
 		{
-			Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigins[j], def->radius, 0);
+			Timerun_SpawnZone(i, TIMERUN_ZONE_START, def->startOrigins[j], def->startRadius[j], def->startYaw[j], 0);
 		}
 
-		Timerun_SpawnZone(i, TIMERUN_ZONE_STOP, def->stopOrigin, def->radius, 0);
+		Timerun_SpawnZone(i, TIMERUN_ZONE_STOP, def->stopOrigin, def->stopRadius, def->stopYaw, 0);
 
 		for (j = 0; j < def->numCheckpoints; j++)
 		{
-			Timerun_SpawnZone(i, TIMERUN_ZONE_CHECKPOINT, def->checkpointOrigins[j], def->radius, j);
+			Timerun_SpawnZone(i, TIMERUN_ZONE_CHECKPOINT, def->checkpointOrigins[j], def->checkpointRadius[j], def->checkpointYaw[j], j);
 		}
 
 		trap_SetConfigstring(CS_TIMERUNS + i, def->name);

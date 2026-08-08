@@ -1626,6 +1626,7 @@ typedef struct
 	// (server 'timerun_zones' commands, sent on ClientBegin)
 	vec3_t timerunDebugZoneOrigins[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	float timerunDebugZoneRadius[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
+	float timerunDebugZoneYaw[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	byte timerunDebugZoneTypes[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	int timerunDebugZoneCount[MAX_TIMERUNS];
 

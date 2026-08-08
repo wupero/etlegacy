@@ -639,13 +639,19 @@ typedef struct
 	char name[TIMERUN_MAX_NAME];
 	char type[16];        ///< speedrun mod: run category, matched against the active config
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
+	float startRadius[MAX_TIMERUN_STARTS];   ///< speedrun mod: per-zone half-extent
+	float startYaw[MAX_TIMERUN_STARTS];      ///< speedrun mod: per-zone rotation around Z (degrees)
 	int numStarts;
 	vec3_t stopOrigin;
+	float stopRadius;                        ///< speedrun mod: per-zone half-extent
+	float stopYaw;                           ///< speedrun mod: rotation around Z (degrees)
 	vec3_t teleportOrigin;///< speedrun mod: optional spot for /speedrun <num> teleport
 	qboolean hasTeleport; ///< speedrun mod: true when the lua 'teleport' property was given
 	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
+	float checkpointRadius[MAX_TIMERUN_CHECKPOINTS];   ///< speedrun mod: per-zone half-extent
+	float checkpointYaw[MAX_TIMERUN_CHECKPOINTS];      ///< speedrun mod: rotation around Z (degrees)
 	int numCheckpoints;
-	float radius;         ///< zone half-extent in units
+	float radius;         ///< zone half-extent in units (fallback when a zone has no explicit radius)
 	qboolean blockPrejump;///< refuse start when horizontal speed > 600 u/s
 } timerunDef_t;
 

@@ -2476,11 +2476,66 @@ static qboolean Lua_GetVec3(lua_State *L, int index, vec3_t out)
 }
 
 /**
+ * @brief speedrun mod: parses ONE timerun zone entry from lua.
+ * @details Strict form: { pos = {x,y,z}, radius = N, yaw = deg } - ALL three
+ * fields are required (the run-level radius is NOT a fallback).
+ * @return qtrue on success (origin/radius/yaw filled), qfalse otherwise.
+ */
+static qboolean Lua_GetTimerunZone(lua_State *L, int index,
+                                   vec3_t origin, float *radius, float *yaw)
+{
+	if (!lua_istable(L, index))
+	{
+		return qfalse;
+	}
+
+	lua_getfield(L, index, "pos");
+	if (!lua_istable(L, -1) || !Lua_GetVec3(L, -1, origin))
+	{
+		lua_pop(L, 1);
+		return qfalse;
+	}
+	lua_pop(L, 1);
+
+	lua_getfield(L, index, "radius");
+	if (!lua_isnumber(L, -1))
+	{
+		lua_pop(L, 1);
+		return qfalse;
+	}
+	*radius = (float)lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
+	if (*radius < 8.0f)
+	{
+		*radius = 8.0f;
+	}
+	else if (*radius > 256.0f)
+	{
+		*radius = 256.0f;
+	}
+
+	lua_getfield(L, index, "yaw");
+	if (!lua_isnumber(L, -1))
+	{
+		lua_pop(L, 1);
+		return qfalse;
+	}
+	*yaw = (float)lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
+	return qtrue;
+}
+
+/**
  * @brief et.TimerunRegister{table} - registers a timerun definition for the current map.
  *
- * Fields: id (required, unique), name, start {x,y,z} (required), stop {x,y,z} (required),
- * checkpoints { {x,y,z}, ... } (max 16), radius (default 64, clamped 8..256),
- * blockPrejump (default false). A run only counts when ALL checkpoints were reached.
+ * Fields: id (required, unique), name, start (required), stop (required),
+ * checkpoints (max 16), blockPrejump (default false). Each start/stop/checkpoint
+ * zone is strictly { pos = {x,y,z}, radius = N, yaw = deg } - all three fields
+ * required (radius clamped 8..256). The run-level 'radius' is kept for
+ * compatibility but no longer used as a fallback. 'teleport' (optional) is a
+ * plain vec3. A run only counts when ALL checkpoints were reached.
  */
 static int _et_TimerunRegister(lua_State *L)
 {
@@ -2577,19 +2632,21 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	// start (required): single {x,y,z} or a list of them
+	// start (required): a single zone or a list of zones, each strictly
+	// { pos = {x,y,z}, radius = N, yaw = deg } (all fields required)
 	lua_getfield(L, 1, "start");
 
 	if (lua_istable(L, -1))
 	{
-		lua_rawgeti(L, -1, 1);
+		// single zone: start = { pos = {...}, radius = N, yaw = deg }
+		lua_getfield(L, -1, "pos");
 
-		if (lua_isnumber(L, -1))
+		if (lua_istable(L, -1))
 		{
-			// single vec3: start = { x, y, z }
 			lua_pop(L, 1);
 
-			if (!Lua_GetVec3(L, -1, def->startOrigins[0]))
+			if (!Lua_GetTimerunZone(L, -1, def->startOrigins[0],
+			                        &def->startRadius[0], &def->startYaw[0]))
 			{
 				G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
 				lua_pop(L, 1);
@@ -2598,17 +2655,19 @@ static int _et_TimerunRegister(lua_State *L)
 
 			def->numStarts = 1;
 		}
-		else if (lua_istable(L, -1))
+		else
 		{
-			// list of vec3s: start = { {x,y,z}, ... }
+			lua_pop(L, 1);
+
+			// list of zones: start = { {pos=...,radius=...,yaw=...}, ... }
 			int n = 0;
 
-			lua_pop(L, 1);
 			lua_pushnil(L);
 
 			while (lua_next(L, -2) && n < MAX_TIMERUN_STARTS)
 			{
-				if (Lua_GetVec3(L, -1, def->startOrigins[n]))
+				if (Lua_GetTimerunZone(L, -1, def->startOrigins[n],
+				                       &def->startRadius[n], &def->startYaw[n]))
 				{
 					n++;
 				}
@@ -2624,10 +2683,6 @@ static int _et_TimerunRegister(lua_State *L)
 				return 0;
 			}
 		}
-		else
-		{
-			lua_pop(L, 1);   // pop start[1] (neither number nor table)
-		}
 	}
 
 	if (def->numStarts == 0)
@@ -2639,9 +2694,9 @@ static int _et_TimerunRegister(lua_State *L)
 
 	lua_pop(L, 1);   // pop the start field
 
-	// stop (required)
+	// stop (required): { pos = {x,y,z}, radius = N, yaw = deg }
 	lua_getfield(L, 1, "stop");
-	if (!Lua_GetVec3(L, -1, def->stopOrigin))
+	if (!Lua_GetTimerunZone(L, -1, def->stopOrigin, &def->stopRadius, &def->stopYaw))
 	{
 		G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'stop'\n", def->id);
 		lua_pop(L, 1);
@@ -2661,7 +2716,8 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	// checkpoints (optional, max 16, ordered)
+	// checkpoints (optional, max 16, ordered): each strictly
+	// { pos = {x,y,z}, radius = N, yaw = deg }
 	lua_getfield(L, 1, "checkpoints");
 	if (lua_istable(L, -1))
 	{
@@ -2670,7 +2726,8 @@ static int _et_TimerunRegister(lua_State *L)
 		lua_pushnil(L);
 		while (lua_next(L, -2) && n < MAX_TIMERUN_CHECKPOINTS)
 		{
-			if (Lua_GetVec3(L, -1, def->checkpointOrigins[n]))
+			if (Lua_GetTimerunZone(L, -1, def->checkpointOrigins[n],
+			                       &def->checkpointRadius[n], &def->checkpointYaw[n]))
 			{
 				n++;
 			}
