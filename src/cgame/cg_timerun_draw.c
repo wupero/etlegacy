@@ -202,7 +202,8 @@ void CG_DrawTimer(void)
  * Each cube face is a 4-vertex poly; the box is centered on the given origin
  * with the given radius (cube half-extent) and yaw (rotation around Z).
  */
-static void CG_AddDebugBox(const vec3_t center, float radius, float yaw)
+static void CG_AddDebugBox(const vec3_t center, float radius, float yaw,
+                    const vec3_t color)
 {
 	float c, s;
 	vec3_t    corners[8];
@@ -250,14 +251,43 @@ static void CG_AddDebugBox(const vec3_t center, float radius, float yaw)
 			VectorCopy(corners[k], verts[v].xyz);
 			verts[v].st[0] = 0;
 			verts[v].st[1] = 0;
-			// solid blue, fully opaque
-			verts[v].modulate[0] = 0;
-			verts[v].modulate[1] = 0;
-			verts[v].modulate[2] = 255;
+			verts[v].modulate[0] = (byte)color[0];
+			verts[v].modulate[1] = (byte)color[1];
+			verts[v].modulate[2] = (byte)color[2];
 			verts[v].modulate[3] = 255;
 		}
 		trap_R_AddPolyToScene(cgs.media.timerunDebugShader, 4, verts);
 	}
+}
+
+/**
+ * @brief speedrun mod: qtrue if the point lies inside the /draw_box box.
+ * @details Mirrors the server's Timerun_ZoneContains: the offset is rotated
+ * back into the box's local frame (yaw around Z) and compared against the
+ * radius half-extent on all three axes.
+ */
+static qboolean CG_DrawBoxContains(const vec3_t point)
+{
+	vec3_t local;
+	float  yaw, c, s;
+
+	VectorSubtract(point, cg.drawBoxOrigin, local);
+	yaw = cg.drawBoxYaw;
+
+	if (yaw != 0.0f)
+	{
+		c = cosf(DEG2RAD(yaw));
+		s = sinf(DEG2RAD(yaw));
+
+		float x = local[0], y = local[1];
+
+		local[0] =  c * x + s * y;
+		local[1] = -s * x + c * y;
+	}
+
+	return (fabs(local[0]) <= cg.drawBoxRadius
+	        && fabs(local[1]) <= cg.drawBoxRadius
+	        && fabs(local[2]) <= cg.drawBoxRadius);
 }
 
 /**
@@ -280,15 +310,29 @@ void CG_DrawTimerunZones(void)
 	{
 		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 		{
+			vec3_t blue = { 0, 0, 255 };
+
 			CG_AddDebugBox(cg.timerunDebugZoneOrigins[run][i],
 			              cg.timerunDebugZoneRadius[run][i],
-			              cg.timerunDebugZoneYaw[run][i]);
+			              cg.timerunDebugZoneYaw[run][i], blue);
 		}
 	}
 
-	// speedrun mod: /draw_box helper box (replaces the previous one on redraw)
+	// speedrun mod: /draw_box helper box (replaces the previous one on redraw).
+	// Drawn red so it stands apart from the mapped lua zones (blue).
 	if (cg.drawBoxValid)
 	{
-		CG_AddDebugBox(cg.drawBoxOrigin, cg.drawBoxRadius, cg.drawBoxYaw);
+		vec3_t  red = { 255, 0, 0 };
+		qboolean inside = CG_DrawBoxContains(cg.predictedPlayerState.origin);
+
+		CG_AddDebugBox(cg.drawBoxOrigin, cg.drawBoxRadius, cg.drawBoxYaw, red);
+
+		// edge-triggered center print on entry, like the timerun zone touches
+		if (inside && !cg.drawBoxWasInside)
+		{
+			CG_Printf("speedrun_debug: draw_box touched\n");
+			CG_PriorityCenterPrint("^1draw_box touched\n", 1);
+		}
+		cg.drawBoxWasInside = inside;
 	}
 }

@@ -1637,6 +1637,7 @@ typedef struct
 	vec3_t drawBoxOrigin;
 	float drawBoxRadius;
 	float drawBoxYaw;
+	qboolean drawBoxWasInside;    ///< previous frame's containment (touch edge-trigger)
 
 	// timerun state (server commands from g_timerun.c)
 	qboolean timerunActive;
