@@ -3535,6 +3535,43 @@ static void CG_Speedrun_f(void)
 	}
 }
 
+
+/**
+ * @brief speedrun mod: /draw_box x y z radius yaw
+ * @details Renders a single debug box (same {pos, radius, yaw} schema as the
+ * timerun zones, so the values can be copy-pasted between lua and the
+ * command). Only available when speedrun_debug is 1. Drawing again replaces
+ * the previous box (there is exactly one /draw_box box at a time).
+ */
+static void CG_DrawBox_f(void)
+{
+	vec3_t origin;
+
+	if (!speedrun_debug.integer)
+	{
+		CG_Printf("^3draw_box: speedrun_debug must be 1\n");
+		return;
+	}
+
+	if (trap_Argc() != 6)
+	{
+		CG_Printf("^3draw_box: usage: draw_box x y z radius yaw\n");
+		return;
+	}
+
+	origin[0] = Q_atof(CG_Argv(1));
+	origin[1] = Q_atof(CG_Argv(2));
+	origin[2] = Q_atof(CG_Argv(3));
+
+	VectorCopy(origin, cg.drawBoxOrigin);
+	cg.drawBoxRadius = Q_atof(CG_Argv(4));
+	cg.drawBoxYaw    = Q_atof(CG_Argv(5));
+	cg.drawBoxValid  = qtrue;
+
+	CG_Printf("^2draw_box: box at (%.0f %.0f %.0f) radius %.0f yaw %.0f\n",
+	          origin[0], origin[1], origin[2], cg.drawBoxRadius, cg.drawBoxYaw);
+}
+
 static consoleCommand_t commands[] =
 {
 	{ "testgun",                CG_TestGun_f                 },
@@ -3544,6 +3581,7 @@ static consoleCommand_t commands[] =
 	{ "nextskin",               CG_TestModelNextSkin_f       },
 	{ "prevskin",               CG_TestModelPrevSkin_f       },
 	{ "viewpos",                CG_Viewpos_f                 },
+	{ "draw_box",               CG_DrawBox_f                  },   // speedrun mod
 	{ "+weapzoom",              CG_WeapzoomDown_f            },
 	{ "-weapzoom",              CG_WeapzoomUp_f              },
 	{ "toggleweapzoom",         CG_ToggleWeapzoom_f          },

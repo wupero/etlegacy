@@ -1630,6 +1630,14 @@ typedef struct
 	byte timerunDebugZoneTypes[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	int timerunDebugZoneCount[MAX_TIMERUNS];
 
+	// speedrun mod: single debug box set via the /draw_box client command
+	// (same {pos, radius, yaw} schema as timerun zones). Drawing again
+	// replaces the previous box; cleared on level load (cg is zeroed).
+	qboolean drawBoxValid;
+	vec3_t drawBoxOrigin;
+	float drawBoxRadius;
+	float drawBoxYaw;
+
 	// timerun state (server commands from g_timerun.c)
 	qboolean timerunActive;
 	int currentTimerun;                       ///< index of the active timerun

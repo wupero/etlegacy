@@ -196,11 +196,76 @@ void CG_DrawTimer(void)
 
 
 /**
- * @brief speedrun mod: draws the timerun zones (start/stop/checkpoints) as solid
- * blue cubes when speedrun_debug is 1, so their covered area is visible in-game.
+ * @brief speedrun mod: emits the 6 faces of a (possibly yaw-rotated) box as
+ * world-space polys using the timerun debug shader.
+ * @details Shared by the timerun zone overlay and the /draw_box command.
+ * Each cube face is a 4-vertex poly; the box is centered on the given origin
+ * with the given radius (cube half-extent) and yaw (rotation around Z).
+ */
+static void CG_AddDebugBox(const vec3_t center, float radius, float yaw)
+{
+	float c, s;
+	vec3_t    corners[8];
+	polyVert_t verts[4];
+	int       face, v;
+	static const int faceVerts[6][4] =
+	{
+		{ 0, 1, 2, 3 },   // bottom
+		{ 4, 5, 6, 7 },   // top
+		{ 0, 1, 5, 4 },   // front
+		{ 1, 2, 6, 5 },   // right
+		{ 2, 3, 7, 6 },   // back
+		{ 3, 0, 4, 7 }    // left
+	};
+	int k, corner;
+
+	if (yaw != 0.0f)
+	{
+		c = cosf(DEG2RAD(yaw));
+		s = sinf(DEG2RAD(yaw));
+	}
+	else
+	{
+		c = 1.0f;
+		s = 0.0f;
+	}
+
+	// 8 corners of the (possibly rotated) cube around the box origin
+	for (corner = 0; corner < 8; corner++)
+	{
+		float x = (corner & 1) ? radius : -radius;
+		float y = (corner & 2) ? radius : -radius;
+		float z = (corner & 4) ? radius : -radius;
+
+		corners[corner][0] = center[0] + c * x - s * y;
+		corners[corner][1] = center[1] + s * x + c * y;
+		corners[corner][2] = center[2] + z;
+	}
+
+	for (face = 0; face < 6; face++)
+	{
+		for (v = 0; v < 4; v++)
+		{
+			k = faceVerts[face][v];
+			VectorCopy(corners[k], verts[v].xyz);
+			verts[v].st[0] = 0;
+			verts[v].st[1] = 0;
+			// solid blue, fully opaque
+			verts[v].modulate[0] = 0;
+			verts[v].modulate[1] = 0;
+			verts[v].modulate[2] = 255;
+			verts[v].modulate[3] = 255;
+		}
+		trap_R_AddPolyToScene(cgs.media.timerunDebugShader, 4, verts);
+	}
+}
+
+/**
+ * @brief speedrun mod: draws the timerun zones (start/stop/checkpoints) as blue
+ * cubes when speedrun_debug is 1, so their covered area is visible in-game.
  * @details The zone geometry is pushed by the server (timerun_zones commands on
- * ClientBegin) and drawn every frame via world-space polys. Solid blue per zone;
- * each cube face is a 4-vertex poly.
+ * ClientBegin) and drawn every frame via world-space polys. The single box set
+ * with the /draw_box client command is drawn on top of the zones.
  */
 void CG_DrawTimerunZones(void)
 {
@@ -215,65 +280,15 @@ void CG_DrawTimerunZones(void)
 	{
 		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 		{
-			vec3_t    center;
-			float     r = cg.timerunDebugZoneRadius[run][i];
-			float     yaw = cg.timerunDebugZoneYaw[run][i];
-			float     c, s;
-			vec3_t    corners[8];
-			polyVert_t verts[4];
-			int       face, v;
-			static const int faceVerts[6][4] =
-			{
-				{ 0, 1, 2, 3 },   // bottom
-				{ 4, 5, 6, 7 },   // top
-				{ 0, 1, 5, 4 },   // front
-				{ 1, 2, 6, 5 },   // right
-				{ 2, 3, 7, 6 },   // back
-				{ 3, 0, 4, 7 }    // left
-			};
-			int k, corner;
-
-			VectorCopy(cg.timerunDebugZoneOrigins[run][i], center);
-
-			if (yaw != 0.0f)
-			{
-				c = cosf(DEG2RAD(yaw));
-				s = sinf(DEG2RAD(yaw));
-			}
-			else
-			{
-				c = 1.0f;
-				s = 0.0f;
-			}
-
-			// 8 corners of the (possibly rotated) cube around the zone origin
-			for (corner = 0; corner < 8; corner++)
-			{
-				float x = (corner & 1) ? r : -r;
-				float y = (corner & 2) ? r : -r;
-				float z = (corner & 4) ? r : -r;
-
-				corners[corner][0] = center[0] + c * x - s * y;
-				corners[corner][1] = center[1] + s * x + c * y;
-				corners[corner][2] = center[2] + z;
-			}
-
-			for (face = 0; face < 6; face++)
-			{
-				for (v = 0; v < 4; v++)
-				{
-					k = faceVerts[face][v];
-					VectorCopy(corners[k], verts[v].xyz);
-					verts[v].st[0] = 0;
-					verts[v].st[1] = 0;
-					// solid blue, fully opaque
-					verts[v].modulate[0] = 0;
-					verts[v].modulate[1] = 0;
-					verts[v].modulate[2] = 255;
-					verts[v].modulate[3] = 255;
-				}
-				trap_R_AddPolyToScene(cgs.media.timerunDebugShader, 4, verts);
-			}
+			CG_AddDebugBox(cg.timerunDebugZoneOrigins[run][i],
+			              cg.timerunDebugZoneRadius[run][i],
+			              cg.timerunDebugZoneYaw[run][i]);
 		}
+	}
+
+	// speedrun mod: /draw_box helper box (replaces the previous one on redraw)
+	if (cg.drawBoxValid)
+	{
+		CG_AddDebugBox(cg.drawBoxOrigin, cg.drawBoxRadius, cg.drawBoxYaw);
 	}
 }
