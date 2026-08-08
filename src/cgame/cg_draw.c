@@ -4853,6 +4853,7 @@ void CG_DrawActive()
 	CG_PB_RenderPolyBuffers();
 	CG_DrawMiscGamemodels();
 	CG_DrawClientCoronas();
+	CG_DrawTimerunZones();   // speedrun mod: blue zone boxes when speedrun_debug is 1
 
 	if (!(cg.limboEndCinematicTime > cg.time && cg.showGameView))
 	{

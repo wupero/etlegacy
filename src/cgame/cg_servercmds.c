@@ -3126,6 +3126,7 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_STOP_HASH       164497
 #define TIMERUN_STOP_SPEC_HASH  233917
 #define TIMERUN_CP_HASH         133074
+#define TIMERUN_ZONES_HASH     178252
 // -----------
 
 /**
@@ -3274,6 +3275,40 @@ static void CG_TimerunCpCommand(void)
 		CG_Printf("speedrun_debug: %s\n", CG_Argv(1));
 		CG_PriorityCenterPrint(CG_Argv(1), 1);
 	}
+}
+
+/**
+ * @brief speedrun mod: stores one zone's geometry for the speedrun_debug
+ *        blue-box overlay (server 'timerun_zones' command, sent on ClientBegin).
+ */
+static void CG_TimerunZonesCommand(void)
+{
+	int    run, type, count;
+	float  x, y, z, radius;
+
+	run    = Q_atoi(CG_Argv(1));
+	type   = Q_atoi(CG_Argv(2));
+	x      = Q_atof(CG_Argv(3));
+	y      = Q_atof(CG_Argv(4));
+	z      = Q_atof(CG_Argv(5));
+	radius = Q_atof(CG_Argv(6));
+
+	if (run < 0 || run >= MAX_TIMERUNS)
+	{
+		return;
+	}
+
+	count = cg.timerunDebugZoneCount[run];
+
+	if (count >= MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1)
+	{
+		return;
+	}
+
+	VectorSet(cg.timerunDebugZoneOrigins[run][count], x, y, z);
+	cg.timerunDebugZoneRadius[run][count] = radius;
+	cg.timerunDebugZoneTypes[run][count]  = type;
+	cg.timerunDebugZoneCount[run]++;
 }
 
 static void CG_ServerCommand(void)
@@ -3942,6 +3977,9 @@ static void CG_ServerCommand(void)
 		return;
 	case TIMERUN_CP_HASH:             // "timerun_cp"
 		CG_TimerunCpCommand();
+		return;
+	case TIMERUN_ZONES_HASH:          // "timerun_zones"
+		CG_TimerunZonesCommand();
 		return;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

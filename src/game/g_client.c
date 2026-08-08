@@ -2924,6 +2924,11 @@ void ClientBegin(int clientNum)
 		G_LuaHook_ClientBegin(clientNum);
 	}
 #endif
+
+	// speedrun mod: push the zone geometry for the speedrun_debug blue-box overlay
+	// (runs are registered by the time a client begins, on both fresh connects and
+	// map changes)
+	Timerun_SendZoneDebugToClient(clientNum);
 }
 
 #if 0 // not used

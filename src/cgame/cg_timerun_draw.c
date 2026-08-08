@@ -193,3 +193,72 @@ void CG_DrawTimer(void)
 	// speedrun mod: checkpoint time/delta line under the timer
 	CG_DrawCheckpointLine();
 }
+
+
+/**
+ * @brief speedrun mod: draws the timerun zones (start/stop/checkpoints) as solid
+ * blue cubes when speedrun_debug is 1, so their covered area is visible in-game.
+ * @details The zone geometry is pushed by the server (timerun_zones commands on
+ * ClientBegin) and drawn every frame via world-space polys. Solid blue per zone;
+ * each cube face is a 4-vertex poly.
+ */
+void CG_DrawTimerunZones(void)
+{
+	int run, i;
+
+	if (!speedrun_debug.integer)
+	{
+		return;
+	}
+
+	for (run = 0; run < MAX_TIMERUNS; run++)
+	{
+		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
+		{
+			vec3_t    center;
+			float     r = cg.timerunDebugZoneRadius[run][i];
+			vec3_t    corners[8];
+			polyVert_t verts[4];
+			int       face, c;
+			static const int faceVerts[6][4] =
+			{
+				{ 0, 1, 2, 3 },   // bottom
+				{ 4, 5, 6, 7 },   // top
+				{ 0, 1, 5, 4 },   // front
+				{ 1, 2, 6, 5 },   // right
+				{ 2, 3, 7, 6 },   // back
+				{ 3, 0, 4, 7 }    // left
+			};
+			int k;
+
+			VectorCopy(cg.timerunDebugZoneOrigins[run][i], center);
+
+			// 8 corners of the cube (half-extent r around the zone origin)
+			VectorSet(corners[0], center[0] - r, center[1] - r, center[2] - r);
+			VectorSet(corners[1], center[0] + r, center[1] - r, center[2] - r);
+			VectorSet(corners[2], center[0] + r, center[1] + r, center[2] - r);
+			VectorSet(corners[3], center[0] - r, center[1] + r, center[2] - r);
+			VectorSet(corners[4], center[0] - r, center[1] - r, center[2] + r);
+			VectorSet(corners[5], center[0] + r, center[1] - r, center[2] + r);
+			VectorSet(corners[6], center[0] + r, center[1] + r, center[2] + r);
+			VectorSet(corners[7], center[0] - r, center[1] + r, center[2] + r);
+
+			for (face = 0; face < 6; face++)
+			{
+				for (c = 0; c < 4; c++)
+				{
+					k = faceVerts[face][c];
+					VectorCopy(corners[k], verts[c].xyz);
+					verts[c].st[0] = 0;
+					verts[c].st[1] = 0;
+					// solid blue, fully opaque
+					verts[c].modulate[0] = 0;
+					verts[c].modulate[1] = 0;
+					verts[c].modulate[2] = 255;
+					verts[c].modulate[3] = 255;
+				}
+				trap_R_AddPolyToScene(cgs.media.whiteShader, 4, verts);
+			}
+		}
+	}
+}

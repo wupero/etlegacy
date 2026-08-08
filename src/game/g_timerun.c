@@ -449,6 +449,43 @@ static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, floa
 }
 
 /**
+ * @brief speedrun mod: sends the zone geometry (origins + radius, one command per
+ *        zone) to a client for the speedrun_debug blue-box overlay. clientNum -1
+ *        broadcasts. Called from ClientBegin so fresh connects and map changes
+ *        both receive the current map's zones.
+ */
+void Timerun_SendZoneDebugToClient(int clientNum)
+{
+	int i, j;
+
+	for (i = 0; i < level.numTimeruns; i++)
+	{
+		timerunDef_t *def = &level.timeruns[i];
+
+		for (j = 0; j < def->numStarts; j++)
+		{
+			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+			                                     i, TIMERUN_ZONE_START,
+			                                     def->startOrigins[j][0], def->startOrigins[j][1], def->startOrigins[j][2],
+			                                     def->radius));
+		}
+
+		trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+		                                     i, TIMERUN_ZONE_STOP,
+		                                     def->stopOrigin[0], def->stopOrigin[1], def->stopOrigin[2],
+		                                     def->radius));
+
+		for (j = 0; j < def->numCheckpoints; j++)
+		{
+			trap_SendServerCommand(clientNum, va("timerun_zones %d %d %f %f %f %f",
+			                                     i, TIMERUN_ZONE_CHECKPOINT,
+			                                     def->checkpointOrigins[j][0], def->checkpointOrigins[j][1], def->checkpointOrigins[j][2],
+			                                     def->radius));
+		}
+	}
+}
+
+/**
  * @brief Spawns all timerun zones from the lua-defined registry and exposes the run
  *        names via CS_TIMERUNS configstrings. Called once per map load, after
  *        G_LuaTimerunLoadMap().

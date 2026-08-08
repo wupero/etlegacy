@@ -1622,6 +1622,13 @@ typedef struct
 
 	qboolean mapConfigLoaded; // qtrue if map-specific autoexec was loaded
 
+	// speedrun mod: zone geometry for the speedrun_debug blue-box overlay
+	// (server 'timerun_zones' commands, sent on ClientBegin)
+	vec3_t timerunDebugZoneOrigins[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
+	float timerunDebugZoneRadius[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
+	byte timerunDebugZoneTypes[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
+	int timerunDebugZoneCount[MAX_TIMERUNS];
+
 	// timerun state (server commands from g_timerun.c)
 	qboolean timerunActive;
 	int currentTimerun;                       ///< index of the active timerun
@@ -4404,7 +4411,8 @@ void CG_DrawVote(hudComponent_t *comp);
 void CG_DrawSpectatorMessage(hudComponent_t *comp);
 void CG_DrawLimboMessage(hudComponent_t *comp);
 void CG_DrawFollow(hudComponent_t *comp);
-void CG_DrawTimer(void);   // speedrun mod: always-visible run timer
+void CG_DrawTimer(void);
+void CG_DrawTimerunZones(void);   // speedrun mod   // speedrun mod: always-visible run timer
 void CG_DrawMissileCamera(hudComponent_t *comp);
 void CG_DrawTeamInfo(hudComponent_t *comp);
 void CG_DrawSpectator(hudComponent_t *comp);
