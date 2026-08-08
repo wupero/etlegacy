@@ -116,6 +116,13 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 		return;
 	}
 
+	// speedrun mod: runs only start while the actual match is running
+	// (blocks GS_WARMUP, GS_WARMUP_COUNTDOWN, GS_INTERMISSION, ...)
+	if (g_gamestate.integer != GS_PLAYING)
+	{
+		return;
+	}
+
 	if (def->blockPrejump && Timerun_HorizontalSpeed(ent) > 600)
 	{
 		trap_SendServerCommand(ent - g_entities, "cp \"^dPrejump blocked: start the run from a standstill\n\"");
