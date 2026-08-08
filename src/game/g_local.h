@@ -636,6 +636,7 @@ typedef struct
 {
 	char id[TIMERUN_MAX_ID];
 	char name[MAX_NETNAME];
+	char type[16];        ///< speedrun mod: run category, matched against the active config
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
 	int numStarts;
 	vec3_t stopOrigin;
@@ -1525,6 +1526,7 @@ void Cmd_InterruptRun_f(gentity_t *ent, unsigned int dwCommand, int value);
 void G_InitTimeruns(void);
 void notify_timerun_stop(gentity_t *ent, int time);
 qboolean Timerun_ClientIsRunning(gentity_t *ent);
+qboolean Timerun_DefAllowedByConfig(const timerunDef_t *def);
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerKillsDeaths_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_IntermissionPlayerTime_f(gentity_t *ent, unsigned int dwCommand, int value);

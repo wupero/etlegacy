@@ -475,13 +475,28 @@ qboolean G_configSet(const char *configname)
 	}
 	else
 	{
-		return qfalse;
+		// speedrun mod: bare-args server start with nothing configured —
+		// hardcode the shortruns default so the round always begins with the
+		// speedrun settings (no warmup/countdown, 9999 timelimit)
+		Q_strncpyz(filename, "shortruns", sizeof(filename));
 	}
 
 	G_Printf("Will try to load config: \"configs/%s.config\"\n", filename);
 	if (trap_FS_FOpenFile(va("configs/%s.config", filename), &f, FS_READ) <= 0)
 	{
 		G_Printf("^3Warning: No config with filename '%s' found\n", filename);
+
+		// speedrun mod: hardcoded fallback — a stale g_customConfig (e.g. the
+		// deleted defaultpublic, or a bare-args restart where the engine never
+		// exec'd etconfig_server.cfg) must not leave the server without the
+		// speedrun config; force shortruns (no warmup/countdown, 9999 tl)
+		if (Q_stricmp(filename, "shortruns"))
+		{
+			trap_Cvar_Set("g_customConfig", "shortruns");
+			G_Printf("^3speedrun mod: falling back to configs/shortruns.config\n");
+			return G_configSet("shortruns");
+		}
+
 		return qfalse;
 	}
 

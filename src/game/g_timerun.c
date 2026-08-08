@@ -76,6 +76,53 @@ qboolean Timerun_ClientIsRunning(gentity_t *ent)
 }
 
 /**
+ * @brief speedrun mod: whether a timerun def may be loaded under the active config
+ *
+ * The active config (g_customConfig) selects which run types are allowed:
+ * shortruns -> "short", fullmaprun -> "full". Defs whose type is missing are
+ * blocked whenever a filter config is active; they only load under configs
+ * with no filter (or none at all). Rejected defs are never spawned and never
+ * reach the client (no zone, no CS_TIMERUNS entry).
+ *
+ * @param[in] def
+ * @return qtrue when the def may be registered
+ */
+qboolean Timerun_DefAllowedByConfig(const timerunDef_t *def)
+{
+	static const struct
+	{
+		const char *config;
+		const char *type;
+	} filters[] =
+	{
+		{ "shortruns",  "short" },
+		{ "fullmaprun", "full"  },
+	};
+	char  activeConfig[MAX_CVAR_VALUE_STRING];
+	int   i;
+	const char *allowedType = NULL;
+
+	trap_Cvar_VariableStringBuffer("g_customConfig", activeConfig, sizeof(activeConfig));
+
+	for (i = 0; i < (int)ARRAY_LEN(filters); i++)
+	{
+		if (!Q_stricmp(activeConfig, filters[i].config))
+		{
+			allowedType = filters[i].type;
+			break;
+		}
+	}
+
+	if (!allowedType)
+	{
+		return qtrue;    // config has no run filter — everything loads
+	}
+
+	// a filter is active: the def must carry the matching type
+	return def->type[0] && !Q_stricmp(def->type, allowedType);
+}
+
+/**
  * @brief Aborts (time 0) or ends a timerun, notifying the client and its spectators
  * @param[in] ent
  * @param[in] time final time, or 0 when the run was aborted
