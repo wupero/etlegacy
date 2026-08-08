@@ -1309,7 +1309,7 @@ int G_Config_v(gentity_t *ent, unsigned int dwVoteIndex, char *arg, char *arg2, 
 		// Load in config settings for current gametype
 		if (G_configSet(level.voteInfo.vote_value))
 		{
-			AP(va("cpm \"%s Settings Loaded!\n\"", strcmp(level.voteInfo.vote_value, "defaultpublic") ? "Competition" : "Public"));
+			AP(va("cpm \"%s Settings Loaded!\n\"", level.config.publicConfig ? "Public" : "Competition"));
 		}
 	}
 

@@ -60,6 +60,18 @@ unzip -qo "$SOURCE_PK3" -d "$TMP"
 cp "$BUILD_DIR/legacy/cgame_mac" "$TMP/cgame_mac"
 cp "$BUILD_DIR/legacy/ui_mac" "$TMP/ui_mac"
 
+# speedrun mod: ship ONLY the repo's game configs (configs/ in the official
+# release pk3 carries legacy1/3/5/6 which the user deleted). Strip them and
+# inject etmain/configs/*.config (shortruns, fullmaprun).
+rm -f "$TMP/configs/legacy"*.config
+rm -f "$TMP/configs/defaultpublic.config"
+mkdir -p "$TMP/configs"
+cp "$ROOT/etmain/configs/"*.config "$TMP/configs/"
+
+# speedrun mod: overlay the repo's ui/ menus (the official pk3's vote menus
+# still reference the deleted configs; the repo etmain/ui is their source)
+cp "$ROOT/etmain/ui/"*.menu "$TMP/ui/"
+
 
 # cross-compiled Windows modules (optional: if the win64/win32 cross builds
 # exist, replace the stock release modules so Windows clients get the same

@@ -3875,48 +3875,15 @@ qboolean G_ScriptAction_EndRound(gentity_t *ent, char *params)
  */
 qboolean G_ScriptAction_SetRoundTimelimit(gentity_t *ent, char *params)
 {
-	char  *pString = params, *token;
-	float nextTimeLimit;
-
-	token = COM_Parse(&pString);
-	if (!token[0])
-	{
-		G_Error("G_ScriptAction_SetRoundTimelimit: number parameter required\n");
-	}
-
-	nextTimeLimit = g_nextTimeLimit.value;
-
-	if (g_gametype.integer == GT_WOLF_STOPWATCH && nextTimeLimit != 0.f)
-	{
-		trap_Cvar_Set("timelimit", va("%f", (double)nextTimeLimit));
-	}
-	else if (g_gametype.integer == GT_WOLF_LMS)
-	{
-		if (g_userTimeLimit.integer)
-		{
-			int timelimit = g_userTimeLimit.integer < 3 ? 3 : g_userTimeLimit.integer;
-
-			trap_Cvar_Set("timelimit", va("%i", timelimit));
-		}
-		else
-		{
-			trap_Cvar_Set("timelimit", token);
-		}
-	}
-	else
-	{
-		if (g_userTimeLimit.integer)
-		{
-			trap_Cvar_Set("timelimit", va("%i", g_userTimeLimit.integer));
-		}
-		else
-		{
-			trap_Cvar_Set("timelimit", token);
-		}
-	}
-
+	// timerun mod: the game configs own the timelimit (9999) — mapscript
+	// wm_set_round_timelimit overrides are ignored (same reasoning as the
+	// respawntime actions: trap_Cvar_Set forces, so the script's value would
+	// clobber the config's `set timelimit 9999` right after G_InitGame).
+	(void)ent;
+	(void)params;
 	return qtrue;
 }
+
 
 /**
  * @brief G_ScriptAction_RemoveEntity

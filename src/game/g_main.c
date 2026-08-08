@@ -1725,8 +1725,8 @@ void G_InitGame(int levelTime, int randomSeed, int restart, int etLegacyServer, 
 	G_configSet(g_customConfig.string);
 
 	// speedrun mod: only medic is selectable — force the class-limit cvars
-	// AFTER the custom config is applied (configs/defaultpublic.config resets
-	// team_max* to -1 on every map load); the forced values reach clients
+	// AFTER the custom config is applied (the active config resets team_max*
+	// to -1 on every map load); the forced values reach clients
 	// via CS_TEAMRESTRICTIONS (rebuilt on cvar change) and G_IsClassFull is
 	// the hardcoded backstop that survives bare-args restarts and overrides
 	trap_Cvar_Set("team_maxSoldiers", "0");
