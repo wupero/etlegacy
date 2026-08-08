@@ -331,6 +331,7 @@ vmCvar_t g_xpSaver;
 vmCvar_t g_xpSaverMaxAge;
 
 vmCvar_t g_debugForSingleClient;
+vmCvar_t speedrun_debug;   // speedrun mod: gates the server-side timerun center prints (shared with the client cvar)
 vmCvar_t g_debugEvents;
 
 vmCvar_t g_debugAnim;
@@ -638,6 +639,7 @@ cvarTable_t gameCvarTable[] =
 	{ &g_fixedphysicsfps,                 "g_fixedphysicsfps",                 "125",                        CVAR_ARCHIVE,                                    0, qfalse, qfalse },
 	{ &g_pronedelay,                      "g_pronedelay",                      "0",                          CVAR_ARCHIVE,                                    0, qfalse, qfalse },
 	// Debug
+	{ &speedrun_debug,                    "speedrun_debug",                    "0",                          CVAR_ARCHIVE,                                     0, qfalse, qfalse },    // speedrun mod: timerun center prints (same engine cvar as the client's)
 	{ &g_debugHitboxes,                   "g_debugHitboxes",                   "0",                          CVAR_CHEAT,                                      0, qfalse, qfalse },
 	{ &g_debugPlayerHitboxes,             "g_debugPlayerHitboxes",             "0",                          0,                                               0, qfalse, qfalse },     // no need to make this CVAR_CHEAT
 	{ &g_debugForSingleClient,            "g_debugForSingleClient",            "-1",                         0,                                               0, qfalse, qfalse },     // no need to make this CVAR_CHEAT

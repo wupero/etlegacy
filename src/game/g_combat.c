@@ -466,7 +466,10 @@ void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
 	if (self->client->sess.timerunActive)
 	{
 		notify_timerun_stop(self, 0);
-		trap_SendServerCommand(self - g_entities, "cp \"^dRun ^ninterrupted^7 - you died\n\"");
+		if (speedrun_debug.integer)
+		{
+			trap_SendServerCommand(self - g_entities, "cp \"^dRun ^ninterrupted^7 - you died\n\"");
+		}
 	}
 
 	// don't broadcast invalid MODs (this shouldn't occure ...)
