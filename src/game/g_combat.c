@@ -462,10 +462,11 @@ void player_die(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
 		return;
 	}
 
-	// abort any active timerun on death
+	// abort any active timerun on death (private center-print, only the runner)
 	if (self->client->sess.timerunActive)
 	{
 		notify_timerun_stop(self, 0);
+		trap_SendServerCommand(self - g_entities, "cp \"^dRun ^ninterrupted^7 - you died\n\"");
 	}
 
 	// don't broadcast invalid MODs (this shouldn't occure ...)
