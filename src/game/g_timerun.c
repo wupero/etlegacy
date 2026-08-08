@@ -213,7 +213,8 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 			if (zone->inuse && zone->classname && !Q_stricmp(zone->classname, "timerun_zone")
 			    && zone->count == index && zone->count2 == TIMERUN_ZONE_CHECKPOINT)
 			{
-				zone->s.time = 0;
+				zone->s.time  = 0;
+				zone->s.time2 = 0;   // speedrun mod: re-arm the no-run touch message too
 			}
 		}
 	}
@@ -246,7 +247,21 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 	int       index   = zone->count;
 	int       cp, delta, best, status, time;
 
-	if (!client->sess.timerunActive || client->sess.currentTimerun != index)
+	// speedrun mod: checkpoint touched with NO active run — private center-print,
+	// once per zone per run cycle (no time: there is no run being timed). The
+	// s.time2 flag edge-triggers it (the touch fires every frame while the zone
+	// is overlapped) and is re-armed when a run starts.
+	if (!client->sess.timerunActive)
+	{
+		if (!zone->s.time2)
+		{
+			zone->s.time2 = 1;
+			CP(va("cp \"^2Checkpoint ^n%d^7 touched - ^dno run started\n\"", zone->count3 + 1));
+		}
+		return;
+	}
+
+	if (client->sess.currentTimerun != index)
 	{
 		return;
 	}
