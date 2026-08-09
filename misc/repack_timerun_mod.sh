@@ -75,10 +75,10 @@ cp "$ROOT/etmain/configs/"*.config "$TMP/configs/"
 cp "$ROOT/etmain/ui/"*.menu "$TMP/ui/"
 cp "$ROOT/etmain/ui/menudef.h" "$TMP/ui/menudef.h"
 
-# speedrun mod: ship the cull-none debug shader for the timerun zone boxes
+# speedrun mod: ship the timerun shaders (debug zone boxes + zone point markers).
 # (scripts/ is the classic renderer's shader dir; materials/ is renderer2-only)
 mkdir -p "$TMP/scripts"
-cp "$ROOT/etmain/scripts/timerun_debug.shader" "$TMP/scripts/"
+cp "$ROOT/etmain/scripts/"*.shader "$TMP/scripts/"
 
 
 # cross-compiled Windows modules (optional: if the win64/win32 cross builds

@@ -2249,6 +2249,7 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum, qbo
 	cgs.media.menucharsetShader = trap_R_RegisterShader("gfx/2d/hudchars");
 	cgs.media.whiteShader       = trap_R_RegisterShader("white");
 	cgs.media.timerunDebugShader = trap_R_RegisterShader("gfx/2d/timerun_debug");   // speedrun mod
+	cgs.media.timerunMarkerShader = trap_R_RegisterShader("gfx/2d/timerun_marker");   // speedrun mod
 	cgs.media.charsetProp       = trap_R_RegisterShaderNoMip("menu/art/font1_prop.tga");
 	cgs.media.charsetPropGlow   = trap_R_RegisterShaderNoMip("menu/art/font1_prop_glo.tga");
 	cgs.media.charsetPropB      = trap_R_RegisterShaderNoMip("menu/art/font2_prop.tga");
