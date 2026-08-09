@@ -551,7 +551,7 @@ void CG_DrawTimerunMarkerLabels(void)
 				continue;
 			}
 
-			scale = TIMERUN_MARKER_HALF_SIZE * 240.0f * 1.2f
+			scale = TIMERUN_MARKER_HALF_SIZE * 240.0f * 0.8f
 			        / (tanf(DEG2RAD(cg.refdef.fov_y) * 0.5f) * z
 			           * CG_Text_Height_Ext("0", 1.0f, 0, font));
 			scale = scale < 0.08f ? 0.08f : (scale > 0.6f ? 0.6f : scale);
@@ -562,7 +562,7 @@ void CG_DrawTimerunMarkerLabels(void)
 			w = CG_Text_Width_Ext_Float(label, scale, 0, font);
 			h = CG_Text_Height_Ext_Float(label, scale, 0, font);
 
-			CG_Text_Paint_Ext(x - w * 0.5f, y - h * 0.5f, scale, scale, color, label,
+			CG_Text_Paint_Ext(x - w * 0.5f, y - h * 0.5f + 10.0f, scale, scale, color, label,
 			                 0, 0, ITEM_TEXTSTYLE_SHADOWED, font);
 		}
 	}
