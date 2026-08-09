@@ -373,14 +373,14 @@ void CG_DrawTimerunZones(void)
 }
 
 /**
- * @brief speedrun mod: draws a 2D diamond marker 50 units above every timerun
+ * @brief speedrun mod: draws a 2D diamond marker 70 units above every timerun
  * zone point (start/checkpoints/stop).
  * @details Visible by default (speedrun_markers 1), independent of the
  * speedrun_debug boxes. Uses the same per-zone geometry the server pushes on
  * ClientBegin (timerun_zones commands). Zone counts are 0 on non-timerun maps,
  * so nothing draws there.
  */
-#define TIMERUN_MARKER_Z_OFFSET 50.0f
+#define TIMERUN_MARKER_Z_OFFSET 70.0f
 void CG_DrawTimerunMarkers(void)
 {
 	int   run, i;
