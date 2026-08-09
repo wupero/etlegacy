@@ -372,59 +372,126 @@ void CG_DrawTimerunZones(void)
 	}
 }
 
-/**
- * @brief speedrun mod: draws a 2D diamond marker 70 units above every timerun
- * zone point (start/checkpoints/stop).
- * @details Visible by default (speedrun_markers 1), independent of the
- * speedrun_debug boxes. Uses the same per-zone geometry the server pushes on
- * ClientBegin (timerun_zones commands). Zone counts are 0 on non-timerun maps,
- * so nothing draws there.
- */
+// zone types as sent by the server in the timerun_zones command
+// (mirrors the game-side enum in g_timerun.c)
+#define TIMERUN_ZONE_START      1
+#define TIMERUN_ZONE_CHECKPOINT 2
+#define TIMERUN_ZONE_STOP       3
 #define TIMERUN_MARKER_Z_OFFSET 70.0f
+
+/**
+ * @brief speedrun mod: draws the diamond marker for one stored zone.
+ * @details Color by zone type: start green, checkpoint blue, stop white.
+ */
+static void CG_AddZoneMarker(int run, int i)
+{
+	vec3_t origin, color;
+
+	switch (cg.timerunDebugZoneTypes[run][i])
+	{
+	case TIMERUN_ZONE_CHECKPOINT:
+		VectorSet(color, 0, 0, 255);        // checkpoint
+		break;
+	case TIMERUN_ZONE_STOP:
+		VectorSet(color, 255, 255, 255);    // stop
+		break;
+	default:
+		VectorSet(color, 0, 255, 0);        // start
+		break;
+	}
+
+	VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
+	origin[2] += TIMERUN_MARKER_Z_OFFSET;
+
+	CG_AddMarkerDiamond(origin, color);
+}
+
+/**
+ * @brief speedrun mod: draws the zone point markers (speedrun_markers 1).
+ * @details With speedrun_debug on, every zone of every run shows. Without
+ * debug the markers guide the player: all start markers while no run is
+ * active, only the next checkpoint of the active run, and only the stop once
+ * all checkpoints are passed — so the current goal is never ambiguous.
+ * Uses the per-zone geometry the server pushes on ClientBegin (timerun_zones
+ * commands); zone counts are 0 on non-timerun maps, so nothing draws there.
+ */
 void CG_DrawTimerunMarkers(void)
 {
-	int   run, i;
-	vec3_t white = { 255, 255, 255 };
+	int run, i;
 
 	if (!speedrun_markers.integer)
 	{
 		return;
 	}
 
-	for (run = 0; run < MAX_TIMERUNS; run++)
+	if (speedrun_debug.integer)
 	{
-		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
+		// debug: every zone of every run
+		for (run = 0; run < MAX_TIMERUNS; run++)
 		{
-			vec3_t origin, color;
-
-			// per-type colors: start green, checkpoint blue, stop white
-			// (zone types are the values the server sends in timerun_zones:
-			// 1 = start, 2 = checkpoint, 3 = stop)
-			switch (cg.timerunDebugZoneTypes[run][i])
+			for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 			{
-			case 2:
-				VectorSet(color, 0, 0, 255);        // checkpoint
-				break;
-			case 3:
-				VectorSet(color, 255, 255, 255);    // stop
-				break;
-			default:
-				VectorSet(color, 0, 255, 0);        // start
-				break;
+				CG_AddZoneMarker(run, i);
 			}
+		}
+	}
+	else if (!cg.timerunActive)
+	{
+		// no active run: only the starts, so every run's start point shows
+		for (run = 0; run < MAX_TIMERUNS; run++)
+		{
+			for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
+			{
+				if (cg.timerunDebugZoneTypes[run][i] == TIMERUN_ZONE_START)
+				{
+					CG_AddZoneMarker(run, i);
+				}
+			}
+		}
+	}
+	else
+	{
+		// active run: the next checkpoint, or the stop once every checkpoint is
+		// passed. Checkpoint zones arrive in definition order and
+		// timerunCheckPointChecked is the number passed so far, so its value is
+		// the index of the next checkpoint.
+		int next    = cg.timerunCheckPointChecked;
+		int cpCount = 0;
+		int target  = -1;
+		int stop    = -1;
 
-			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
-			origin[2] += TIMERUN_MARKER_Z_OFFSET;
+		if (cg.currentTimerun >= 0 && cg.currentTimerun < MAX_TIMERUNS)
+		{
+			for (i = 0; i < cg.timerunDebugZoneCount[cg.currentTimerun]; i++)
+			{
+				if (cg.timerunDebugZoneTypes[cg.currentTimerun][i] == TIMERUN_ZONE_CHECKPOINT)
+				{
+					if (cpCount == next)
+					{
+						target = i;
+					}
+					cpCount++;
+				}
+				else if (cg.timerunDebugZoneTypes[cg.currentTimerun][i] == TIMERUN_ZONE_STOP)
+				{
+					stop = i;
+				}
+			}
+		}
 
-			CG_AddMarkerDiamond(origin, color);
+		i = (target >= 0) ? target : stop;
+
+		if (i >= 0)
+		{
+			CG_AddZoneMarker(cg.currentTimerun, i);
 		}
 	}
 
-	// speedrun mod: same diamond above the /draw_box helper box, so the marker
-	// look can be judged together with a box at arbitrary coordinates.
-	if (cg.drawBoxValid)
+	// speedrun mod: diamond above the /draw_box helper box. Debug tool — only
+	// drawn with debug on, same as the box itself.
+	if (cg.drawBoxValid && speedrun_debug.integer)
 	{
-		vec3_t origin;
+		vec3_t origin, white = { 255, 255, 255 };
 
 		VectorCopy(cg.drawBoxOrigin, origin);
 		origin[2] += TIMERUN_MARKER_Z_OFFSET;
