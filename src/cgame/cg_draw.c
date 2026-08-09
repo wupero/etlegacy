@@ -4345,6 +4345,8 @@ static void CG_Draw2D(void)
 		CG_DrawOnScreenBars();
 	}
 
+	CG_DrawTimerunMarkerLabels();   // speedrun mod: run numbers inside the start diamonds
+
 	// no longer cheat protected, we draw crosshair/reticle in non demoplayback
 	if (cg_draw2D.integer == 0)
 	{

@@ -499,3 +499,71 @@ void CG_DrawTimerunMarkers(void)
 		CG_AddMarkerDiamond(origin, white);
 	}
 }
+
+/**
+ * @brief speedrun mod: draws the run number inside each start marker diamond.
+ * @details 2D pass: the diamonds are 3D polys rendered with the scene, so the
+ * labels paint on top after the render, projected from the diamond center
+ * (zone point + marker offset). The font size scales with the diamond's
+ * projected height so the number always fits inside it. Visibility mirrors the
+ * start diamonds (see CG_DrawTimerunMarkers): all runs' starts when debug is
+ * on or no run is active, none while a run is active.
+ */
+void CG_DrawTimerunMarkerLabels(void)
+{
+	int         run, i;
+	vec4_t      color = { 1.f, 1.f, 1.f, 1.f };
+	fontHelper_t *font = &cgs.media.limboFont2;
+
+	if (!speedrun_markers.integer || (!speedrun_debug.integer && cg.timerunActive))
+	{
+		return;
+	}
+
+	for (run = 0; run < MAX_TIMERUNS; run++)
+	{
+		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
+		{
+			float x, y, z, scale, w, h;
+			vec3_t origin, trans;
+			char   label[8];
+
+			if (cg.timerunDebugZoneTypes[run][i] != TIMERUN_ZONE_START)
+			{
+				continue;
+			}
+
+			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
+			origin[2] += TIMERUN_MARKER_Z_OFFSET;
+
+			if (!CG_WorldCoordToScreenCoordFloat(origin, &x, &y))
+			{
+				continue;
+			}
+
+			// depth along the view axis: sizes the text to the diamond's
+			// projected height so the number always fits inside
+			VectorSubtract(origin, cg.refdef.vieworg, trans);
+			z = DotProduct(trans, cg.refdef.viewaxis[0]);
+
+			if (z < 0.1f)
+			{
+				continue;
+			}
+
+			scale = TIMERUN_MARKER_HALF_SIZE * 240.0f * 1.2f
+			        / (tanf(DEG2RAD(cg.refdef.fov_y) * 0.5f) * z
+			           * CG_Text_Height_Ext("0", 1.0f, 0, font));
+			scale = scale < 0.08f ? 0.08f : (scale > 0.6f ? 0.6f : scale);
+
+			// 1-based run number, matches the /speedrun listing
+			Com_sprintf(label, sizeof(label), "%d", run + 1);
+
+			w = CG_Text_Width_Ext_Float(label, scale, 0, font);
+			h = CG_Text_Height_Ext_Float(label, scale, 0, font);
+
+			CG_Text_Paint_Ext(x - w * 0.5f, y - h * 0.5f, scale, scale, color, label,
+			                 0, 0, ITEM_TEXTSTYLE_SHADOWED, font);
+		}
+	}
+}
