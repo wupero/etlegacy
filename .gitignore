@@ -105,3 +105,6 @@ gradle/
 
 # Misc
 /misc/changelog-markdown-converter/changelog-markdown-converter
+
+# Hermes agent working state (plans, session data)
+/.hermes/
