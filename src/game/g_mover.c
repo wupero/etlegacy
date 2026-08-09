@@ -1590,6 +1590,15 @@ void Use_BinaryMover(gentity_t *ent, gentity_t *other, gentity_t *activator)
 		return;
 	}
 
+	// speedrun mod: doors never open. +activate on team doors (func_door /
+	// func_door_rotating, e.g. radar's axis-only doors) is blocked for every
+	// team — the doors stay closed and blocking.
+	if (!Q_stricmp(ent->classname, "func_door")
+	    || !Q_stricmp(ent->classname, "func_door_rotating"))
+	{
+		return;
+	}
+
 #ifdef FEATURE_OMNIBOT
 	// generic func_button trigger for bots
 	if (ent->target)
