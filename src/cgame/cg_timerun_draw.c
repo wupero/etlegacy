@@ -383,7 +383,8 @@ void CG_DrawTimerunZones(void)
 #define TIMERUN_MARKER_Z_OFFSET 50.0f
 void CG_DrawTimerunMarkers(void)
 {
-	int run, i;
+	int   run, i;
+	vec3_t white = { 255, 255, 255 };
 
 	if (!speedrun_markers.integer)
 	{
@@ -394,12 +395,24 @@ void CG_DrawTimerunMarkers(void)
 	{
 		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 		{
-			vec3_t origin, white = { 255, 255, 255 };
+			vec3_t origin;
 
 			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
 			origin[2] += TIMERUN_MARKER_Z_OFFSET;
 
 			CG_AddMarkerDiamond(origin, white);
 		}
+	}
+
+	// speedrun mod: same diamond above the /draw_box helper box, so the marker
+	// look can be judged together with a box at arbitrary coordinates.
+	if (cg.drawBoxValid)
+	{
+		vec3_t origin;
+
+		VectorCopy(cg.drawBoxOrigin, origin);
+		origin[2] += TIMERUN_MARKER_Z_OFFSET;
+
+		CG_AddMarkerDiamond(origin, white);
 	}
 }
