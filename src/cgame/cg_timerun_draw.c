@@ -371,3 +371,35 @@ void CG_DrawTimerunZones(void)
 		cg.drawBoxWasInside = inside;
 	}
 }
+
+/**
+ * @brief speedrun mod: draws a 2D diamond marker 50 units above every timerun
+ * zone point (start/checkpoints/stop).
+ * @details Visible by default (speedrun_markers 1), independent of the
+ * speedrun_debug boxes. Uses the same per-zone geometry the server pushes on
+ * ClientBegin (timerun_zones commands). Zone counts are 0 on non-timerun maps,
+ * so nothing draws there.
+ */
+#define TIMERUN_MARKER_Z_OFFSET 50.0f
+void CG_DrawTimerunMarkers(void)
+{
+	int run, i;
+
+	if (!speedrun_markers.integer)
+	{
+		return;
+	}
+
+	for (run = 0; run < MAX_TIMERUNS; run++)
+	{
+		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
+		{
+			vec3_t origin, white = { 255, 255, 255 };
+
+			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
+			origin[2] += TIMERUN_MARKER_Z_OFFSET;
+
+			CG_AddMarkerDiamond(origin, white);
+		}
+	}
+}

@@ -4854,6 +4854,7 @@ void CG_DrawActive()
 	CG_DrawMiscGamemodels();
 	CG_DrawClientCoronas();
 	CG_DrawTimerunZones();   // speedrun mod: blue zone boxes when speedrun_debug is 1
+	CG_DrawTimerunMarkers();   // speedrun mod: 2D diamond markers above zone points (speedrun_markers)
 
 	if (!(cg.limboEndCinematicTime > cg.time && cg.showGameView))
 	{

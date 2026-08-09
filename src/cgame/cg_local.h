@@ -4426,6 +4426,7 @@ void CG_DrawFollow(hudComponent_t *comp);
 void CG_DrawTimer(void);
 void CG_DrawTimerunZones(void);   // speedrun mod   // speedrun mod: always-visible run timer
 void CG_AddMarkerDiamond(const vec3_t origin, const vec3_t color);   // speedrun mod: 2D diamond marker for a zone point
+void CG_DrawTimerunMarkers(void);   // speedrun mod: diamond markers above all zone points
 void CG_DrawMissileCamera(hudComponent_t *comp);
 void CG_DrawTeamInfo(hudComponent_t *comp);
 void CG_DrawSpectator(hudComponent_t *comp);
