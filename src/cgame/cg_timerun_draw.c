@@ -536,6 +536,21 @@ void CG_DrawTimerunMarkerLabels(void)
 			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
 			origin[2] += TIMERUN_MARKER_Z_OFFSET;
 
+			// the diamond is depth-tested against the world, so the label must
+			// match: hide it when a wall blocks the line of sight (point trace,
+			// same as the spectator floating labels)
+			{
+				trace_t tr;
+				vec3_t  pointMins = { 0, 0, 0 }, pointMaxs = { 0, 0, 0 };
+
+				CG_Trace(&tr, cg.refdef.vieworg, pointMins, pointMaxs, origin, -1, CONTENTS_SOLID);
+
+				if (tr.fraction < 1.0f)
+				{
+					continue;
+				}
+			}
+
 			if (!CG_WorldCoordToScreenCoordFloat(origin, &x, &y))
 			{
 				continue;
