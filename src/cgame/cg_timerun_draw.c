@@ -395,12 +395,28 @@ void CG_DrawTimerunMarkers(void)
 	{
 		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 		{
-			vec3_t origin;
+			vec3_t origin, color;
+
+			// per-type colors: start green, checkpoint blue, stop white
+			// (zone types are the values the server sends in timerun_zones:
+			// 1 = start, 2 = checkpoint, 3 = stop)
+			switch (cg.timerunDebugZoneTypes[run][i])
+			{
+			case 2:
+				VectorSet(color, 0, 0, 255);        // checkpoint
+				break;
+			case 3:
+				VectorSet(color, 255, 255, 255);    // stop
+				break;
+			default:
+				VectorSet(color, 0, 255, 0);        // start
+				break;
+			}
 
 			VectorCopy(cg.timerunDebugZoneOrigins[run][i], origin);
 			origin[2] += TIMERUN_MARKER_Z_OFFSET;
 
-			CG_AddMarkerDiamond(origin, white);
+			CG_AddMarkerDiamond(origin, color);
 		}
 	}
 
