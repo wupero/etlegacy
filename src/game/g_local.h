@@ -652,7 +652,6 @@ typedef struct
 	float checkpointYaw[MAX_TIMERUN_CHECKPOINTS];      ///< speedrun mod: rotation around Z (degrees)
 	int numCheckpoints;
 	float radius;         ///< zone half-extent in units (fallback when a zone has no explicit radius)
-	qboolean blockPrejump;///< refuse start when horizontal speed > 600 u/s
 } timerunDef_t;
 
 /**

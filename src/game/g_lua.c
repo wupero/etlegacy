@@ -2531,7 +2531,7 @@ static qboolean Lua_GetTimerunZone(lua_State *L, int index,
  * @brief et.TimerunRegister{table} - registers a timerun definition for the current map.
  *
  * Fields: id (required, unique), name, start (required), stop (required),
- * checkpoints (max 16), blockPrejump (default false). Each start/stop/checkpoint
+ * checkpoints (max 16). Each start/stop/checkpoint
  * zone is strictly { pos = {x,y,z}, radius = N, yaw = deg } - all three fields
  * required (radius clamped 8..256). The run-level 'radius' is kept for
  * compatibility but no longer used as a fallback. 'teleport' (optional) is a
@@ -2623,14 +2623,6 @@ static int _et_TimerunRegister(lua_State *L)
 	{
 		def->radius = 256.0f;
 	}
-
-	// blockPrejump (optional, default false)
-	lua_getfield(L, 1, "blockPrejump");
-	if (lua_isboolean(L, -1))
-	{
-		def->blockPrejump = lua_toboolean(L, -1) ? qtrue : qfalse;
-	}
-	lua_pop(L, 1);
 
 	// start (required): a single zone or a list of zones, each strictly
 	// { pos = {x,y,z}, radius = N, yaw = deg } (all fields required)

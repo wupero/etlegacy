@@ -192,12 +192,6 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 		return;
 	}
 
-	if (def->blockPrejump && Timerun_HorizontalSpeed(ent) > 600)
-	{
-		trap_SendServerCommand(ent - g_entities, "cp \"^dPrejump blocked: start the run from a standstill\n\"");
-		return;
-	}
-
 	client->sess.timerunActive            = qtrue;
 	client->sess.currentTimerun           = index;
 	client->sess.timerunStartTime         = client->ps.commandTime;
