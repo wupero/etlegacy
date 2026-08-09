@@ -846,6 +846,18 @@ void CG_UpdateCvars(void)
 						trap_SendConsoleCommand(va("%s_f %s\n", cv->cvarName, cv->vmCvar->string));
 					}
 				}
+				else if (cv->vmCvar == &speedrun_debug)
+				{
+					// speedrun mod: debug can't be enabled mid-run — it would reveal
+					// every zone marker/box and defeat the guidance markers
+					// (toggling it OFF stays allowed).
+					if (cg.timerunActive && speedrun_debug.integer)
+					{
+						trap_Cvar_Set("speedrun_debug", "0");
+						CG_Printf("speedrun_debug: blocked while a timerun is active\n");
+						CG_PriorityCenterPrint("^3speedrun_debug cannot be enabled during a timerun\n", 1);
+					}
+				}
 				else
 				{
 					CG_RegisterOrUpdateCvars(cv);
