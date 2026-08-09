@@ -162,6 +162,31 @@ int trap_FS_GetFileList(const char *path, const char *extension, char *listbuf, 
 }
 
 /**
+ * @brief trap_API_Request
+ * @details speedrun mod: enqueue an async HTTP request handled by the engine
+ * (curl multi layer, G_API_REQUEST in src/server/sv_game.c). The response
+ * arrives later and is popped with trap_API_GetResult.
+ * @param[in] id caller-defined request id
+ * @param[in] clientNum requesting client (-1 for server console)
+ * @param[in] url full URL
+ * @param[in] body POST body (NULL/empty = GET)
+ */
+void trap_API_Request(int id, int clientNum, const char *url, const char *body)
+{
+	SystemCall(G_API_REQUEST, id, clientNum, url, body);
+}
+
+/**
+ * @brief trap_API_GetResult
+ * @details speedrun mod: pop one completed API response (FIFO).
+ * @return qtrue when a response was written, qfalse when the queue is empty
+ */
+qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize)
+{
+	return (qboolean) SystemCall(G_API_GETRESULT, id, httpCode, buffer, bufferSize);
+}
+
+/**
  * @brief trap_SendConsoleCommand
  * @param[in] exec_when
  * @param[in] text

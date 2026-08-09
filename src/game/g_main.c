@@ -4563,6 +4563,9 @@ void G_RunFrame(int levelTime)
 	int  i;
 	char cs[MAX_STRING_CHARS];
 
+	// speedrun mod: poll completed backend API responses
+	G_API_Frame();
+
 	// if we are waiting for the level to restart, do nothing
 	if (level.restarted)
 	{

@@ -2669,6 +2669,13 @@ qboolean ConsoleCommand(void)
 	}
 	else
 #endif
+	// speedrun mod: /speedrun_apitest from the server console / rcon (no client entity)
+	if (Q_stricmp(cmd, "speedrun_apitest") == 0)
+	{
+		Cmd_SpeedrunApiTest_f(NULL, 0, 0);
+		return qtrue;
+	}
+	else
 	// special cases for chat
 	if (Q_stricmp(cmd, "say") == 0)
 	{

@@ -433,6 +433,74 @@ extern int S_GetSoundLength(sfxHandle_t sfxHandle);
  * @param[in] args
  * @return
  */
+
+/**
+ * @brief speedrun mod: backend API result queue (engine side)
+ *
+ * The game enqueues async HTTP requests via the G_API_REQUEST trap
+ * (Web_CreateRequest, curl multi - qcommon/dl_main_curl.c). The completion
+ * callback runs inside Com_WebDownloadLoop (main loop, client AND dedicated
+ * server) and stores the response here. The game pops results with the
+ * G_API_GETRESULT trap from G_API_Frame (game/g_api.c).
+ */
+#define SV_API_MAX_RESULTS 16
+#define SV_API_RESULT_TEXT 2048
+
+typedef struct
+{
+	int      id;          ///< caller-defined request id
+	int      clientNum;   ///< requesting client (-1 = server console)
+	int      httpCode;    ///< HTTP status code
+	char     text[SV_API_RESULT_TEXT]; ///< response body
+} svApiResult_t;
+
+typedef struct
+{
+	int id;
+	int clientNum;
+} svApiUserData_t;
+
+static svApiResult_t svApiResults[SV_API_MAX_RESULTS];
+static int           svApiResultHead  = 0; ///< next slot to write
+static int           svApiResultCount = 0; ///< pending results
+
+/**
+ * @brief speedrun mod: completion callback for game-issued web requests
+ */
+static void SV_API_Complete(webRequest_t *request, webRequestResult requestResult)
+{
+	svApiUserData_t *ud = (svApiUserData_t *)request->userData;
+
+	if (requestResult != REQUEST_OK)
+	{
+		Com_Printf(S_COLOR_YELLOW "SV_API: request %d failed (http %ld, %s)\n",
+		           ud ? ud->id : -1, request->httpCode,
+		           requestResult == REQUEST_ABORT ? "aborted" : "transport error");
+	}
+
+	if (ud && svApiResultCount < SV_API_MAX_RESULTS)
+	{
+		svApiResult_t *r = &svApiResults[svApiResultHead];
+
+		r->id        = ud->id;
+		r->clientNum = ud->clientNum;
+		r->httpCode  = (int)request->httpCode;
+		Q_strncpyz(r->text, request->data.buffer ? (char *)request->data.buffer : "", sizeof(r->text));
+
+		svApiResultHead  = (svApiResultHead + 1) % SV_API_MAX_RESULTS;
+		svApiResultCount++;
+	}
+	else if (svApiResultCount >= SV_API_MAX_RESULTS)
+	{
+		Com_Printf(S_COLOR_YELLOW "SV_API: result queue full, dropping response for request %d\n", ud ? ud->id : -1);
+	}
+
+	if (ud)
+	{
+		Z_Free(ud);
+	}
+}
+
 intptr_t SV_GameSystemCalls(intptr_t *args)
 {
 	switch (args[0])
@@ -719,6 +787,61 @@ intptr_t SV_GameSystemCalls(intptr_t *args)
 
 	case G_CVAR_SET_DESCRIPTION:
 		return Cvar_SetDescriptionByName(VMA(1), VMA(2));
+
+	case G_API_REQUEST:
+	{
+		// trap_API_Request(id, clientNum, url, body) - enqueue async HTTP request
+		int               id        = args[1];
+		int               clientNum = args[2];
+		const char       *url       = (const char *)VMA(3);
+		const char       *body      = (const char *)VMA(4);
+		webUploadData_t  *upload    = NULL;
+		svApiUserData_t  *ud;
+
+		if (!url || !url[0])
+		{
+			return 0;
+		}
+
+		ud = (svApiUserData_t *)Z_Malloc(sizeof(*ud));
+		ud->id        = id;
+		ud->clientNum = clientNum;
+
+		if (body && body[0])
+		{
+			size_t bodyLen = strlen(body) + 1;
+
+			upload              = (webUploadData_t *)Z_Malloc(sizeof(*upload) + bodyLen);
+			upload->bufferSize  = bodyLen - 1;
+			upload->bufferPos   = 0;
+			upload->buffer      = (byte *)(upload + 1);
+			memcpy(upload->buffer, body, bodyLen);
+			Q_strncpyz(upload->contentType, "application/json", sizeof(upload->contentType));
+		}
+
+		return Web_CreateRequest(url, NULL, upload, ud, SV_API_Complete, NULL);
+	}
+
+	case G_API_GETRESULT:
+	{
+		// trap_API_GetResult(id*, httpCode*, buffer, bufferSize) - pop one completed response
+		int  *id         = (int *)VMA(1);
+		int  *httpCode   = (int *)VMA(2);
+		char *buffer     = (char *)VMA(3);
+		int   bufferSize = args[4];
+
+		if (svApiResultCount > 0)
+		{
+			svApiResult_t *r = &svApiResults[(svApiResultHead - svApiResultCount + SV_API_MAX_RESULTS) % SV_API_MAX_RESULTS];
+
+			*id       = r->id;
+			*httpCode = r->httpCode;
+			Q_strncpyz(buffer, r->text, bufferSize);
+			svApiResultCount--;
+			return qtrue;
+		}
+		return qfalse;
+	}
 
 	default:
 		Com_Error(ERR_DROP, "Bad game system trap: %ld", (long int) args[0]);

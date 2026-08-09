@@ -281,6 +281,8 @@ extern vmCvar_t g_mapScriptDirectory;
 extern vmCvar_t g_mapConfigs;
 extern vmCvar_t g_customConfig;
 
+extern vmCvar_t g_apiUrl;
+
 extern vmCvar_t g_moverScale;
 
 extern vmCvar_t g_debugHitboxes;

@@ -291,6 +291,8 @@ vmCvar_t g_mapScriptDirectory;
 vmCvar_t g_mapConfigs;
 vmCvar_t g_customConfig;
 
+vmCvar_t g_apiUrl;
+
 vmCvar_t g_moverScale;
 
 vmCvar_t g_fixedphysics;
@@ -637,6 +639,7 @@ cvarTable_t gameCvarTable[] =
 	{ &g_mapScriptDirectory,              "g_mapScriptDirectory",              "mapscripts",                 0,                                               0, qfalse, qfalse },
 	{ &g_mapConfigs,                      "g_mapConfigs",                      "",                           0,                                               0, qfalse, qfalse },
 	{ &g_customConfig,                    "g_customConfig",                    "shortruns",                   CVAR_ARCHIVE,                                    0, qfalse, qfalse },
+	{ &g_apiUrl,                          "g_apiUrl",                          "http://127.0.0.1:8090/api/echo", CVAR_ARCHIVE,                                  0, qfalse, qfalse },
 	{ &g_moverScale,                      "g_moverScale",                      "1.0",                        0,                                               0, qfalse, qfalse },
 	{ &g_fixedphysics,                    "g_fixedphysics",                    "1",                          CVAR_ARCHIVE,                                    0, qfalse, qfalse },
 	{ &g_fixedphysicsfps,                 "g_fixedphysicsfps",                 "125",                        CVAR_ARCHIVE,                                    0, qfalse, qfalse },

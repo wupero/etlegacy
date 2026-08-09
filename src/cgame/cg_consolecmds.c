@@ -3537,6 +3537,16 @@ static void CG_Speedrun_f(void)
 
 
 /**
+ * @brief speedrun mod: /speedrun_apitest - forwards to the server, which sends
+ *        a test request to the timerun backend (g_apiUrl).
+ */
+static void CG_SpeedrunApiTest_f(void)
+{
+	trap_SendClientCommand("speedrun_apitest");
+}
+
+
+/**
  * @brief speedrun mod: /draw_box x y z radius yaw
  * @details Renders a single debug box (same {pos, radius, yaw} schema as the
  * timerun zones, so the values can be copy-pasted between lua and the
@@ -3735,6 +3745,7 @@ static consoleCommand_t commands[] =
 
 	// speedrun mod
 	{ "speedrun",               CG_Speedrun_f                },
+	{ "speedrun_apitest",       CG_SpeedrunApiTest_f         },
 
 	{ NULL,                     NULL                         }
 };
