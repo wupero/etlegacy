@@ -110,6 +110,7 @@ extern vmCvar_t cg_thirdPerson;
 extern vmCvar_t speedrun_debug;
 extern vmCvar_t speedrun_hidePlayers;
 extern vmCvar_t speedrun_markers;
+extern vmCvar_t speedrun_sounds;
 extern vmCvar_t isTimerun;
 extern vmCvar_t cg_scopedSensitivityScaler;
 #ifdef ALLOW_GSYNC

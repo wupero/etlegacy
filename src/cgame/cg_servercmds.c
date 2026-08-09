@@ -3135,6 +3135,18 @@ void CG_AddToBannerPrint(const char *str)
  * Cmd_Argc() / Cmd_Argv()
  */
 /**
+ * @brief speedrun mod: plays the menu-click sound for a timerun event
+ * (start / checkpoint / finish), gated on speedrun_sounds.
+ */
+static void CG_TimerunClickSound(void)
+{
+	if (speedrun_sounds.integer)
+	{
+		trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
+	}
+}
+
+/**
  * @brief Handles the timerun_start / timerun_start_spec server commands.
  * @param[in] spec qtrue for the spectator variant
  */
@@ -3173,6 +3185,7 @@ static void CG_TimerunStartCommand(int spec)
 		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
 	}
 
+	CG_TimerunClickSound();   // speedrun mod: click on run start
 }
 
 /**
@@ -3204,6 +3217,7 @@ static void CG_TimerunCheckCommand(int spec)
 	cg.timerunCheckPointChecked++;
 	cg.timerunCheckpointDrawTime    = cg.time;   // speedrun mod: line vanishes after 2s
 
+	CG_TimerunClickSound();   // speedrun mod: click on checkpoint
 }
 
 /**
@@ -3239,6 +3253,8 @@ static void CG_TimerunStopCommand(int spec)
 		cg.timerunFinishedTime[clientNum]                 = time;
 		cg.timerunStopSpeed                               = Q_atoi(CG_Argv(spec ? 4 : 3));
 		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
+
+		CG_TimerunClickSound();   // speedrun mod: click on finish
 	}
 	else
 	{
