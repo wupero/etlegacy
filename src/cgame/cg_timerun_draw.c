@@ -381,7 +381,7 @@ void CG_DrawTimerunZones(void)
 
 /**
  * @brief speedrun mod: draws the diamond marker for one stored zone.
- * @details Color by zone type: start green, checkpoint blue, stop white.
+ * @details Color by zone type: start green, checkpoint cyan, stop white.
  */
 static void CG_AddZoneMarker(int run, int i)
 {
@@ -390,7 +390,7 @@ static void CG_AddZoneMarker(int run, int i)
 	switch (cg.timerunDebugZoneTypes[run][i])
 	{
 	case TIMERUN_ZONE_CHECKPOINT:
-		VectorSet(color, 0, 0, 255);        // checkpoint
+		VectorSet(color, 0, 255, 255);    // checkpoint cyan
 		break;
 	case TIMERUN_ZONE_STOP:
 		VectorSet(color, 255, 255, 255);    // stop
