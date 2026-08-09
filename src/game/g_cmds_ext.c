@@ -397,6 +397,11 @@ void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
 	TeleportPlayer(ent, level.timeruns[num].teleportOrigin, ent->client->ps.viewangles);
 	VectorClear(ent->client->ps.velocity);
 
+	// speedrun mod: teleporting restores full stamina (same as /load; stamina
+	// lives in ps.stats[STAT_SPRINTTIME], server-authoritative via pmove)
+	ent->client->ps.stats[STAT_SPRINTTIME] = SPRINTTIME;
+	ent->client->ps.sprintExertTime        = 0;
+
 	CP(va("cp \"^2Teleported to run ^n%d\n\"", num + 1));
 }
 
