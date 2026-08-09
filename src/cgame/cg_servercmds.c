@@ -3156,6 +3156,7 @@ static void CG_TimerunStartCommand(int spec)
 	}
 
 	cg.timerunActive            = qtrue;
+	Q_strncpyz(cg.speedrunDebugLockedValue, speedrun_debug.string, sizeof(cg.speedrunDebugLockedValue));   // speedrun mod: lock the debug cvar to this value for the whole run
 	cg.timerunFinishedTime[clientNum] = 0; // speedrun mod: new run clears the shown final time
 	cg.timerunCheckPointChecked = 0;
 	cg.currentTimerun           = Q_atoi(CG_Argv(1));

@@ -848,14 +848,16 @@ void CG_UpdateCvars(void)
 				}
 				else if (cv->vmCvar == &speedrun_debug)
 				{
-					// speedrun mod: debug can't be enabled mid-run — it would reveal
-					// every zone marker/box and defeat the guidance markers
-					// (toggling it OFF stays allowed).
-					if (cg.timerunActive && speedrun_debug.integer)
+					// speedrun mod: debug is LOCKED during a timerun — any change
+					// (on or off) is reverted to the value it had when the run
+					// started, so mid-run the player can neither reveal every zone
+					// marker/box nor hide the guidance markers.
+					if (cg.timerunActive
+					    && Q_stricmp(speedrun_debug.string, cg.speedrunDebugLockedValue))
 					{
-						trap_Cvar_Set("speedrun_debug", "0");
-						CG_Printf("speedrun_debug: blocked while a timerun is active\n");
-						CG_PriorityCenterPrint("^3speedrun_debug cannot be enabled during a timerun\n", 1);
+						trap_Cvar_Set("speedrun_debug", cg.speedrunDebugLockedValue);
+						CG_Printf("speedrun_debug: locked while a timerun is active\n");
+						CG_PriorityCenterPrint("^3speedrun_debug is locked during a timerun\n", 1);
 					}
 				}
 				else

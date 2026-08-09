@@ -1647,6 +1647,7 @@ typedef struct
 	int timerunStopSpeed;                     ///< horizontal speed at stop
 	int runMaxSpeed;                          ///< highest speed during the run
 	int timerunCheckPointChecked;             ///< number of checkpoints received
+	char speedrunDebugLockedValue[MAX_CVAR_VALUE_STRING];   ///< speedrun mod: speedrun_debug value at run start (locked during the run)
 	int timerunCheckpointDrawTime;            ///< cg.time of the latest checkpoint (line fades after 2s)
 	int timerunCheckPointDiff[MAX_TIMERUN_CHECKPOINTS];    ///< delta vs best checkpoint
 	int timerunCheckPointTime[MAX_TIMERUN_CHECKPOINTS];    ///< absolute time at checkpoint
