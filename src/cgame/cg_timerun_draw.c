@@ -261,6 +261,41 @@ static void CG_AddDebugBox(const vec3_t center, float radius, float yaw,
 }
 
 /**
+ * @brief speedrun mod: emits ONE camera-facing 2D diamond (billboard) at origin.
+ * @details Separate function on purpose: the marker look (shape/size) will
+ * change and only this function should need editing. Color is a parameter so
+ * future per-type coloring (start/checkpoint/stop) is a call-site-only change.
+ */
+#define TIMERUN_MARKER_HALF_SIZE 16.0f
+void CG_AddMarkerDiamond(const vec3_t origin, const vec3_t color)
+{
+	polyVert_t verts[4];
+	vec3_t     right, up;
+	int        i;
+
+	// billboard basis from the current view (right/up of the camera)
+	VectorCopy(cg.refdef_current->viewaxis[1], right);
+	VectorCopy(cg.refdef_current->viewaxis[2], up);
+
+	VectorMA(origin,  TIMERUN_MARKER_HALF_SIZE, up,    verts[0].xyz);  // top
+	VectorMA(origin,  TIMERUN_MARKER_HALF_SIZE, right, verts[1].xyz);  // right
+	VectorMA(origin, -TIMERUN_MARKER_HALF_SIZE, up,    verts[2].xyz);  // bottom
+	VectorMA(origin, -TIMERUN_MARKER_HALF_SIZE, right, verts[3].xyz);  // left
+
+	for (i = 0; i < 4; i++)
+	{
+		verts[i].st[0] = 0;
+		verts[i].st[1] = 0;
+		verts[i].modulate[0] = (byte)color[0];
+		verts[i].modulate[1] = (byte)color[1];
+		verts[i].modulate[2] = (byte)color[2];
+		verts[i].modulate[3] = 255;
+	}
+
+	trap_R_AddPolyToScene(cgs.media.timerunMarkerShader, 4, verts);
+}
+
+/**
  * @brief speedrun mod: qtrue if the point lies inside the /draw_box box.
  * @details Mirrors the server's Timerun_ZoneContains: the offset is rotated
  * back into the box's local frame (yaw around Z) and compared against the
