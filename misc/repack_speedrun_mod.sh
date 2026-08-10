@@ -1,6 +1,6 @@
 #!/bin/sh
-# Repacks the timerun mod pk3: full legacy mod content (from the official release
-# pk3) with the freshly built timerun client modules swapped in.
+# Repacks the speedrun mod pk3: full legacy mod content (from the official release
+# pk3) with the freshly built speedrun client modules swapped in.
 #
 # The result is a self-contained mod package for the "speedrun" mod dir:
 # clients connecting to a server running fs_game "speedrun" auto-download
