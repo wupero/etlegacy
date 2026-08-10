@@ -661,9 +661,11 @@ static void I18N_RefreshLanguage(void)
 	}
 
 	trap_Cvar_VariableStringBuffer("fs_game", gameDir, sizeof(gameDir));
-	// mod translations also apply to mod dirs derived from MODNAME (e.g. "legacy-timerun"):
-	// menu assets use MSGID_ keys that only match this catalog, so a prefix match is safe
-	i18nTranslateMod = !gameDir[0] || !Q_stricmpn(gameDir, MODNAME, strlen(MODNAME));
+	// mod translations also apply to mod dirs derived from MODNAME (e.g. "legacy-timerun") or
+	// the renamed speedrun mod: menu assets use MSGID_ keys that only match this catalog,
+	// so a prefix match is safe
+	i18nTranslateMod = !gameDir[0] || !Q_stricmpn(gameDir, MODNAME, strlen(MODNAME))
+	                   || !Q_stricmpn(gameDir, "speedrun", strlen("speedrun"));
 
 	if (!Q_stricmp(language, i18nLanguage) && i18nTranslateMod == i18nTranslateModLast)
 	{
