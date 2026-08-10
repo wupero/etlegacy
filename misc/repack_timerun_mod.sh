@@ -12,14 +12,15 @@
 #   build_dir           cmake build dir with fresh modules (default: cmake-build-arm64)
 #   dest_dir            target mod dir (default: cmake-build-debug/speedrun)
 #
-# The pk3 is written as speedrun_<MOD_VERSION>.pk3 — the mod's OWN version
-# (default v0.1). Bump MOD_VERSION below to force clients to re-download;
-# same-name repacks also re-download via pak checksum mismatch.
+# The pk3 is written as speedrun_v0.<N>.pk3 with the minor version
+# auto-incremented on every repack (a new name makes clients re-download;
+# a same-name repack would also re-download via pak checksum mismatch).
 
 set -e
 
 # the mod's own version, independent of the legacy base release (v2.84.0)
-# that supplies the base content
+# that supplies the base content; the minor is auto-incremented on every
+# repack (see below) — MOD_VERSION only sets the starting point
 MOD_VERSION="v0.1"
 SOURCE_PK3="${1:-/Applications/ETLegacy/legacy/legacy_v2.84.0.pk3}"
 BUILD_DIR="${2:-cmake-build-arm64}"
@@ -43,7 +44,22 @@ done
 
 mkdir -p "$DEST_DIR"
 
-OUT="$DEST_DIR/speedrun_${MOD_VERSION}.pk3"
+# next minor version: highest existing speedrun_v0.<N>.pk3 + 1, or the
+# MOD_VERSION minor when no pk3 exists yet
+MINOR="${MOD_VERSION#v0.}"
+for f in "$DEST_DIR"/speedrun_v0.*.pk3; do
+    [ -e "$f" ] || continue
+    n="${f##*v0.}"
+    n="${n%.pk3}"
+    case "$n" in
+        ''|*[!0-9]*) continue ;;
+    esac
+    if [ "$n" -ge "$MINOR" ] 2>/dev/null; then
+        MINOR=$((n + 1))
+    fi
+done
+
+OUT="$DEST_DIR/speedrun_v0.${MINOR}.pk3"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
