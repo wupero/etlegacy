@@ -70,7 +70,7 @@ static void CG_DrawCheckpointLine(void)
 	// just below the main timer, smaller font
 	w = CG_Text_Width_Ext(status, 0.15f, 0, &cgs.media.limboFont1);
 	x = 320.f + cgs.wideXoffset - 0.5f * w;
-	y = 480.f - 72.f + CG_Text_Height_Ext(status, 0.3f, 0, &cgs.media.limboFont1) + 4.f;
+	y = 480.f - 52.f + CG_Text_Height_Ext(status, 0.3f, 0, &cgs.media.limboFont1) + 4.f;
 
 	CG_Text_Paint_Ext(x, y, 0.15f, 0.15f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 }
@@ -161,7 +161,7 @@ void CG_DrawTimer(void)
 		}
 
 		CG_Text_Paint_Ext(320.f + cgs.wideXoffset - 0.5f * CG_Text_Width_Ext(status, 0.3f, 0, &cgs.media.limboFont1),
-		                  480.f - 72.f, 0.3f, 0.3f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
+		                  480.f - 52.f, 0.3f, 0.3f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 
 		return;   // finished state drawn (no checkpoint line)
 	}
@@ -186,7 +186,7 @@ void CG_DrawTimer(void)
 	// line will sit below the timer, in a smaller font
 	w = CG_Text_Width_Ext(status, 0.3f, 0, &cgs.media.limboFont1);
 	x = 320.f + cgs.wideXoffset - 0.5f * w;
-	y = 480.f - 72.f;
+	y = 480.f - 52.f;
 
 	CG_Text_Paint_Ext(x, y, 0.3f, 0.3f, color, status, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 
