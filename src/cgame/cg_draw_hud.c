@@ -66,7 +66,6 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(popupmessages4),     CG_DrawPM,                        HUD_COMP_TYPE_FEED,      0.22f, { "No Connect",    "No TeamJoin",  "No Mission",     "No Pickup", "No Death", "No Echo", "Weapon Icon", "Alt Weap Icons", "Swap V<->K", "Force Colors", "Scroll Down"} }, // FIXME: outside cg_draw_hud
 	{ HUDF(powerups),           CG_DrawPowerUps,                  HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
 	{ HUDF(objectives),         CG_DrawObjectiveStatus,           HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
-	{ HUDF(hudhead),            CG_DrawPlayerStatusHead,          HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
 	{ HUDF(cursorhints),        CG_DrawCursorhint,                HUD_COMP_TYPE_SPECIFIC,  0.19f, { "Size Pulse",    "Strobe Pulse", "Alpha Pulse" } },// FIXME: outside cg_draw_hud
 	{ HUDF(cursorhintsbar),     CG_DrawCursorHintBar,             HUD_COMP_TYPE_BAR,       0.19f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(cursorhintstext),    CG_DrawCursorHintText,            HUD_COMP_TYPE_TEXT,      0.19f, { "Draw Suffix" } },// FIXME: outside cg_draw_hud
@@ -207,7 +206,6 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->popupmessages4     = CG_getComponent(4, 245, 422, 96, qfalse, 192, 0, 89.7f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 0, 2000, 2500, CG_DrawPM);
 	hud->powerups           = CG_getComponent(SCREEN_WIDTH  - 40, SCREEN_HEIGHT - 136, 36, 36, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawPowerUps);
 	hud->objectives         = CG_getComponent(4, SCREEN_HEIGHT - 136, 36, 36, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawObjectiveStatus);
-	hud->hudhead            = CG_getComponent(44, SCREEN_HEIGHT - 96, 62, 80, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawPlayerStatusHead);
 	hud->cursorhints        = CG_getComponent(SCREEN_WIDTH * .5f - 24, 260, 48, 48, qtrue, 1, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawCursorhint);
 	hud->cursorhintsbar     = CG_getComponent(SCREEN_WIDTH * .5f - 24, 316, 48, 8, qtrue, 0, BAR_BORDER_SMALL | BAR_LERP_COLOR, 100.f, colorGreen, colorRed, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawCursorHintBar);
 	hud->cursorhintstext    = CG_getComponent(SCREEN_WIDTH * .5f + 24, 294, 57, 14, qfalse, 1, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.25f, 0, 0, 0, CG_DrawCursorHintText);
@@ -550,102 +548,6 @@ void CG_DrawCompMultilineText(hudComponent_t *comp, const char *str, vec4_t colo
 
 	CG_DrawMultilineText(comp->location.x + paddingW, y + ((h2 + h) * .5f) / lineNumber, comp->location.w - (paddingW * 2), scale, scale, color, str,
 	                     h2 / lineNumber, 0, 0, fontStyle, align, font);
-}
-
-/**
- * @brief CG_DrawPlayerStatusHead
- * @param[in] comp
- */
-void CG_DrawPlayerStatusHead(hudComponent_t *comp)
-{
-	hudHeadAnimNumber_t anim           = cg.idleAnim;
-	bg_character_t      *character     = CG_CharacterForPlayerstate(&cg.snap->ps);
-	bg_character_t      *headcharacter = BG_GetCharacter(cgs.clientinfo[cg.snap->ps.clientNum].team, cgs.clientinfo[cg.snap->ps.clientNum].cls);
-	qhandle_t           painshader     = 0;
-	rectDef_t           *headRect      = &comp->location;
-
-	if (cgs.clientinfo[cg.clientNum].shoutcaster)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-	{
-		return;
-	}
-
-	if (cg.weaponFireTime > 500)
-	{
-		anim = HD_ATTACK;
-	}
-	else if (cg.time - cg.lastFiredWeaponTime < 500)
-	{
-		anim = HD_ATTACK_END;
-	}
-	else if (cg.time - cg.painTime < (character->hudheadanimations[HD_PAIN].numFrames * character->hudheadanimations[HD_PAIN].frameLerp))
-	{
-		anim = HD_PAIN;
-	}
-	else if (cg.time > cg.nextIdleTime)
-	{
-		cg.nextIdleTime = cg.time + 7000 + rand() % 1000;
-		if (cg.snap->ps.stats[STAT_HEALTH] < 40)
-		{
-			cg.idleAnim = (hudHeadAnimNumber_t)((rand() % (HD_DAMAGED_IDLE3 - HD_DAMAGED_IDLE2 + 1)) + HD_DAMAGED_IDLE2);
-		}
-		else
-		{
-			cg.idleAnim = (hudHeadAnimNumber_t)((rand() % (HD_IDLE8 - HD_IDLE2 + 1)) + HD_IDLE2);
-		}
-
-		cg.lastIdleTimeEnd = cg.time + character->hudheadanimations[cg.idleAnim].numFrames * character->hudheadanimations[cg.idleAnim].frameLerp;
-	}
-
-	if (cg.snap->ps.stats[STAT_HEALTH] < 5)
-	{
-		painshader = cgs.media.hudDamagedStates[3];
-	}
-	else if (cg.snap->ps.stats[STAT_HEALTH] < 20)
-	{
-		painshader = cgs.media.hudDamagedStates[2];
-	}
-	else if (cg.snap->ps.stats[STAT_HEALTH] < 40)
-	{
-		painshader = cgs.media.hudDamagedStates[1];
-	}
-	else if (cg.snap->ps.stats[STAT_HEALTH] < 60)
-	{
-		painshader = cgs.media.hudDamagedStates[0];
-	}
-
-	if (cg.time > cg.lastIdleTimeEnd)
-	{
-		if (cg.snap->ps.stats[STAT_HEALTH] < 40)
-		{
-			cg.idleAnim = HD_DAMAGED_IDLE1;
-		}
-		else
-		{
-			cg.idleAnim = HD_IDLE1;
-		}
-	}
-
-	if (comp->showBackGround)
-	{
-		CG_FillRect(comp->location.x, comp->location.y, comp->location.w, comp->location.h, comp->colorBackground);
-	}
-
-	if (comp->showBorder)
-	{
-		CG_DrawRect_FixedBorder(comp->location.x, comp->location.y, comp->location.w, comp->location.h, 1, comp->colorBorder);
-	}
-
-	CG_DrawPlayerHead(headRect, character, headcharacter, 180, 0, (cg.snap->ps.eFlags & EF_HEADSHOT) ? qfalse : qtrue, anim, painshader, cgs.clientinfo[cg.snap->ps.clientNum].rank, qfalse, cgs.clientinfo[cg.snap->ps.clientNum].team);
 }
 
 /**

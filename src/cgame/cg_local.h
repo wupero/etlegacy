@@ -1360,9 +1360,6 @@ typedef struct
 	int lastFiredWeaponTime;
 	int painTime;
 	int weaponFireTime;
-	int nextIdleTime;
-	int lastIdleTimeEnd;
-	hudHeadAnimNumber_t idleAnim;
 	int lastWeapSelInBank[MAX_WEAP_BANKS_MP];   ///< remember which weapon was last selected in a bank for 'weaponbank' commands
 
 	// view movement
@@ -4283,7 +4280,6 @@ typedef struct hudStructure_s
 	hudComponent_t popupmessages4;
 	hudComponent_t powerups;
 	hudComponent_t objectives;
-	hudComponent_t hudhead;
 	// 20
 	hudComponent_t cursorhints;
 	hudComponent_t cursorhintsbar;
@@ -4435,7 +4431,6 @@ void CG_DrawCursorHintBar(hudComponent_t *comp);
 void CG_DrawCursorHintText(hudComponent_t *comp);
 void CG_DrawCrosshair(hudComponent_t *comp);
 
-void CG_DrawPlayerStatusHead(hudComponent_t *comp);
 void CG_DrawGunHeatBar(hudComponent_t *comp);
 void CG_DrawClipBar(hudComponent_t *comp);
 void CG_DrawPowerUps(hudComponent_t *comp);

@@ -137,9 +137,6 @@
 						"component":	null
 					}
 				},
-				"hudhead":	{
-					"visible":	false
-				},
 				"localtime":	{
 					"visible":	true
 				},
@@ -774,19 +771,6 @@
 						"component":	null
 					}
 				},
-				"hudhead":	{
-					"rect":	{
-						"x":	-68.7205352783203,
-						"y":	0,
-						"w":	62,
-						"h":	80
-					},
-					"anchor":	4,
-					"parent":	{
-						"anchor":	4,
-						"component":	null
-					}
-				},
 				"cursorhints":	{
 					"rect":	{
 						"x":	57.5852279663086,
@@ -1279,9 +1263,6 @@
 						"anchor":	3,
 						"component":	null
 					}
-				},
-				"hudhead":	{
-					"visible":	false
 				},
 				"cursorhints":	{
 					"visible":	false
