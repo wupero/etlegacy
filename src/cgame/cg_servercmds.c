@@ -3973,11 +3973,8 @@ static void CG_ServerCommand(void)
 		CG_AddToBannerPrint(CG_Argv(1));
 		break;
 	}
-	case XPGAIN_HASH:   // "xpgain"
-	{
-		CG_AddPMItemXP(Q_atoi(CG_Argv(2)) < 0, va("%s", CG_Argv(2)), va("%s", CG_Argv(3)), cgs.media.skillPics[Q_atoi(CG_Argv(1))]);
+	case XPGAIN_HASH:   // "xpgain" - HUD feed removed (speedrun mod); ignore silently
 		break;
-	}
 #ifdef LEGACY_AUTH
 	case AUTH_SHOW_MSG_HASH: // "authMsg"
 	{

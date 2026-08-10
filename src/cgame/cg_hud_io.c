@@ -1696,22 +1696,10 @@ static hudStucture_t *CG_ReadHudJsonObject(cJSON *hud, hudFileUpgrades_t *upgr, 
 			tmpHud->staminabar.style    = 0;    // clear all
 		}
 
-		if (!parentHud || (tmpHud->weaponheatbar.style != parentHud->weaponheatbar.style))
-		{
-			tmpHud->weaponheatbar.barStyle = tmpHud->weaponheatbar.style;
-			tmpHud->weaponheatbar.style    = 0; // clear all
-		}
-
 		if (!parentHud || (tmpHud->cursorhintsbar.style != parentHud->cursorhintsbar.style))
 		{
 			tmpHud->cursorhintsbar.barStyle = tmpHud->cursorhintsbar.style;
 			tmpHud->cursorhintsbar.style    = 0;    // clear all
-		}
-
-		if (!parentHud || (tmpHud->weaponstability.style != parentHud->weaponstability.style))
-		{
-			tmpHud->weaponstability.barStyle = (tmpHud->weaponstability.style >> 1); // remove "Always" style from bar style
-			tmpHud->weaponstability.style    = tmpHud->weaponstability.style & 1; // keep "Always" style only
 		}
 
 		if (!parentHud || (tmpHud->crosshairbar.style != parentHud->crosshairbar.style))

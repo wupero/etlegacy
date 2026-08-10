@@ -2270,14 +2270,6 @@ enum
 	POPUP_BIG_FILTER_PRESTIGE = BIT(2),
 };
 
-// Popup XP Gain
-enum
-{
-	POPUP_XPGAIN_SCROLL_DOWN  = BIT(0),
-	POPUP_XPGAIN_NO_REASON    = BIT(1),
-	POPUP_XPGAIN_NO_STACK     = BIT(2),
-	POPUP_XPGAIN_NO_XP_ADD_UP = BIT(3),
-};
 
 // Compass
 enum
@@ -3999,7 +3991,6 @@ qboolean CG_CheckPMItemFilter(popupMessageType_t type, int filter);
 void CG_AddPMItem(popupMessageType_t type, const char *message, const char *message2, qhandle_t shader, qhandle_t weaponShader, int scaleShader, vec3_t color);
 void CG_AddPMItemEx(popupMessageType_t type, const char *message, const char *message2, qhandle_t shader, qhandle_t weaponShader, int scaleShader, vec3_t color, int stackNum);
 void CG_AddPMItemBig(popupMessageBigType_t type, const char *message, qhandle_t shader);
-void CG_AddPMItemXP(popupMessageXPGainType_t type, const char *message, const char *message2, qhandle_t shader);
 const char *CG_GetPMItemText(centity_t *cent);
 void CG_PlayPMItemSound(centity_t *cent);
 qhandle_t CG_GetPMItemIcon(centity_t *cent);
@@ -4266,7 +4257,6 @@ typedef struct hudStructure_s
 
 	hudComponent_t ranktext;
 	// 10
-	hudComponent_t weaponheatbar;
 
 	hudComponent_t clipbar;
 	hudComponent_t fireteam;
@@ -4280,7 +4270,6 @@ typedef struct hudStructure_s
 	hudComponent_t cursorhints;
 	hudComponent_t cursorhintsbar;
 	hudComponent_t cursorhintstext;
-	hudComponent_t weaponstability;
 	hudComponent_t livesleft;
 	hudComponent_t roundtimer;
 	hudComponent_t localtime;
@@ -4313,7 +4302,6 @@ typedef struct hudStructure_s
 	hudComponent_t crosshairtext;
 	hudComponent_t crosshairbar;
 	hudComponent_t stats;
-	hudComponent_t xpgain;
 	hudComponent_t scPlayerListAxis;
 	// 60
 	hudComponent_t scPlayerListAllies;
@@ -4414,19 +4402,16 @@ void CG_DrawMissileCamera(hudComponent_t *comp);
 void CG_DrawTeamInfo(hudComponent_t *comp);
 void CG_DrawSpectator(hudComponent_t *comp);
 void CG_DrawPMItemsBig(hudComponent_t *comp);
-void CG_DrawPMItemsXPGain(hudComponent_t *comp);
 void CG_DrawWarmupTitle(hudComponent_t *comp);
 void CG_DrawWarmupText(hudComponent_t *comp);
 void CG_DrawObjectiveInfo(hudComponent_t *comp);
 void CG_DrawCenterString(hudComponent_t *comp);
 void CG_DrawBannerPrint(hudComponent_t *comp);
-void CG_DrawWeapStability(hudComponent_t *comp);
 void CG_DrawCursorhint(hudComponent_t *comp);
 void CG_DrawCursorHintBar(hudComponent_t *comp);
 void CG_DrawCursorHintText(hudComponent_t *comp);
 void CG_DrawCrosshair(hudComponent_t *comp);
 
-void CG_DrawGunHeatBar(hudComponent_t *comp);
 void CG_DrawClipBar(hudComponent_t *comp);
 void CG_DrawPowerUps(hudComponent_t *comp);
 void CG_DrawObjectiveStatus(hudComponent_t *comp);

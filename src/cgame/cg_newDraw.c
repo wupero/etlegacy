@@ -594,61 +594,6 @@ qboolean CG_OwnerDrawVisible(int flags)
 	return qfalse;
 }
 
-/**
- * @brief Draw a bar showing current stability level (0-255), max at current weapon/ability, and 'perfect' reference mark
- * probably only drawn for scoped weapons
- * @param[in] rect
- */
-void CG_DrawWeapStability(hudComponent_t *comp)
-{
-	static vec4_t goodColor = { 0, 1, 0, 0.5f }, badColor = { 1, 0, 0, 0.5f };
-	float         spread;
-
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (!(comp->style & 1) && !cg.zoomed && !cg.generatingNoiseHud)
-	{
-		// style '0' means only draw for scoped weapons, '1' means draw all the time
-		return;
-	}
-
-	// don't draw while switching
-	if ((cg.snap->ps.weapAnim & ~ANIM_TOGGLEBIT) == WEAP_ALTSWITCHFROM ||
-	    (cg.snap->ps.weapAnim & ~ANIM_TOGGLEBIT) == WEAP_ALTSWITCHTO)
-	{
-		return;
-	}
-
-	if (cg.renderingThirdPerson)
-	{
-		return;
-	}
-
-	if (cg.predictedPlayerState.groundEntityNum == ENTITYNUM_NONE)
-	{
-		spread = 255.0f;
-	}
-	else
-	{
-		spread = (float)cg.snap->ps.aimSpreadScale;
-	}
-
-	if (comp->barStyle & BAR_CIRCULAR)
-	{
-		CG_DrawCircle(comp->location.x, comp->location.y, comp->location.w, comp->location.h, goodColor, badColor,
-		              comp->colorBackground, comp->colorBorder, spread / 255.0f, 0.f, comp->barStyle, -1,
-		              comp->circleDensityPoint, comp->circleStartAngle, comp->circleEndAngle, comp->circleThickness);
-	}
-	else
-	{
-		CG_FilledBar(comp->location.x, comp->location.y, comp->location.w, comp->location.h, goodColor, badColor,
-		             comp->colorBackground, comp->colorBorder, spread / 255.0f, 0.f, comp->barStyle, -1);
-	}
-}
-
 #ifdef FEATURE_EDV
 int old_mouse_x_pos = 0, old_mouse_y_pos = 0;
 #endif

@@ -248,9 +248,6 @@ vmCvar_t cg_simpleItemsScale;
 vmCvar_t cg_automapZoom;
 vmCvar_t cg_autoCmd;
 
-vmCvar_t cg_popupXPGainFadeTime;
-vmCvar_t cg_popupXPGainStayTime;
-vmCvar_t cg_popupXPGainTime;
 
 vmCvar_t cg_fontScaleSP; // side print
 
