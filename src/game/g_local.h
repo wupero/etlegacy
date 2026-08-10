@@ -773,6 +773,10 @@ typedef struct
 	int timerunBestTime[MAX_TIMERUNS];
 	int timerunBestCheckpointTimes[MAX_TIMERUNS][MAX_TIMERUN_CHECKPOINTS];
 
+	// speedrun mod: player-selectable mode. 1 = default (vanilla stamina),
+	// 2 = infinite stamina. sess => resets on every map load, default 0 (= 1).
+	int speedrunMode;
+
 } clientSession_t;
 
 #define PICKUP_ACTIVATE 0   ///< pickup items only when using "+activate"
@@ -2115,6 +2119,7 @@ void trap_API_Request(int id, int clientNum, const char *url, const char *body);
 qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize); ///< speedrun mod
 void G_API_Frame(void);                                                            ///< speedrun mod
 void Cmd_SpeedrunApiTest_f(gentity_t *ent, unsigned int dwCommand, int value);     ///< speedrun mod
+void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void trap_SendConsoleCommand(int exec_when, const char *text);
 void trap_Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags);
 void trap_Cvar_Update(vmCvar_t *vmCvar);

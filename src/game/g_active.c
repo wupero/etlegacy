@@ -2379,6 +2379,13 @@ void ClientEndFrame(gentity_t *ent)
 		}
 	}
 
+	// speedrun mod: infinite stamina mode (speedrun_mode 2) keeps sprint full
+	if (ent->client->sess.speedrunMode == 2)
+	{
+		ent->client->ps.stats[STAT_SPRINTTIME] = SPRINTTIME;
+		ent->client->ps.sprintExertTime        = 0;
+	}
+
 	// run touch functions here too, so movers don't have to wait
 	// until the next ClientThink, which will be too late for some map
 	// scripts (railgun)

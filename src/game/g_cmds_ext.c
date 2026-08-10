@@ -184,6 +184,7 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "save",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Save_f,                           " [slot]:^7 Saves your current position"                                                },
 	{ "speedrun_tp",    CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_SpeedrunTp_f,                    " [num]:^7 Teleports to the selected run's teleport spot (speedrun mod)"                      },
 	{ "speedrun_apitest", CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunApiTest_f,               " - sends a test request to the timerun backend at g_apiUrl (speedrun mod)"                  },
+	{ "speedrun_mode",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunMode_f,                 " - sets the speedrun mode: 1 = default, 2 = infinite stamina (speedrun mod)"             },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
 
@@ -193,6 +194,82 @@ static const cmd_reference_t aCommandInfo[] =
  * @param[in] dwCommand - unused
  * @param[in] value - unused
  */
+
+/**
+ * @brief speedrun mod: /speedrun_mode [1|2]
+ * @details 1 = default (vanilla stamina), 2 = infinite stamina. Bare command
+ *          prints the current mode. Gated like /save: not a spectator, no
+ *          active run, on the ground, (near-)stationary. The mode lives in
+ *          sess (resets on every map load); the server refills stamina in
+ *          ClientEndFrame while mode 2 is active.
+ */
+void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	char  arg[MAX_TOKEN_CHARS];
+	int   mode;
+	float horizontalSpeed;
+
+	if (!ent || !ent->client)
+	{
+		G_Printf("speedrun mod: speedrun_mode is a player command\n");
+		return;
+	}
+
+	trap_Argv(1, arg, sizeof(arg));
+
+	if (!arg[0])
+	{
+		CP(va("cp \"^2Speedrun mode: ^7%d%s\n\"", ent->client->sess.speedrunMode,
+		      ent->client->sess.speedrunMode == 2 ? " (infinite stamina)" : " (default)"));
+		return;
+	}
+
+	mode = Q_atoi(arg);
+
+	if (mode != 1 && mode != 2)
+	{
+		CP("cp \"^3speedrun_mode: usage: /speedrun_mode [1|2]  (1 = default, 2 = infinite stamina)\n\"");
+		return;
+	}
+
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR)
+	{
+		CP("cp \"^dYou can not change speedrun mode as a spectator\n\"");
+		return;
+	}
+
+	if (ent->client->sess.timerunActive)
+	{
+		CP("cp \"^dYou can not change speedrun mode during a run\n\"");
+		return;
+	}
+
+	if (ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
+	{
+		CP("cp \"^dYou can not change speedrun mode while in the air\n\"");
+		return;
+	}
+
+	horizontalSpeed = sqrt(Square(ent->client->ps.velocity[0]) + Square(ent->client->ps.velocity[1]));
+
+	if (horizontalSpeed > SAVE_MAX_GROUND_SPEED)
+	{
+		CP("cp \"^dYou can not change speedrun mode while moving on the ground\n\"");
+		return;
+	}
+
+	ent->client->sess.speedrunMode = mode;
+
+	if (mode == 2)
+	{
+		CP("cp \"^2Speedrun mode: infinite stamina ON\n\"");
+	}
+	else
+	{
+		CP("cp \"^2Speedrun mode: default (vanilla stamina)\n\"");
+	}
+}
+
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
 {
 	int             argc;
