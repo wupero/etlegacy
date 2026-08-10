@@ -422,20 +422,6 @@
 						"component":	null
 					}
 				},
-				"breathtext":	{
-					"rect":	{
-						"x":	4,
-						"y":	-93,
-						"w":	57,
-						"h":	14
-					},
-					"visible":	true,
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
-						"component":	null
-					}
-				},
 				"weaponchargetext":	{
 					"rect":	{
 						"x":	-3,
@@ -462,21 +448,6 @@
 				"staminabar":	{
 					"rect":	{
 						"x":	-30.383331298828125,
-						"y":	-2.79998779296875,
-						"w":	12,
-						"h":	74
-					},
-					"style":	197,
-					"showBorder":	true,
-					"anchor":	4,
-					"parent":	{
-						"anchor":	5,
-						"component":	null
-					}
-				},
-				"breathbar":	{
-					"rect":	{
-						"x":	-30.350006103515625,
 						"y":	-2.79998779296875,
 						"w":	12,
 						"h":	74
@@ -874,21 +845,6 @@
 						"component":	null
 					}
 				},
-				"breathtext":	{
-					"rect":	{
-						"x":	-27.659774780273438,
-						"y":	-77.20001220703125,
-						"w":	57,
-						"h":	14
-					},
-					"visible":	true,
-					"style":	0,
-					"anchor":	4,
-					"parent":	{
-						"anchor":	5,
-						"component":	null
-					}
-				},
 				"weaponchargetext":	{
 					"rect":	{
 						"x":	27.086494445800781,
@@ -1042,9 +998,6 @@
 					}
 				},
 				"staminabar":	{
-					"visible":	false
-				},
-				"breathbar":	{
 					"visible":	false
 				},
 				"healthbar":	{

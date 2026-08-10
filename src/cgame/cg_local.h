@@ -4261,7 +4261,6 @@ typedef struct hudStructure_s
 
 
 	hudComponent_t staminabar;
-	hudComponent_t breathbar;
 
 
 
@@ -4293,7 +4292,6 @@ typedef struct hudStructure_s
 	hudComponent_t demotext;
 	hudComponent_t missilecamera;
 	hudComponent_t sprinttext;
-	hudComponent_t breathtext;
 
 	hudComponent_t fps;
 	hudComponent_t snapshot;
@@ -4433,9 +4431,7 @@ void CG_DrawClipBar(hudComponent_t *comp);
 void CG_DrawPowerUps(hudComponent_t *comp);
 void CG_DrawObjectiveStatus(hudComponent_t *comp);
 void CG_DrawStaminaBar(hudComponent_t *comp);
-void CG_DrawBreathBar(hudComponent_t *comp);
 void CG_DrawPlayerSprint(hudComponent_t *comp);
-void CG_DrawPlayerBreath(hudComponent_t *comp);
 void CG_DrawRank(hudComponent_t *comp);
 void CG_DrawLivesLeft(hudComponent_t *comp);
 void CG_DrawLocalTime(hudComponent_t *comp);

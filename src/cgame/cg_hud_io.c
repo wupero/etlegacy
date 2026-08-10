@@ -1696,12 +1696,6 @@ static hudStucture_t *CG_ReadHudJsonObject(cJSON *hud, hudFileUpgrades_t *upgr, 
 			tmpHud->staminabar.style    = 0;    // clear all
 		}
 
-		if (!parentHud || (tmpHud->breathbar.style != parentHud->breathbar.style))
-		{
-			tmpHud->breathbar.barStyle = tmpHud->breathbar.style;
-			tmpHud->breathbar.style    = 0; // clear all
-		}
-
 		if (!parentHud || (tmpHud->weaponheatbar.style != parentHud->weaponheatbar.style))
 		{
 			tmpHud->weaponheatbar.barStyle = tmpHud->weaponheatbar.style;
