@@ -1166,7 +1166,6 @@ typedef struct
 
 	int clientNum;
 	int xp;
-	int xpChangeTime;
 
 	qboolean demoPlayback;
 	demoPlayInfo_t *demoinfo;
@@ -4266,9 +4265,7 @@ typedef struct hudStructure_s
 
 
 
-	hudComponent_t xptext;
 	hudComponent_t ranktext;
-	hudComponent_t statsdisplay;
 	// 10
 	hudComponent_t weaponheatbar;
 
@@ -4439,8 +4436,6 @@ void CG_DrawStaminaBar(hudComponent_t *comp);
 void CG_DrawBreathBar(hudComponent_t *comp);
 void CG_DrawPlayerSprint(hudComponent_t *comp);
 void CG_DrawPlayerBreath(hudComponent_t *comp);
-void CG_DrawSkills(hudComponent_t *comp);
-void CG_DrawXP(hudComponent_t *comp);
 void CG_DrawRank(hudComponent_t *comp);
 void CG_DrawLivesLeft(hudComponent_t *comp);
 void CG_DrawLocalTime(hudComponent_t *comp);

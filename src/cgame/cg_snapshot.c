@@ -248,10 +248,6 @@ void CG_SetInitialSnapshot(snapshot_t *snap)
 	// update client XP for spectator frames
 	if (cg.snap->ps.clientNum == cg.clientNum)    // sanity check
 	{
-		if (cg.xp < cg.snap->ps.stats[STAT_XP])
-		{
-			cg.xpChangeTime = cg.time;
-		}
 		cg.xp = cg.snap->ps.stats[STAT_XP];
 	}
 }
@@ -309,10 +305,6 @@ static void CG_TransitionSnapshot(void)
 
 	if (cg.snap->ps.clientNum == cg.clientNum)
 	{
-		if (cg.xp < cg.snap->ps.stats[STAT_XP])
-		{
-			cg.xpChangeTime = cg.time;
-		}
 		cg.xp = cg.snap->ps.stats[STAT_XP];
 	}
 

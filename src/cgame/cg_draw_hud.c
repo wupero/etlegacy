@@ -53,9 +53,7 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(staminabar),         CG_DrawStaminaBar,                HUD_COMP_TYPE_BAR,       0.19f, { 0 } },
 	{ HUDF(breathbar),          CG_DrawBreathBar,                 HUD_COMP_TYPE_BAR,       0.19f, { 0 } },
 
-	{ HUDF(xptext),             CG_DrawXP,                        HUD_COMP_TYPE_TEXT,      0.25f, { "Draw Suffix" } },
 	{ HUDF(ranktext),           CG_DrawRank,                      HUD_COMP_TYPE_TEXT,      0.20f, { 0 } },
-	{ HUDF(statsdisplay),       CG_DrawSkills,                    HUD_COMP_TYPE_SPECIFIC,  0.25f, { "Column" } },
 	{ HUDF(weaponheatbar),      CG_DrawGunHeatBar,                HUD_COMP_TYPE_BAR,       0.19f, { 0 } },
 
 	{ HUDF(clipbar),            CG_DrawClipBar,                   HUD_COMP_TYPE_BAR,       0.25f, { "Dynamic Color" } },
@@ -194,9 +192,7 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->crosshair          = CG_getComponent(SCREEN_WIDTH * .5f - 24, SCREEN_HEIGHT * .5 - 24, 48, 48, qtrue, CROSSHAIR_PULSE, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawCrosshair);
 	hud->staminabar         = CG_getComponent(4, SCREEN_HEIGHT - 92, 12, 72, qtrue, 0, BAR_LEFT | BAR_VERT | BAR_BG | BAR_BGSPACING_X0Y0 | BAR_LERP_COLOR | BAR_DECOR | BAR_ICON, 100.f, (vec4_t) { 0, 1.0f, 0.1f, 0.5f }, (vec4_t) { 1.0f, 0, 0.1f, 0.5f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawStaminaBar);
 	hud->breathbar          = CG_getComponent(4, SCREEN_HEIGHT - 92, 12, 72, qtrue, 0, BAR_LEFT | BAR_VERT | BAR_BG | BAR_BGSPACING_X0Y0 | BAR_LERP_COLOR | BAR_DECOR | BAR_ICON, 100.f, (vec4_t) { 0, 0.1f, 1.0f, 0.5f }, (vec4_t) { 1.0f, 0.1f, 0, 0.5f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawBreathBar);
-	hud->xptext             = CG_getComponent(108, 465, 57, 14, qtrue, 1, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.25f, 0, 0, 0, CG_DrawXP);
 	hud->ranktext           = CG_getComponent(167, 465, 57, 14, qfalse, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.20f, 0, 0, 0, CG_DrawRank);    // disable
-	hud->statsdisplay       = CG_getComponent(116, 394, 42, 70, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.25f, 0, 0, 0, CG_DrawSkills);
 	hud->weaponheatbar      = CG_getComponent(SCREEN_WIDTH - 88, SCREEN_HEIGHT - 52, 60, 32, qtrue, 0, BAR_LEFT | BAR_BG | BAR_LERP_COLOR, 100.f, (vec4_t) { 1, 1, 0, 0.3f }, (vec4_t) { 1, 0, 0, 0.7f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawGunHeatBar);
 	hud->clipbar            = CG_getComponent(SCREEN_WIDTH - 30, SCREEN_HEIGHT - 92, 12, 72, qfalse, 0, BAR_LEFT | BAR_VERT | BAR_BG | BAR_BGSPACING_X0Y0 | BAR_LERP_COLOR | BAR_DECOR | BAR_ICON, 100.f, (vec4_t) { 1.0f, 1.0f, 1.0f, 0.75f }, (vec4_t) { 1.0f, 0.0f, 0.0f, 0.25f }, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawClipBar);
 	hud->fireteam           = CG_getComponent(10, 10, 350, 100, qtrue, FT_LATCHED_CLASS | FT_HEALTH_TEXT, 0, 100.f, colorWhite, HUD_Background, qtrue, HUD_BackgroundAlt, qtrue, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.20f, 0, 0, 0, CG_DrawFireTeamOverlay);
@@ -1168,130 +1164,6 @@ void CG_DrawPlayerBreath(hudComponent_t *comp)
 
 	CG_DrawCompText(comp, str, comp->colorMain, comp->styleText, &cgs.media.limboFont1);
 }
-void CG_DrawSkills(hudComponent_t *comp)
-{
-	playerState_t *ps = &cg.snap->ps;
-	clientInfo_t  *ci = &cgs.clientinfo[ps->clientNum];
-	int           i;
-
-	if (cgs.clientinfo[cg.clientNum].shoutcaster)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cgs.gametype == GT_WOLF_LMS)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-	{
-		return;
-	}
-
-	if (comp->showBackGround)
-	{
-		CG_FillRect(comp->location.x, comp->location.y, comp->location.w, comp->location.h, comp->colorBackground);
-	}
-
-	if (comp->showBorder)
-	{
-		CG_DrawRect_FixedBorder(comp->location.x, comp->location.y, comp->location.w, comp->location.h, 1, comp->colorBorder);
-	}
-
-	for (i = 0; i < 3; i++)
-	{
-		skillType_t skill = CG_ClassSkillForPosition(ci, i);
-		if (!comp->style)
-		{
-			int w = (comp->location.w - 3) / 3;
-
-			CG_DrawSkillBar(comp->location.x + i + i * w, comp->location.y, w, comp->location.h - w, ci->skill[skill], skill);
-			CG_DrawPic(comp->location.x + i + i * w, comp->location.y + comp->location.h - w, w, w, cgs.media.skillPics[skill]);
-		}
-		else
-		{
-			int   j        = 1;
-			int   skillLvl = 0;
-			float tempY;
-			float scale;
-
-			// the display is divided into 3 "boxes", each containing an icon + text
-			// icon takes up 60% of the box height (results in roughly square icon at default size)
-			float iconH = (comp->location.h / 3) * 0.6f;
-			float textH = (comp->location.h / 3) * 0.4f;
-
-			for (; j < NUM_SKILL_LEVELS; ++j)
-			{
-				if (BG_IsSkillAvailable(ci->skill, skill, j))
-				{
-					skillLvl++;
-				}
-			}
-
-			tempY = comp->location.y + (i * (iconH + textH));
-			scale = CG_ComputeScale(comp /*comp->location.h / 6.f, comp->scale, &cgs.media.limboFont2*/);
-
-			//CG_DrawPic
-			CG_DrawPicShadowed(comp->location.x, tempY, comp->location.w, iconH, cgs.media.skillPics[skill]);
-
-			// text is drawn from bottom left, so skip to the very bottom of the current "box"
-			tempY += iconH + textH;
-
-			CG_Text_Paint_Centred_Ext(comp->location.x + (comp->location.w * 0.5f), tempY, scale, scale, comp->colorMain, va("%i", skillLvl), 0, 0, comp->styleText, &cgs.media.limboFont1);
-		}
-	}
-}
-
-/**
- * @brief CG_DrawXP
- * @param[in] x
- * @param[in] y
- */
-void CG_DrawXP(hudComponent_t *comp)
-{
-	const char *str;
-	vec_t      *clr;
-
-	if (cgs.clientinfo[cg.clientNum].shoutcaster)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	if (cgs.gametype == GT_WOLF_LMS)
-	{
-		return;
-	}
-
-	if (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-	{
-		return;
-	}
-
-	if (cg.time - cg.xpChangeTime < 1000)
-	{
-		clr = colorYellow;
-	}
-	else
-	{
-		clr = comp->colorMain;
-	}
-
-	str = va("%s%s", Com_ScaleNumberPerThousand((float) cg.snap->ps.stats[STAT_XP], 2, 4), (comp->style & 1) ? " XP" : "");
-
-	CG_DrawCompText(comp, str, clr, comp->styleText, &cgs.media.limboFont1);
-}
-
 /**
  * @brief CG_DrawRank
  * @param[in] x

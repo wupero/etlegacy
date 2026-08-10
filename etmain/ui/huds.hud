@@ -44,19 +44,6 @@
 						"component":	null
 					}
 				},
-				"xptext":	{
-					"rect":	{
-						"x":	24,
-						"y":	-2,
-						"w":	57,
-						"h":	14
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
-						"component":	null
-					}
-				},
 				"ranktext":	{
 					"rect":	{
 						"x":	30,
@@ -65,20 +52,6 @@
 						"h":	14
 					},
 					"visible":	true,
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
-						"component":	null
-					}
-				},
-				"statsdisplay":	{
-					"rect":	{
-						"x":	24,
-						"y":	-20,
-						"w":	14,
-						"h":	72
-					},
-					"style":	1,
 					"anchor":	6,
 					"parent":	{
 						"anchor":	6,
@@ -211,38 +184,12 @@
 						"component":	null
 					}
 				},
-				"xptext":	{
-					"rect":	{
-						"x":	110,
-						"y":	-2,
-						"w":	57,
-						"h":	14
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
-						"component":	null
-					}
-				},
 				"ranktext":	{
 					"rect":	{
 						"x":	115,
 						"y":	-14,
 						"w":	57,
 						"h":	14
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
-						"component":	null
-					}
-				},
-				"statsdisplay":	{
-					"rect":	{
-						"x":	45,
-						"y":	-20,
-						"w":	14,
-						"h":	72
 					},
 					"anchor":	6,
 					"parent":	{
@@ -317,19 +264,6 @@
 					"anchor":	4,
 					"parent":	{
 						"anchor":	4,
-						"component":	null
-					}
-				},
-				"xptext":	{
-					"rect":	{
-						"x":	40,
-						"y":	-2,
-						"w":	57,
-						"h":	14
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	6,
 						"component":	null
 					}
 				},
@@ -598,20 +532,6 @@
 						"component":	null
 					}
 				},
-				"xptext":	{
-					"rect":	{
-						"x":	-20.522552490234375,
-						"y":	-17,
-						"w":	58,
-						"h":	14
-					},
-					"textAlign":	2,
-					"anchor":	4,
-					"parent":	{
-						"anchor":	4,
-						"component":	null
-					}
-				},
 				"ranktext":	{
 					"rect":	{
 						"x":	-20.522552490234375,
@@ -620,19 +540,6 @@
 						"h":	14
 					},
 					"textAlign":	2,
-					"anchor":	4,
-					"parent":	{
-						"anchor":	4,
-						"component":	null
-					}
-				},
-				"statsdisplay":	{
-					"rect":	{
-						"x":	-4,
-						"y":	-3,
-						"w":	14,
-						"h":	72
-					},
 					"anchor":	4,
 					"parent":	{
 						"anchor":	4,
@@ -1158,12 +1065,6 @@
 					}
 				},
 				"healthtext":	{
-					"visible":	false
-				},
-				"xptext":	{
-					"visible":	false
-				},
-				"statsdisplay":	{
 					"visible":	false
 				},
 				"weaponicon":	{
