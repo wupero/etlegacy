@@ -4264,7 +4264,6 @@ typedef struct hudStructure_s
 	hudComponent_t popupmessages2;
 	hudComponent_t popupmessages3;
 	hudComponent_t popupmessages4;
-	hudComponent_t powerups;
 	hudComponent_t objectives;
 	// 20
 	hudComponent_t cursorhints;
@@ -4413,7 +4412,6 @@ void CG_DrawCursorHintText(hudComponent_t *comp);
 void CG_DrawCrosshair(hudComponent_t *comp);
 
 void CG_DrawClipBar(hudComponent_t *comp);
-void CG_DrawPowerUps(hudComponent_t *comp);
 void CG_DrawObjectiveStatus(hudComponent_t *comp);
 void CG_DrawStaminaBar(hudComponent_t *comp);
 void CG_DrawPlayerSprint(hudComponent_t *comp);

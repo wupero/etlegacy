@@ -60,7 +60,6 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(popupmessages2),     CG_DrawPM,                        HUD_COMP_TYPE_FEED,      0.22f, { "No Connect",    "No TeamJoin",  "No Mission",     "No Pickup", "No Death", "No Echo", "Weapon Icon", "Alt Weap Icons", "Swap V<->K", "Force Colors", "Scroll Down"} }, // FIXME: outside cg_draw_hud
 	{ HUDF(popupmessages3),     CG_DrawPM,                        HUD_COMP_TYPE_FEED,      0.22f, { "No Connect",    "No TeamJoin",  "No Mission",     "No Pickup", "No Death", "No Echo", "Weapon Icon", "Alt Weap Icons", "Swap V<->K", "Force Colors", "Scroll Down"} }, // FIXME: outside cg_draw_hud
 	{ HUDF(popupmessages4),     CG_DrawPM,                        HUD_COMP_TYPE_FEED,      0.22f, { "No Connect",    "No TeamJoin",  "No Mission",     "No Pickup", "No Death", "No Echo", "Weapon Icon", "Alt Weap Icons", "Swap V<->K", "Force Colors", "Scroll Down"} }, // FIXME: outside cg_draw_hud
-	{ HUDF(powerups),           CG_DrawPowerUps,                  HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
 	{ HUDF(objectives),         CG_DrawObjectiveStatus,           HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
 	{ HUDF(cursorhints),        CG_DrawCursorhint,                HUD_COMP_TYPE_SPECIFIC,  0.19f, { "Size Pulse",    "Strobe Pulse", "Alpha Pulse" } },// FIXME: outside cg_draw_hud
 	{ HUDF(cursorhintsbar),     CG_DrawCursorHintBar,             HUD_COMP_TYPE_BAR,       0.19f, { 0 } },           // FIXME: outside cg_draw_hud
@@ -193,7 +192,6 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->popupmessages2     = CG_getComponent(4, 245, 422, 96, qfalse, 192, 0, 89.7f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 0, 2000, 2500, CG_DrawPM);
 	hud->popupmessages3     = CG_getComponent(4, 245, 422, 96, qfalse, 192, 0, 89.7f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 0, 2000, 2500, CG_DrawPM);
 	hud->popupmessages4     = CG_getComponent(4, 245, 422, 96, qfalse, 192, 0, 89.7f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 0, 2000, 2500, CG_DrawPM);
-	hud->powerups           = CG_getComponent(SCREEN_WIDTH  - 40, SCREEN_HEIGHT - 136, 36, 36, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawPowerUps);
 	hud->objectives         = CG_getComponent(4, SCREEN_HEIGHT - 136, 36, 36, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawObjectiveStatus);
 	hud->cursorhints        = CG_getComponent(SCREEN_WIDTH * .5f - 24, 260, 48, 48, qtrue, 1, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawCursorhint);
 	hud->cursorhintsbar     = CG_getComponent(SCREEN_WIDTH * .5f - 24, 316, 48, 8, qtrue, 0, BAR_BORDER_SMALL | BAR_LERP_COLOR, 100.f, colorGreen, colorRed, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawCursorHintBar);
@@ -1057,45 +1055,6 @@ void CG_DrawRank(hudComponent_t *comp)
 	str = va("%s", GetRankTableData(cgs.clientinfo[ps->clientNum].team, cgs.clientinfo[ps->clientNum].rank)->miniNames);
 
 	CG_DrawCompText(comp, str, comp->colorMain, comp->styleText, &cgs.media.limboFont1);
-}
-
-/**
- * @brief CG_DrawPowerUps
- * @param[in] rect
- */
-void CG_DrawPowerUps(hudComponent_t *comp)
-{
-	playerState_t *ps = &cg.snap->ps;
-
-	if (ps->persistant[PERS_TEAM] == TEAM_SPECTATOR)
-	{
-		return;
-	}
-
-	// draw treasure icon if we have the flag
-	if (ps->powerups[PW_REDFLAG] || ps->powerups[PW_BLUEFLAG] || cg.generatingNoiseHud)
-	{
-		trap_R_SetColor(NULL);
-		CG_DrawPic(comp->location.x, comp->location.y, comp->location.w, comp->location.h, cgs.media.objectiveShader);
-	}
-	else if (ps->powerups[PW_OPS_DISGUISED])       // Disguised?
-	{
-		CG_DrawPic(comp->location.x, comp->location.y, comp->location.w, comp->location.h, ps->persistant[PERS_TEAM] == TEAM_AXIS ? cgs.media.alliedUniformShader : cgs.media.axisUniformShader);
-		// show the class to the client
-		CG_DrawPic(comp->location.x + 9, comp->location.y + 9, 18, 18, cgs.media.skillPics[BG_ClassSkillForClass((cg_entities[ps->clientNum].currentState.powerups >> PW_OPS_CLASS_1) & 7)]);
-	}
-	else if (ps->powerups[PW_ADRENALINE] > 0)       // adrenaline
-	{
-		vec4_t color = { 1.0, 0.0, 0.0, 1.0 };
-		color[3] *= 0.5 + 0.5 * sin(cg.time / 150.0);
-		trap_R_SetColor(color);
-		CG_DrawPic(comp->location.x, comp->location.y, comp->location.w, comp->location.h, cgs.media.hudAdrenaline);
-		trap_R_SetColor(NULL);
-	}
-	else if (ps->powerups[PW_INVULNERABLE] && !(ps->pm_flags & PMF_LIMBO))       // spawn shield
-	{
-		CG_DrawPic(comp->location.x, comp->location.y, comp->location.w, comp->location.h, cgs.media.spawnInvincibleShader);
-	}
 }
 
 /**

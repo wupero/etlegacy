@@ -280,19 +280,6 @@
 						"component":	null
 					}
 				},
-				"powerups":	{
-					"rect":	{
-						"x":	-4,
-						"y":	96,
-						"w":	36,
-						"h":	36
-					},
-					"anchor":	2,
-					"parent":	{
-						"anchor":	3,
-						"component":	null
-					}
-				},
 				"objectives":	{
 					"rect":	{
 						"x":	4,
@@ -568,19 +555,6 @@
 					"anchor":	0,
 					"parent":	{
 						"anchor":	7,
-						"component":	null
-					}
-				},
-				"powerups":	{
-					"rect":	{
-						"x":	25.586494445800781,
-						"y":	-93.600006103515625,
-						"w":	36,
-						"h":	36
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	5,
 						"component":	null
 					}
 				},
@@ -1010,19 +984,6 @@
 					"anchor":	6,
 					"parent":	{
 						"anchor":	7,
-						"component":	null
-					}
-				},
-				"powerups":	{
-					"rect":	{
-						"x":	85.750030517578125,
-						"y":	-40,
-						"w":	20,
-						"h":	18
-					},
-					"anchor":	6,
-					"parent":	{
-						"anchor":	5,
 						"component":	null
 					}
 				},
