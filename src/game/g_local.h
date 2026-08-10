@@ -774,7 +774,8 @@ typedef struct
 	int timerunBestCheckpointTimes[MAX_TIMERUNS][MAX_TIMERUN_CHECKPOINTS];
 
 	// speedrun mod: player-selectable mode. 1 = default (vanilla stamina),
-	// 2 = infinite stamina. sess => resets on every map load, default 0 (= 1).
+	// 2 = infinite stamina. Default 1; persists across map changes via the
+	// session file (G_WriteClientSessionData / G_ReadSessionData).
 	int speedrunMode;
 
 } clientSession_t;

@@ -76,6 +76,7 @@ void G_WriteClientSessionData(gclient_t *client, qboolean restart)
 	cJSON_AddNumberToObject(root, "spectatorClient", client->sess.spectatorClient);
 	cJSON_AddNumberToObject(root, "userSpectatorClient", client->sess.userSpectatorClient);
 	cJSON_AddNumberToObject(root, "playerType", client->sess.playerType);
+	cJSON_AddNumberToObject(root, "speedrunMode", client->sess.speedrunMode);   // speedrun mod
 
 	// If the player is in limbo or dead, their playerWeapon is stale (only
 	// synced from latchPlayerWeapon at spawn time in ClientSpawn). Persist the
@@ -389,6 +390,14 @@ void G_ReadSessionData(gclient_t *client)
 		}
 	}
 
+	// speedrun mod: restore the mode (default 1 = vanilla stamina)
+	client->sess.speedrunMode = Q_ReadIntValueJson(root, "speedrunMode");
+
+	if (client->sess.speedrunMode != 1 && client->sess.speedrunMode != 2)
+	{
+		client->sess.speedrunMode = 1;
+	}
+
 	client->sess.sessionTeam         = Q_ReadIntValueJson(root, "sessionTeam");
 	client->sess.spectatorTime       = Q_ReadIntValueJson(root, "spectatorTime");
 	client->sess.spectatorState      = Q_ReadIntValueJson(root, "spectatorState");
@@ -616,6 +625,10 @@ void G_InitSessionData(gclient_t *client, const char *userinfo)
 	Com_Memset(sess->ignoreClients, 0, sizeof(sess->ignoreClients));
 
 	sess->muted = qfalse;
+
+	// speedrun mod: default mode is 1 (vanilla stamina)
+	sess->speedrunMode = 1;
+
 	Com_Memset(sess->skill, 0, sizeof(sess->skill));
 	Com_Memset(sess->skillpoints, 0, sizeof(sess->skillpoints));
 	Com_Memset(sess->startskillpoints, 0, sizeof(sess->startskillpoints));
