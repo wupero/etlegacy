@@ -6,7 +6,7 @@
 # clients connecting to a server running fs_game "speedrun" auto-download
 # it into their homepath <mod>/ folder (no manual installation).
 #
-# Usage: misc/repack_timerun_mod.sh [source_release_pk3] [build_dir] [dest_dir]
+# Usage: misc/repack_speedrun_mod.sh [source_release_pk3] [build_dir] [dest_dir]
 #   source_release_pk3  official mod pk3 providing the base content (default:
 #                       /Applications/ETLegacy/legacy/legacy_v2.84.0.pk3)
 #   build_dir           cmake build dir with fresh modules (default: cmake-build-arm64)
