@@ -4293,7 +4293,6 @@ typedef struct hudStructure_s
 	hudComponent_t pmitemsbig;
 	hudComponent_t warmuptitle;
 	hudComponent_t warmuptext;
-	hudComponent_t objectivetext;
 	// 50
 	hudComponent_t centerprint;
 	hudComponent_t banner;
@@ -4403,7 +4402,6 @@ void CG_DrawSpectator(hudComponent_t *comp);
 void CG_DrawPMItemsBig(hudComponent_t *comp);
 void CG_DrawWarmupTitle(hudComponent_t *comp);
 void CG_DrawWarmupText(hudComponent_t *comp);
-void CG_DrawObjectiveInfo(hudComponent_t *comp);
 void CG_DrawCenterString(hudComponent_t *comp);
 void CG_DrawBannerPrint(hudComponent_t *comp);
 void CG_DrawCursorhint(hudComponent_t *comp);

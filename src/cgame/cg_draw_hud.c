@@ -86,7 +86,6 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(pmitemsbig),         CG_DrawPMItemsBig,                HUD_COMP_TYPE_FEED,      0.22f, { "No Skill",      "No Rank",      "No Prestige" } },// FIXME: outside cg_draw_hud
 	{ HUDF(warmuptitle),        CG_DrawWarmupTitle,               HUD_COMP_TYPE_TEXT,      0.35f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(warmuptext),         CG_DrawWarmupText,                HUD_COMP_TYPE_MULTITEXT, 0.22f, { 0 } },           // FIXME: outside cg_draw_hud
-	{ HUDF(objectivetext),      CG_DrawObjectiveInfo,             HUD_COMP_TYPE_MULTITEXT, 0.22f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(centerprint),        CG_DrawCenterString,              HUD_COMP_TYPE_MULTITEXT, 0.22f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(banner),             CG_DrawBannerPrint,               HUD_COMP_TYPE_MULTITEXT, 0.23f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(crosshairtext),      CG_DrawCrosshairNames,            HUD_COMP_TYPE_TEXT,      0.25f, { "Full Color",    "Explosive Owner" } },// FIXME: outside cg_draw_hud
@@ -217,7 +216,6 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->pmitemsbig         = CG_getComponent(347, 292, 290, 57, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 2500, 2000, 2500, CG_DrawPMItemsBig);
 	hud->warmuptitle        = CG_getComponent(SCREEN_WIDTH * .5f - 211, 120, 422, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.35f, 0, 0, 0, CG_DrawWarmupTitle);
 	hud->warmuptext         = CG_getComponent(SCREEN_WIDTH * .5f - 211, 310, 422, 39, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.22f, 0, 0, 0, CG_DrawWarmupText);
-	hud->objectivetext      = CG_getComponent(SCREEN_WIDTH * .5f - 211, 351, 422, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qtrue, (vec4_t) { 0, 0.5f, 0.5f, 0.25f }, qtrue, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qtrue, 0.22f, 0, 0, 0, CG_DrawObjectiveInfo);
 	hud->centerprint        = CG_getComponent(SCREEN_WIDTH * .5f - 211, 378, 422, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.22f, 0, 0, 0, CG_DrawCenterString);
 	hud->banner             = CG_getComponent(SCREEN_WIDTH * .5f - 211, 20, 422, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.23f, 0, 0, 0, CG_DrawBannerPrint);
 	hud->crosshairtext      = CG_getComponent(SCREEN_WIDTH * .5f - 150, 166, 300, 16, qtrue, 0, 0, 100.f, (vec4_t) { 1.f, 1.f, 1.f, 0.75f }, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.25f, 0, 0, 0, CG_DrawCrosshairNames);

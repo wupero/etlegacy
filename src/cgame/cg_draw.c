@@ -3845,45 +3845,12 @@ void CG_ObjectivePrint(const char *str)
 	int   maxLineChars;
 	float scale, w;
 
-	scale = CG_ComputeScale(&CG_GetActiveHUD()->objectivetext /*CG_GetActiveHUD()->objectivetext.location.h, CG_GetActiveHUD()->objectivetext.scale, &cgs.media.limboFont2*/);
-	w     = CG_GetActiveHUD()->objectivetext.location.w;
+	scale = 0.22f;   // HUD element removed (speedrun mod)
+	w     = 422;
 
 	maxLineChars = CG_MaxCharsForWidth(str, scale, &cgs.media.limboFont2, w);
 	CG_WordWrapString(CG_TranslateString(str), maxLineChars, cg.oidPrint, sizeof(cg.oidPrint), NULL);
 	cg.oidPrintTime = cg.time;
-}
-
-/**
- * @brief CG_DrawObjectiveInfo
- */
-void CG_DrawObjectiveInfo(hudComponent_t *comp)
-{
-	float  *color;
-	vec4_t textColor;
-
-	if (cgs.clientinfo[cg.clientNum].shoutcaster)
-	{
-		return;
-	}
-
-	if (!cg.oidPrintTime)
-	{
-		return;
-	}
-
-	Vector4Copy(comp->colorMain, textColor);
-	color = CG_FadeColor_Ext(cg.oidPrintTime, 250, textColor[3]);
-
-	if (!color)
-	{
-		cg.oidPrintTime = 0;
-		return;
-	}
-
-	textColor[3] = color[3];
-
-	CG_DrawCompMultilineText(comp, cg.oidPrint, textColor, comp->alignText, comp->styleText, &cgs.media.limboFont2);
-
 }
 
 //==================================================================================

@@ -828,21 +828,6 @@
 						"component":	null
 					}
 				},
-				"objectivetext":	{
-					"rect":	{
-						"x":	-6.016754150390625,
-						"y":	-108.79998779296875,
-						"w":	273.60000610351562,
-						"h":	16
-					},
-					"showBackGround":	false,
-					"showBorder":	false,
-					"anchor":	4,
-					"parent":	{
-						"anchor":	4,
-						"component":	null
-					}
-				},
 				"centerprint":	{
 					"rect":	{
 						"x":	-2.9665374755859375,
@@ -1067,9 +1052,6 @@
 					"visible":	false
 				},
 				"pmitemsbig":	{
-					"visible":	false
-				},
-				"objectivetext":	{
 					"visible":	false
 				},
 				"banner":	{
