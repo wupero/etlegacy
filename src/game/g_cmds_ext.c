@@ -228,7 +228,7 @@ void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 	if (mode != 1 && mode != 2)
 	{
-		CP("cp \"^3speedrun_mode: usage: /speedrun_mode [1|2]  (1 = default, 2 = infinite stamina)\n\"");
+		trap_SendServerCommand(ent - g_entities, "print \"^3speedrun_mode: usage: /speedrun_mode [1|2]  (1 = default, 2 = infinite stamina)\n\"");   // console, like cg_fov help
 		return;
 	}
 
