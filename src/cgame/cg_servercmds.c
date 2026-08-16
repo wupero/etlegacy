@@ -3174,7 +3174,6 @@ static void CG_TimerunStartCommand(int spec)
 	cg.currentTimerun           = Q_atoi(CG_Argv(1));
 	cg.timerunStartTime         = Q_atoi(CG_Argv(spec ? 3 : 2));
 	cg.timerunStartSpeed        = Q_atoi(CG_Argv(spec ? 4 : 3));
-	cg.specTimerunGroup         = spec ? Q_atoi(CG_Argv(5)) : 0;   // speedrun mod: followed runner's group
 
 	cg.runMaxSpeed      = 0;
 	cg.timerunStopSpeed = 0;
