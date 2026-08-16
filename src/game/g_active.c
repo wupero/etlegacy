@@ -2386,6 +2386,12 @@ void ClientEndFrame(gentity_t *ent)
 		ent->client->ps.sprintExertTime        = 0;
 	}
 
+	// speedrun mod: keep the run markers/debug boxes a client sees in sync with
+	// the group they should view — their own, or their followed player's when
+	// spectating. Re-sends only when that group changes (follow switch, group
+	// change), so it's a no-op almost every frame.
+	Timerun_UpdateClientMarkers(ent - g_entities);
+
 	// run touch functions here too, so movers don't have to wait
 	// until the next ClientThink, which will be too late for some map
 	// scripts (railgun)

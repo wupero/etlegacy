@@ -544,9 +544,10 @@ static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, floa
 
 /**
  * @brief speedrun mod: sends the zone geometry (origins + radius, one command per
- *        zone) to a client for the speedrun_debug blue-box overlay. clientNum -1
- *        broadcasts. Called from ClientBegin so fresh connects and map changes
- *        both receive the current map's zones.
+ *        zone) to a client for the speedrun_debug blue-box overlay and the zone
+ *        markers. clientNum -1 broadcasts. Called from ClientBegin so fresh
+ *        connects and map changes both receive the current map's zones, and from
+ *        Timerun_UpdateClientMarkers when the group a client should see changes.
  */
 void Timerun_SendZoneDebugToClient(int clientNum)
 {
@@ -563,9 +564,10 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 		return;
 	}
 
-	// speedrun mod: only the runs of this client's selected group are pushed, so
-	// the client's markers/debug boxes always match what /speedrun lists.
-	selGroup = Timerun_ClientGroupValue(g_entities[clientNum].client);
+	// speedrun mod: only the runs of the group this client should see are pushed
+	// (their own selection, or the followed player's when spectating), so the
+	// client's markers/debug boxes always match that group's runs.
+	selGroup = Timerun_ClientMarkerGroup(clientNum);
 
 	for (i = 0; i < level.numTimeruns; i++)
 	{
@@ -596,6 +598,68 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 			                                     def->checkpointOrigins[j][0], def->checkpointOrigins[j][1], def->checkpointOrigins[j][2],
 			                                     def->checkpointRadius[j], def->checkpointYaw[j]));
 		}
+	}
+
+	level.lastMarkerGroup[clientNum] = selGroup;
+}
+
+/**
+ * @brief speedrun mod: the group whose run markers/debug boxes a client should
+ *        see. A spectator sees the group of the player they follow; everyone
+ *        else (including a spectator not following anyone) sees their own
+ *        selected group.
+ *
+ * @param[in] clientNum
+ * @return a group number from level.timerunGroups (fallback 1)
+ */
+int Timerun_ClientMarkerGroup(int clientNum)
+{
+	gclient_t *client;
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+	{
+		return 1;
+	}
+
+	client = g_entities[clientNum].client;
+
+	if (!client)
+	{
+		return 1;
+	}
+
+	if (client->sess.sessionTeam == TEAM_SPECTATOR &&
+	    client->sess.spectatorState == SPECTATOR_FOLLOW &&
+	    client->sess.spectatorClient >= 0 && client->sess.spectatorClient < MAX_CLIENTS &&
+	    g_entities[client->sess.spectatorClient].client)
+	{
+		return Timerun_ClientGroupValue(g_entities[client->sess.spectatorClient].client);
+	}
+
+	return Timerun_ClientGroupValue(client);
+}
+
+/**
+ * @brief speedrun mod: re-pushes a client's run markers whenever the group they
+ *        should see (their own, or their followed player's) has changed. Called
+ *        every frame from ClientEndFrame; a no-op when unchanged.
+ *
+ * @param[in] clientNum
+ */
+void Timerun_UpdateClientMarkers(int clientNum)
+{
+	int mg;
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS || !g_entities[clientNum].client)
+	{
+		return;
+	}
+
+	mg = Timerun_ClientMarkerGroup(clientNum);
+
+	if (mg != level.lastMarkerGroup[clientNum])
+	{
+		Timerun_SendZoneDebugToClient(clientNum);   // records level.lastMarkerGroup
 	}
 }
 

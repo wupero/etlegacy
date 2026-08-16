@@ -1490,6 +1490,7 @@ typedef struct level_locals_s
 	// order. Built in G_InitTimeruns; drives /speedrun_group + the /speedrun list.
 	int timerunGroups[MAX_TIMERUN_GROUPS];
 	int numTimerunGroups;
+	int lastMarkerGroup[MAX_CLIENTS];   ///< speedrun mod: last group whose markers were pushed to each client (0 = none yet)
 } level_locals_t;
 
 /**
@@ -1555,6 +1556,8 @@ void notify_timerun_stop(gentity_t *ent, int time);
 qboolean Timerun_ClientIsRunning(gentity_t *ent);
 int Timerun_ClientGroupValue(const gclient_t *client);
 qboolean Timerun_GroupAvailable(int group);
+int Timerun_ClientMarkerGroup(int clientNum);   // speedrun mod
+void Timerun_UpdateClientMarkers(int clientNum);   // speedrun mod
 void Timerun_StopAllRuns(void);
 void Timerun_SendZoneDebugToClient(int clientNum);   // speedrun mod
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);
