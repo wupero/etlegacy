@@ -223,9 +223,10 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	                                             index, client->ps.commandTime + 500,
 	                                             client->sess.timerunStartSpeed));
 
-	Timerun_SendToSpectators(ent, va("timerun_start_spec %d %d %d %d",
+	Timerun_SendToSpectators(ent, va("timerun_start_spec %d %d %d %d %d",
 	                                 index, (int)(ent - g_entities), client->ps.commandTime + 500,
-	                                 client->sess.timerunStartSpeed));
+	                                 client->sess.timerunStartSpeed,
+	                                 Timerun_ClientGroupValue(ent->client)));
 
 	// speedrun mod: private center-print confirmation (only the runner sees it;
 	// display gated client-side on speedrun_debug)

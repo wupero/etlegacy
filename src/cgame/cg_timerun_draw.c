@@ -102,6 +102,19 @@ void CG_DrawTimer(void)
 		clientNum = cg.snap->ps.clientNum;
 	}
 
+	// speedrun mod: a spectator following a running player sees that player's
+	// group (the runner can't change group mid-run, so it's constant for the run)
+	if (cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR &&
+	    cg.timerunActive && cg.specTimerunGroup > 0)
+	{
+		char glabel[32];
+
+		Com_sprintf(glabel, sizeof(glabel), "^7Group ^2%d", cg.specTimerunGroup);
+		CG_Text_Paint_Ext(320.f + cgs.wideXoffset - 0.5f * CG_Text_Width_Ext(glabel, 0.15f, 0, &cgs.media.limboFont1),
+		                  480.f - 52.f - CG_Text_Height_Ext(glabel, 0.15f, 0, &cgs.media.limboFont1) - 4.f,
+		                  0.15f, 0.15f, color, glabel, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
+	}
+
 	if (cg.timerunActive)
 	{
 		// server sent startTime+500; keep the ETrun +/-500 symmetry

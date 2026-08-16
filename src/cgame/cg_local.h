@@ -1640,6 +1640,7 @@ typedef struct
 	int currentTimerun;                       ///< index of the active timerun
 	int timerunStartTime;                     ///< run start (server sends startTime+500; draw with -500)
 	int timerunStartSpeed;                    ///< horizontal speed at start
+	int specTimerunGroup;                     ///< speedrun mod: group of the followed runner while spectating (from timerun_start_spec)
 	int timerunStopSpeed;                     ///< horizontal speed at stop
 	int runMaxSpeed;                          ///< highest speed during the run
 	int timerunCheckPointChecked;             ///< number of checkpoints received
