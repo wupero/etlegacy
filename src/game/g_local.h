@@ -668,6 +668,8 @@ typedef struct
 	unsigned int kills;
 } weapon_stat_t;
 
+#define SPEEDRUN_MAX_KEY 64   ///< speedrun mod: max length of the player's speedrun_key value
+
 /**
  * @struct playerTeamStateState_t
  * @brief Client data that stays across multiple levels or tournament restarts
@@ -783,6 +785,11 @@ typedef struct
 	// 2 = full), which the /speedrun list browses. Default 1; persists across map
 	// changes via the session file; reset to 1 when not available on a map.
 	int speedrunGroup;
+
+	// speedrun mod: the player's key (string), persisted across map changes via
+	// the session file. Set/read with /speedrun_key; used by the records backend
+	// later. Empty until the player sets it.
+	char speedrunKey[SPEEDRUN_MAX_KEY];
 
 } clientSession_t;
 
@@ -2137,6 +2144,7 @@ qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize
 void G_API_Frame(void);                                                            ///< speedrun mod
 void Cmd_SpeedrunApiTest_f(gentity_t *ent, unsigned int dwCommand, int value);     ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
+void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod
 void trap_SendConsoleCommand(int exec_when, const char *text);
 void trap_Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags);
 void trap_Cvar_Update(vmCvar_t *vmCvar);

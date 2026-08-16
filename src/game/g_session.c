@@ -78,6 +78,7 @@ void G_WriteClientSessionData(gclient_t *client, qboolean restart)
 	cJSON_AddNumberToObject(root, "playerType", client->sess.playerType);
 	cJSON_AddNumberToObject(root, "speedrunMode", client->sess.speedrunMode);   // speedrun mod
 	cJSON_AddNumberToObject(root, "speedrunGroup", client->sess.speedrunGroup);  // speedrun mod
+	cJSON_AddStringToObject(root, "speedrunKey", client->sess.speedrunKey);      // speedrun mod
 
 	// If the player is in limbo or dead, their playerWeapon is stale (only
 	// synced from latchPlayerWeapon at spawn time in ClientSpawn). Persist the
@@ -410,6 +411,16 @@ void G_ReadSessionData(gclient_t *client)
 		client->sess.speedrunGroup = 1;
 	}
 
+	// speedrun mod: restore the player's key string (may be empty)
+	{
+		cJSON *sk = cJSON_GetObjectItem(root, "speedrunKey");
+
+		if (sk && sk->valuestring)
+		{
+			Q_strncpyz(client->sess.speedrunKey, sk->valuestring, sizeof(client->sess.speedrunKey));
+		}
+	}
+
 	client->sess.sessionTeam         = Q_ReadIntValueJson(root, "sessionTeam");
 	client->sess.spectatorTime       = Q_ReadIntValueJson(root, "spectatorTime");
 	client->sess.spectatorState      = Q_ReadIntValueJson(root, "spectatorState");
@@ -643,6 +654,9 @@ void G_InitSessionData(gclient_t *client, const char *userinfo)
 
 	// speedrun mod: default selected run group is the first one
 	sess->speedrunGroup = 1;
+
+	// speedrun mod: no key until the player sets one
+	sess->speedrunKey[0] = '\0';
 
 	Com_Memset(sess->skill, 0, sizeof(sess->skill));
 	Com_Memset(sess->skillpoints, 0, sizeof(sess->skillpoints));

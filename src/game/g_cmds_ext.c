@@ -188,6 +188,7 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "speedrun_group",  CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunGroup_f,                " [num]:^7 Selects which run group /speedrun lists (default 1, speedrun mod)"              },
 
 	{ "speedrun_list",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunList_f,                 " - lists the runs of the player's selected group (speedrun mod)"                        },
+	{ "speedrun_key",    CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunKey_f,                  " <key>:^7 Sets/prints the player's persistent key (speedrun mod)"                       },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
 
@@ -273,6 +274,36 @@ void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
 	{
 		CP("cp \"^2Speedrun mode: default (vanilla stamina)\n\"");
 	}
+}
+
+/**
+ * @brief speedrun mod: /speedrun_key [value]
+ *        Sets or prints the player's persistent key (a string that survives map
+ *        changes via the session file). Bare command prints the current value.
+ *        Intended as the player's API key for the records backend.
+ */
+void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	char arg[MAX_TOKEN_CHARS];
+
+	if (!ent || !ent->client)
+	{
+		G_Printf("speedrun mod: speedrun_key is a player command\n");
+		return;
+	}
+
+	trap_Argv(1, arg, sizeof(arg));
+
+	if (!arg[0])
+	{
+		trap_SendServerCommand(ent - g_entities, va("print \"^2speedrun_key: ^7%s\n\"",
+		      ent->client->sess.speedrunKey[0] ? ent->client->sess.speedrunKey : "(not set)"));
+		return;
+	}
+
+	Q_strncpyz(ent->client->sess.speedrunKey, arg, sizeof(ent->client->sess.speedrunKey));
+
+	trap_SendServerCommand(ent - g_entities, "print \"^2speedrun_key: ^7set\n\"");
 }
 
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)

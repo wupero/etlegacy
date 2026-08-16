@@ -2683,10 +2683,11 @@ qboolean ConsoleCommand(void)
 		return qtrue;
 	}
 
-	// speedrun mod: group/list are player commands (need a client entity)
-	if (Q_stricmp(cmd, "speedrun_group") == 0 || Q_stricmp(cmd, "speedrun_list") == 0)
+	// speedrun mod: group/list/key are player commands (need a client entity)
+	if (Q_stricmp(cmd, "speedrun_group") == 0 || Q_stricmp(cmd, "speedrun_list") == 0
+	    || Q_stricmp(cmd, "speedrun_key") == 0)
 	{
-		G_Printf("speedrun mod: speedrun_group/speedrun_list are player commands\n");
+		G_Printf("speedrun mod: speedrun_group/speedrun_list/speedrun_key are player commands\n");
 		return qtrue;
 	}
 	else

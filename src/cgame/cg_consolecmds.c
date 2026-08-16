@@ -3546,6 +3546,22 @@ static void CG_SpeedrunMode_f(void)
 	}
 }
 
+/**
+ * @brief speedrun mod: /speedrun_key [value] - forwards to the server (the
+ *        value is stored server-side and persists across map changes).
+ */
+static void CG_SpeedrunKey_f(void)
+{
+	if (CG_Argv(1)[0])
+	{
+		trap_SendClientCommand(va("speedrun_key %s", CG_Argv(1)));
+	}
+	else
+	{
+		trap_SendClientCommand("speedrun_key");
+	}
+}
+
 
 /**
  * @brief speedrun mod: /draw_box x y z radius yaw
@@ -3748,6 +3764,7 @@ static consoleCommand_t commands[] =
 	{ "speedrun",               CG_Speedrun_f                },
 	{ "speedrun_apitest",       CG_SpeedrunApiTest_f         },
 	{ "speedrun_mode",         CG_SpeedrunMode_f           },
+	{ "speedrun_key",          CG_SpeedrunKey_f            },
 
 	{ NULL,                     NULL                         }
 };
