@@ -401,6 +401,15 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 
 	def = &level.timeruns[self->count];
 
+	// speedrun mod: a player can only run runs of their selected group — zones
+	// of every other group are inert for them (start/checkpoint/stop). Since
+	// /speedrun_group is blocked during a run, a player can never be mid-run on
+	// a run outside their group, so the stop zone always matches.
+	if (def->group != Timerun_ClientGroupValue(other->client))
+	{
+		return;
+	}
+
 	// speedrun mod: the engine's contact test only sees the enclosing AABB of a
 	// rotated zone - re-check the player against the real cube
 	if (!Timerun_ZoneContains(self, other->client->ps.origin))
