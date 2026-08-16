@@ -3057,6 +3057,12 @@ void ClientSpawn(gentity_t *ent, qboolean revived, qboolean teamChange, qboolean
 	client->pers.lastBattleSenseBonusTime = level.timeCurrent;
 	client->pers.lastHQMineReportTime     = level.timeCurrent;
 
+	// speedrun mod: a freshly spawned player is never in a run. Reset the client's
+	// run display so a spectator who just joined a team doesn't carry the followed
+	// player's running timer (timerun_stop time 0 = abort). Harmless on normal
+	// respawns (a run already aborts on death).
+	trap_SendServerCommand(index, "timerun_stop 0 0 0 0");
+
 /*
 #ifndef ETLEGACY_DEBUG
     if( !client->sess.versionOK ) {
