@@ -56,6 +56,7 @@ typedef struct webUploadData_s
 	size_t bufferSize;
 	size_t bufferPos;
 	char contentType[MAX_QPATH];
+	char customHeader[256];   ///< optional full "Name: value" HTTP header line to send with the request (empty = none)
 } webUploadData_t;
 
 typedef struct

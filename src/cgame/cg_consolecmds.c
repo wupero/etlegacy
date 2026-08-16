@@ -3521,15 +3521,6 @@ static void CG_Speedrun_f(void)
 }
 
 
-/**
- * @brief speedrun mod: /speedrun_apitest - forwards to the server, which sends
- *        a test request to the timerun backend (g_apiUrl).
- */
-static void CG_SpeedrunApiTest_f(void)
-{
-	trap_SendClientCommand("speedrun_apitest");
-}
-
 
 /**
  * @brief speedrun mod: /speedrun_mode [1|2] - forwards to the server.
@@ -3762,7 +3753,6 @@ static consoleCommand_t commands[] =
 
 	// speedrun mod
 	{ "speedrun",               CG_Speedrun_f                },
-	{ "speedrun_apitest",       CG_SpeedrunApiTest_f         },
 	{ "speedrun_mode",         CG_SpeedrunMode_f           },
 	{ "speedrun_key",          CG_SpeedrunKey_f            },
 

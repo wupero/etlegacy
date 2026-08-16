@@ -182,7 +182,6 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "load",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Load_f,                           " [slot]:^7 Loads a saved position"                                                    },
 	{ "save",           CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_Save_f,                           " [slot]:^7 Saves your current position"                                                },
 	{ "speedrun_tp",    CMD_USAGE_ANY_TIME,          qtrue,       qfalse, Cmd_SpeedrunTp_f,                    " [num]:^7 Teleports to the selected run's teleport spot (speedrun mod)"                      },
-	{ "speedrun_apitest", CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunApiTest_f,               " - sends a test request to the timerun backend at g_apiUrl (speedrun mod)"                  },
 	{ "speedrun_mode",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunMode_f,                 " - sets the speedrun mode: 1 = default, 2 = infinite stamina (speedrun mod)"             },
 
 	{ "speedrun_group",  CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunGroup_f,                " [num]:^7 Selects which run group /speedrun lists (default 1, speedrun mod)"              },

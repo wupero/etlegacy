@@ -171,9 +171,9 @@ int trap_FS_GetFileList(const char *path, const char *extension, char *listbuf, 
  * @param[in] url full URL
  * @param[in] body POST body (NULL/empty = GET)
  */
-void trap_API_Request(int id, int clientNum, const char *url, const char *body)
+void trap_API_Request(int id, int clientNum, const char *header, const char *url, const char *body)
 {
-	SystemCall(G_API_REQUEST, id, clientNum, url, body);
+	SystemCall(G_API_REQUEST, id, clientNum, header, url, body);
 }
 
 /**

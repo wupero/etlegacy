@@ -2139,10 +2139,10 @@ int trap_FS_Write(const void *buffer, int len, fileHandle_t f);
 int trap_FS_Rename(const char *from, const char *to);
 void trap_FS_FCloseFile(fileHandle_t f);
 int trap_FS_GetFileList(const char *path, const char *extension, char *listbuf, int bufsize);
-void trap_API_Request(int id, int clientNum, const char *url, const char *body);   ///< speedrun mod
+void trap_API_Request(int id, int clientNum, const char *header, const char *url, const char *body);   ///< speedrun mod
 qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize); ///< speedrun mod
 void G_API_Frame(void);                                                            ///< speedrun mod
-void Cmd_SpeedrunApiTest_f(gentity_t *ent, unsigned int dwCommand, int value);     ///< speedrun mod
+void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs);                ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod
 void trap_SendConsoleCommand(int exec_when, const char *text);

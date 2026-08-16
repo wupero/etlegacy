@@ -790,11 +790,13 @@ intptr_t SV_GameSystemCalls(intptr_t *args)
 
 	case G_API_REQUEST:
 	{
-		// trap_API_Request(id, clientNum, url, body) - enqueue async HTTP request
+		// trap_API_Request(id, clientNum, header, url, body) - enqueue async HTTP request.
+		// header is an optional full "Name: value" line (e.g. "X-SpeedRun-Key: <key>").
 		int               id        = args[1];
 		int               clientNum = args[2];
-		const char       *url       = (const char *)VMA(3);
-		const char       *body      = (const char *)VMA(4);
+		const char       *header    = (const char *)VMA(3);
+		const char       *url       = (const char *)VMA(4);
+		const char       *body      = (const char *)VMA(5);
 		webUploadData_t  *upload    = NULL;
 		svApiUserData_t  *ud;
 
@@ -817,6 +819,17 @@ intptr_t SV_GameSystemCalls(intptr_t *args)
 			upload->buffer      = (byte *)(upload + 1);
 			memcpy(upload->buffer, body, bodyLen);
 			Q_strncpyz(upload->contentType, "application/json", sizeof(upload->contentType));
+		}
+		else if (header && header[0])
+		{
+			// header-only request (no body) - still need an upload struct to carry it
+			upload = (webUploadData_t *)Z_Malloc(sizeof(*upload));
+			Com_Memset(upload, 0, sizeof(*upload));
+		}
+
+		if (upload && header && header[0])
+		{
+			Q_strncpyz(upload->customHeader, header, sizeof(upload->customHeader));
 		}
 
 		return Web_CreateRequest(url, NULL, upload, ud, SV_API_Complete, NULL);

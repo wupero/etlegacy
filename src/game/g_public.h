@@ -234,7 +234,7 @@ typedef enum
 	G_CVAR_SET_DESCRIPTION,
 
 	///< speedrun mod: async backend HTTP API (engine curl multi layer)
-	G_API_REQUEST,      ///< ( int id, int clientNum, const char *url, const char *body ); enqueue an async HTTP request
+	G_API_REQUEST,      ///< ( int id, int clientNum, const char *header, const char *url, const char *body ); enqueue an async HTTP request (header = optional "Name: value" line)
 	G_API_GETRESULT     ///< ( int *id, int *httpCode, char *buffer, int bufferSize ); pop one completed response
 
 } gameImport_t;

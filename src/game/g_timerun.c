@@ -377,6 +377,18 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 		                                            min, sec, milli));
 	}
 
+	// speedrun mod: record the run to the backend (async). Only when the player
+	// has a speedrun_key; otherwise tell them the time is not recorded.
+	if (client->sess.speedrunKey[0])
+	{
+		G_API_SendRecord(ent, def, time);
+	}
+	else
+	{
+		trap_SendServerCommand(ent - g_entities,
+		                       "cp \"^3Time not recorded^7 - set /speedrun_key to record runs (get one at TO_BE_DECIDED after logging in)\n\"");
+	}
+
 	client->sess.timerunActive = qfalse;
 }
 

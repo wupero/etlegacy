@@ -788,6 +788,11 @@ unsigned int Web_CreateRequest(const char *url, const char *authToken, webUpload
 		headers = curl_slist_append(headers, va("X-ETL-KEY: %s", authToken));
 	}
 
+	if (upload && upload->customHeader[0])
+	{
+		headers = curl_slist_append(headers, upload->customHeader);
+	}
+
 	if (headers)
 	{
 		ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_HTTPHEADER, headers);
