@@ -311,7 +311,7 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 	}
 
 	trap_SendServerCommand(ent - g_entities, va("timerun_check %d %d %d", delta, time, status));
-	Timerun_SendToSpectators(ent, va("timerun_check_spec %d %d %d", delta, client->ps.commandTime, status));
+	Timerun_SendToSpectators(ent, va("timerun_check_spec %d %d %d", delta, time, status));
 
 	// speedrun mod: private center-print checkpoint confirmation (only the runner)
 	{
