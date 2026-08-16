@@ -628,6 +628,7 @@ typedef struct
 // timerun definitions (lua-defined per map, see g_timerun.c and g_lua.c)
 #define TIMERUN_MAX_ID 32    ///< max length of a timerun id
 #define TIMERUN_MAX_NAME 64  ///< speedrun mod: max length of a timerun name (longer than MAX_NETNAME so descriptive names survive the configstring)
+#define MAX_TIMERUN_GROUPS 16 ///< speedrun mod: max distinct run groups per map
 
 /**
  * @struct timerunDef_t
@@ -637,7 +638,7 @@ typedef struct
 {
 	char id[TIMERUN_MAX_ID];
 	char name[TIMERUN_MAX_NAME];
-	char type[16];        ///< speedrun mod: run category, matched against the active config
+	int group;               ///< speedrun mod: numeric run group (e.g. 1 = short, 2 = full); 1 if unset
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
 	float startRadius[MAX_TIMERUN_STARTS];   ///< speedrun mod: per-zone half-extent
 	float startYaw[MAX_TIMERUN_STARTS];      ///< speedrun mod: per-zone rotation around Z (degrees)
@@ -777,6 +778,11 @@ typedef struct
 	// 2 = infinite stamina. Default 1; persists across map changes via the
 	// session file (G_WriteClientSessionData / G_ReadSessionData).
 	int speedrunMode;
+
+	// speedrun mod: numeric value of the selected run group (e.g. 1 = short,
+	// 2 = full), which the /speedrun list browses. Default 1; persists across map
+	// changes via the session file; reset to 1 when not available on a map.
+	int speedrunGroup;
 
 } clientSession_t;
 
@@ -1479,6 +1485,11 @@ typedef struct level_locals_s
 	timerunDef_t timeruns[MAX_TIMERUNS];
 	int numTimeruns;
 	qboolean isTimerun;
+
+	// speedrun mod: distinct run groups for this map, in first-seen (lua)
+	// order. Built in G_InitTimeruns; drives /speedrun_group + the /speedrun list.
+	int timerunGroups[MAX_TIMERUN_GROUPS];
+	int numTimerunGroups;
 } level_locals_t;
 
 /**
@@ -1534,13 +1545,16 @@ void Cmd_UnIgnore_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value);   // speedrun mod
+void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value);   // speedrun mod
+void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value);   // speedrun mod
 void Cmd_InterruptRun_f(gentity_t *ent, unsigned int dwCommand, int value);
 
 // g_timerun.c
 void G_InitTimeruns(void);
 void notify_timerun_stop(gentity_t *ent, int time);
 qboolean Timerun_ClientIsRunning(gentity_t *ent);
-qboolean Timerun_DefAllowedByConfig(const timerunDef_t *def);
+int Timerun_ClientGroupValue(const gclient_t *client);
+qboolean Timerun_GroupAvailable(int group);
 void Timerun_StopAllRuns(void);
 void Timerun_SendZoneDebugToClient(int clientNum);   // speedrun mod
 void Cmd_SelectedObjective_f(gentity_t *ent, unsigned int dwCommand, int value);

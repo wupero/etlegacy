@@ -77,6 +77,7 @@ void G_WriteClientSessionData(gclient_t *client, qboolean restart)
 	cJSON_AddNumberToObject(root, "userSpectatorClient", client->sess.userSpectatorClient);
 	cJSON_AddNumberToObject(root, "playerType", client->sess.playerType);
 	cJSON_AddNumberToObject(root, "speedrunMode", client->sess.speedrunMode);   // speedrun mod
+	cJSON_AddNumberToObject(root, "speedrunGroup", client->sess.speedrunGroup);  // speedrun mod
 
 	// If the player is in limbo or dead, their playerWeapon is stale (only
 	// synced from latchPlayerWeapon at spawn time in ClientSpawn). Persist the
@@ -398,6 +399,17 @@ void G_ReadSessionData(gclient_t *client)
 		client->sess.speedrunMode = 1;
 	}
 
+	// speedrun mod: restore the selected run group (default 1). Availability is
+	// per-map, so the out-of-range reset happens here against the current map's
+	// group table (built in G_InitTimeruns, before ClientConnect/G_ReadSessionData).
+	client->sess.speedrunGroup = Q_ReadIntValueJson(root, "speedrunGroup");
+
+	if (client->sess.speedrunGroup < 1
+	    || (level.numTimerunGroups > 0 && !Timerun_GroupAvailable(client->sess.speedrunGroup)))
+	{
+		client->sess.speedrunGroup = 1;
+	}
+
 	client->sess.sessionTeam         = Q_ReadIntValueJson(root, "sessionTeam");
 	client->sess.spectatorTime       = Q_ReadIntValueJson(root, "spectatorTime");
 	client->sess.spectatorState      = Q_ReadIntValueJson(root, "spectatorState");
@@ -628,6 +640,9 @@ void G_InitSessionData(gclient_t *client, const char *userinfo)
 
 	// speedrun mod: default mode is 1 (vanilla stamina)
 	sess->speedrunMode = 1;
+
+	// speedrun mod: default selected run group is the first one
+	sess->speedrunGroup = 1;
 
 	Com_Memset(sess->skill, 0, sizeof(sess->skill));
 	Com_Memset(sess->skillpoints, 0, sizeof(sess->skillpoints));

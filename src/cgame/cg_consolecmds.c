@@ -3501,15 +3501,13 @@ static void CG_ShoutcasterSwapTeamLabels(void)
 }
 
 /**
- * @brief speedrun mod: lists the active timeruns (config-filtered, lua order)
- *        in the console. Reads the CS_TIMERUNS configstrings the server fills
- *        from G_InitTimeruns - rejected defs never get a slot, so this always
- *        matches what the current config allows.
+ * @brief speedrun mod: /speedrun — bare lists the runs of the player's selected
+ *        group (forwarded to the server, which prints them), /speedrun <num>
+ *        teleports to that run. Server-driven so the numbering always matches
+ *        the group-filtered list.
  */
 static void CG_Speedrun_f(void)
 {
-	int i, n = 0;
-
 	// speedrun mod: /speedrun <num> forwards to the server, which teleports to
 	// the run's 'teleport' spot (see Cmd_SpeedrunTp_f in g_cmds_ext.c)
 	if (trap_Argc() >= 2)
@@ -3518,21 +3516,8 @@ static void CG_Speedrun_f(void)
 		return;
 	}
 
-	for (i = 0; i < MAX_TIMERUNS; i++)
-	{
-		const char *name = CG_ConfigString(CS_TIMERUNS + i);
-
-		if (name[0])
-		{
-			n++;
-			CG_Printf("^2%d.^7 %s\n", n, name);
-		}
-	}
-
-	if (!n)
-	{
-		CG_Printf("No timeruns active for this map/config\n");
-	}
+	// bare /speedrun: let the server build and print the group-filtered list
+	trap_SendClientCommand("speedrun_list");
 }
 
 

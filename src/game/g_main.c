@@ -1723,7 +1723,7 @@ void G_InitGame(int levelTime, int randomSeed, int restart, int etLegacyServer, 
 
 	//Set the game config (g_customConfig persists engine-side across map
 	// changes, so a voted config survives; a stale/missing config name is
-	// handled by the shortruns fallback inside G_configSet)
+	// handled by the allruns fallback inside G_configSet)
 	G_configSet(g_customConfig.string);
 
 	// speedrun mod: only medic is selectable — force the class-limit cvars

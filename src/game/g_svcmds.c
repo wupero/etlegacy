@@ -2682,6 +2682,13 @@ qboolean ConsoleCommand(void)
 		Cmd_SpeedrunMode_f(NULL, 0, 0);
 		return qtrue;
 	}
+
+	// speedrun mod: group/list are player commands (need a client entity)
+	if (Q_stricmp(cmd, "speedrun_group") == 0 || Q_stricmp(cmd, "speedrun_list") == 0)
+	{
+		G_Printf("speedrun mod: speedrun_group/speedrun_list are player commands\n");
+		return qtrue;
+	}
 	else
 	// special cases for chat
 	if (Q_stricmp(cmd, "say") == 0)

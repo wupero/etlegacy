@@ -2553,6 +2553,7 @@ static int _et_TimerunRegister(lua_State *L)
 	def = &level.timeruns[level.numTimeruns];
 	memset(def, 0, sizeof(*def));
 	def->radius = 64.0f;
+	def->group  = 1;    // speedrun mod: default run group is 1 (the first group)
 
 	// id (required, unique)
 	lua_getfield(L, 1, "id");
@@ -2586,26 +2587,16 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	// type (optional, e.g. "short"/"full") — speedrun mod: the active config
-	// decides which types may load (shortruns -> short, fullmaprun -> full).
-	// Defs rejected here are never spawned and never reach the client.
-	lua_getfield(L, 1, "type");
-	if (lua_isstring(L, -1))
+	// group (optional, integer, default 1) — speedrun mod: numeric run group
+	// (e.g. 1 = short, 2 = full) browsed per player via /speedrun_group. All defs
+	// load regardless of group; the group only decides which runs the player's
+	// /speedrun list shows and which /speedrun <num> can target.
+	lua_getfield(L, 1, "group");
+	if (lua_isnumber(L, -1))
 	{
-		Q_strncpyz(def->type, lua_tostring(L, -1), sizeof(def->type));
+		def->group = (int)lua_tonumber(L, -1);
 	}
 	lua_pop(L, 1);
-
-	if (!Timerun_DefAllowedByConfig(def))
-	{
-		// read the config engine-side: the VM cache can lag a trap_Cvar_Set
-		char activeConfig[MAX_CVAR_VALUE_STRING];
-
-		trap_Cvar_VariableStringBuffer("g_customConfig", activeConfig, sizeof(activeConfig));
-		G_Printf("Timeruns: registration '%s' skipped - type '%s' not allowed by config '%s'\n",
-		         def->id, def->type[0] ? def->type : "(none)", activeConfig);
-		return 0;
-	}
 
 	// radius (optional, default 64, clamped 8..256)
 	lua_getfield(L, 1, "radius");

@@ -76,50 +76,51 @@ qboolean Timerun_ClientIsRunning(gentity_t *ent)
 }
 
 /**
- * @brief speedrun mod: whether a timerun def may be loaded under the active config
+ * @brief speedrun mod: numeric value of the group a client's /speedrun list
+ *        currently browses.
  *
- * The active config (g_customConfig) selects which run types are allowed:
- * shortruns -> "short", fullmaprun -> "full". Defs whose type is missing are
- * blocked whenever a filter config is active; they only load under configs
- * with no filter (or none at all). Rejected defs are never spawned and never
- * reach the client (no zone, no CS_TIMERUNS entry).
+ * Falls back to 1 when the stored selection is not available on this map, or
+ * when the map has no groups/runs at all.
  *
- * @param[in] def
- * @return qtrue when the def may be registered
+ * @param[in] client
+ * @return the selected group number (a value from level.timerunGroups, or 1)
  */
-qboolean Timerun_DefAllowedByConfig(const timerunDef_t *def)
+int Timerun_ClientGroupValue(const gclient_t *client)
 {
-	static const struct
-	{
-		const char *config;
-		const char *type;
-	} filters[] =
-	{
-		{ "shortruns",  "short" },
-		{ "fullmaprun", "full"  },
-	};
-	char  activeConfig[MAX_CVAR_VALUE_STRING];
-	int   i;
-	const char *allowedType = NULL;
+	int g = (client && client->sess.speedrunGroup > 0) ? client->sess.speedrunGroup : 1;
 
-	trap_Cvar_VariableStringBuffer("g_customConfig", activeConfig, sizeof(activeConfig));
-
-	for (i = 0; i < (int)ARRAY_LEN(filters); i++)
+	if (level.numTimerunGroups <= 0)
 	{
-		if (!Q_stricmp(activeConfig, filters[i].config))
+		return 1;
+	}
+
+	if (!Timerun_GroupAvailable(g))
+	{
+		g = 1;
+	}
+
+	return g;
+}
+
+/**
+ * @brief speedrun mod: whether a group number is available on the current map.
+ *
+ * @param[in] group group number to test
+ * @return qtrue when group is in level.timerunGroups
+ */
+qboolean Timerun_GroupAvailable(int group)
+{
+	int i;
+
+	for (i = 0; i < level.numTimerunGroups; i++)
+	{
+		if (level.timerunGroups[i] == group)
 		{
-			allowedType = filters[i].type;
-			break;
+			return qtrue;
 		}
 	}
 
-	if (!allowedType)
-	{
-		return qtrue;    // config has no run filter — everything loads
-	}
-
-	// a filter is active: the def must carry the matching type
-	return def->type[0] && !Q_stricmp(def->type, allowedType);
+	return qfalse;
 }
 
 /**
@@ -576,6 +577,36 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 }
 
 /**
+ * @brief speedrun mod: builds level.timerunGroups from the unique numeric group
+ *        values of the loaded defs (first-seen/lua order).
+ */
+static void Timerun_BuildGroupTable(void)
+{
+	int i, j, g;
+
+	level.numTimerunGroups = 0;
+
+	for (i = 0; i < level.numTimeruns; i++)
+	{
+		g = level.timeruns[i].group;
+
+		for (j = 0; j < level.numTimerunGroups; j++)
+		{
+			if (level.timerunGroups[j] == g)
+			{
+				break;
+			}
+		}
+
+		if (j == level.numTimerunGroups && j < MAX_TIMERUN_GROUPS)
+		{
+			level.timerunGroups[j] = g;
+			level.numTimerunGroups++;
+		}
+	}
+}
+
+/**
  * @brief Spawns all timerun zones from the lua-defined registry and exposes the run
  *        names via CS_TIMERUNS configstrings. Called once per map load, after
  *        G_LuaTimerunLoadMap().
@@ -583,6 +614,8 @@ void Timerun_SendZoneDebugToClient(int clientNum)
 void G_InitTimeruns(void)
 {
 	int i, j;
+
+	Timerun_BuildGroupTable();
 
 	for (i = 0; i < level.numTimeruns; i++)
 	{
@@ -612,5 +645,5 @@ void G_InitTimeruns(void)
 	level.isTimerun = (level.numTimeruns > 0);
 	trap_Cvar_Set("isTimerun", level.isTimerun ? "1" : "0");
 
-	G_Printf("Timeruns: %d run(s) defined for this map\n", level.numTimeruns);
+	G_Printf("Timeruns: %d run(s), %d group(s) defined for this map\n", level.numTimeruns, level.numTimerunGroups);
 }
