@@ -61,7 +61,14 @@ void G_API_Frame(void)
 			G_Printf("speedrun mod: API error (client %d, http %d): %s\n", id, httpCode, text);
 			if (id >= 0 && id < MAX_CLIENTS && g_entities[id].client)
 			{
-				trap_SendServerCommand(id, va("cp \"^3Time could not be recorded (API http %d)\n\"", httpCode));
+				if (httpCode == 401)
+				{
+					trap_SendServerCommand(id, va("cp \"^3Time could not be recorded - speedrun_key could not be verified\n\""));
+				}
+				else
+				{
+					trap_SendServerCommand(id, va("cp \"^3Time could not be recorded (API http %d)\n\"", httpCode));
+				}
 			}
 			continue;
 		}
@@ -86,10 +93,6 @@ void G_API_Frame(void)
 				else if (!Q_stricmp(kind, "PERSONAL_BEST"))
 				{
 					trap_SendServerCommand(id, va("cp \"^2New personal best - ^7place %d of %d\n\"", place, total));
-				}
-				else
-				{
-					trap_SendServerCommand(id, va("cp \"^7Recorded - ^7place %d of %d\n\"", place, total));
 				}
 			}
 
