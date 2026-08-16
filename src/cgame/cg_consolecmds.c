@@ -3820,7 +3820,6 @@ static const char *gameCommand[] =
 	"mvdel",
 #endif
 	"noclip",
-	"nofatigue",
 	"nostamina",
 	"notarget",
 	"notready",

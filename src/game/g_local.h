@@ -1579,7 +1579,6 @@ void Cmd_WeaponStatsLeaders_f(gentity_t *ent, unsigned int dwCommand, int value)
 void Cmd_ResetSetup_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Give_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_God_f(gentity_t *ent, unsigned int dwCommand, int value);
-void Cmd_Nofatigue_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Notarget_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Noclip_f(gentity_t *ent, unsigned int dwCommand, int value);
 void Cmd_Nostamina_f(gentity_t *ent, unsigned int dwCommand, int value);

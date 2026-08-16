@@ -1091,51 +1091,6 @@ void Cmd_God_f(gentity_t *ent, unsigned int dwCommand, int value)
 }
 
 /**
- * @brief Sets client to nofatigue
- * @param[in,out] ent
- * @param dwCommand - unused
- * @param value    - unused
- *
- * @note argv(0) nofatigue
- */
-void Cmd_Nofatigue_f(gentity_t *ent, unsigned int dwCommand, int value)
-{
-	char *msg;
-	char *name = ConcatArgs(1);
-
-	if (!CheatsOk(ent))
-	{
-		return;
-	}
-
-	if (!Q_stricmp(name, "on") || Q_atoi(name))
-	{
-		ent->flags |= FL_NOFATIGUE;
-	}
-	else if (!Q_stricmp(name, "off") || !Q_stricmp(name, "0"))
-	{
-		ent->flags &= ~FL_NOFATIGUE;
-	}
-	else
-	{
-		ent->flags ^= FL_NOFATIGUE;
-	}
-
-	if (!(ent->flags & FL_NOFATIGUE))
-	{
-		msg = "nofatigue OFF\n";
-	}
-	else
-	{
-		msg = "nofatigue ON\n";
-	}
-
-	ent->client->ps.powerups[PW_NOFATIGUE] = ent->flags & FL_NOFATIGUE;
-
-	trap_SendServerCommand(ent - g_entities, va("print \"%s\"", msg));
-}
-
-/**
  * @brief Sets client to notarget
  * @param[in,out] ent
  * @param dwCommand - unused

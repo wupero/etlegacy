@@ -134,7 +134,6 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "mvdel",          CMD_USAGE_NO_INTERMISSION,   qtrue,       qfalse, G_smvDel_cmd,                        " [player_ID]:^7 Removes current selected or specific player from multi-screen view"         },
 #endif
 	{ "noclip",         CMD_USAGE_NO_INTERMISSION,   qtrue,       qfalse, Cmd_Noclip_f,                        ":^7 No clip"                                                                                },
-	{ "nofatigue",      CMD_USAGE_NO_INTERMISSION,   qtrue,       qfalse, Cmd_Nofatigue_f,                     ":^7 Infinite endurance"                                                                     },
 	{ "nostamina",      CMD_USAGE_NO_INTERMISSION,   qtrue,       qfalse, Cmd_Nostamina_f,                     ":^7 Infinite stamina / charge power"                                                        },
 	{ "notarget",       CMD_USAGE_NO_INTERMISSION,   qtrue,       qfalse, Cmd_Notarget_f,                      ":^7 ???"                                                                                    },
 	{ "notready",       CMD_USAGE_ANY_TIME,          qfalse,      qtrue,  G_ready_cmd,                         ":^7 Sets your status to ^5not ready^7 to start a match"                                     },
