@@ -2210,6 +2210,12 @@ void ClientEndFrame(gentity_t *ent)
 		ent->client->sess.nextCommandDecreaseTime = level.time + 1000;
 	}
 
+	// speedrun mod: keep the run markers/debug boxes a client sees in sync with
+	// the group they should view — their own, or their followed player's when
+	// spectating. Runs for spectators AND players (before the spectator
+	// early-return below); a no-op when the group hasn't changed.
+	Timerun_UpdateClientMarkers(ent - g_entities);
+
 	if ((ent->client->sess.sessionTeam == TEAM_SPECTATOR) || (ent->client->ps.pm_flags & PMF_LIMBO))
 	{
 		SpectatorClientEndFrame(ent);
@@ -2385,12 +2391,6 @@ void ClientEndFrame(gentity_t *ent)
 		ent->client->ps.stats[STAT_SPRINTTIME] = SPRINTTIME;
 		ent->client->ps.sprintExertTime        = 0;
 	}
-
-	// speedrun mod: keep the run markers/debug boxes a client sees in sync with
-	// the group they should view — their own, or their followed player's when
-	// spectating. Re-sends only when that group changes (follow switch, group
-	// change), so it's a no-op almost every frame.
-	Timerun_UpdateClientMarkers(ent - g_entities);
 
 	// run touch functions here too, so movers don't have to wait
 	// until the next ClientThink, which will be too late for some map
