@@ -60,7 +60,10 @@ static void Timerun_SendToSpectators(gentity_t *ent, const char *cmd)
 		    player->client->sess.spectatorState == SPECTATOR_FOLLOW &&
 		    player->client->sess.spectatorClient == ent - g_entities)
 		{
-			trap_SendServerCommand(i, cmd);
+			// level.sortedClients is qsort-sorted by rank, so its index != clientNum;
+			// send to the spectator's actual clientNum (was 'i' - a latent bug that
+			// sent run events to the wrong client)
+			trap_SendServerCommand(level.sortedClients[i], cmd);
 		}
 	}
 }
