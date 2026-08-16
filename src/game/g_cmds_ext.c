@@ -578,6 +578,10 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 	ent->client->sess.speedrunGroup = group;
 
+	// speedrun mod: re-push the zone geometry/markers for the newly selected
+	// group so the client's markers immediately match the /speedrun list.
+	Timerun_SendZoneDebugToClient(ent - g_entities);
+
 	CP(va("cp \"^2Speedrun group: ^7%d\n\"", group));
 }
 

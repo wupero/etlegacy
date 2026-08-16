@@ -511,7 +511,7 @@ void CG_DrawTimerunMarkers(void)
  */
 void CG_DrawTimerunMarkerLabels(void)
 {
-	int         run, i;
+	int         run, i, displayNum = 0;
 	vec4_t      color = { 1.f, 1.f, 1.f, 1.f };
 	fontHelper_t *font = &cgs.media.limboFont2;
 
@@ -522,6 +522,13 @@ void CG_DrawTimerunMarkerLabels(void)
 
 	for (run = 0; run < MAX_TIMERUNS; run++)
 	{
+		// runs with pushed zones are exactly the selected group, in absolute/lua
+		// order == /speedrun order, so their position is the displayed number
+		if (cg.timerunDebugZoneCount[run] > 0)
+		{
+			displayNum++;
+		}
+
 		for (i = 0; i < cg.timerunDebugZoneCount[run]; i++)
 		{
 			float x, y, z, scale, w, h;
@@ -571,8 +578,8 @@ void CG_DrawTimerunMarkerLabels(void)
 			           * CG_Text_Height_Ext("0", 1.0f, 0, font));
 			scale = scale < 0.08f ? 0.08f : (scale > 0.6f ? 0.6f : scale);
 
-			// 1-based run number, matches the /speedrun listing
-			Com_sprintf(label, sizeof(label), "%d", run + 1);
+			// 1-based run number, matches the /speedrun listing (group-scoped)
+			Com_sprintf(label, sizeof(label), "%d", displayNum);
 
 			w = CG_Text_Width_Ext_Float(label, scale, 0, font);
 			h = CG_Text_Height_Ext_Float(label, scale, 0, font);

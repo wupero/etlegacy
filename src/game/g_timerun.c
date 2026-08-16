@@ -542,16 +542,30 @@ static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, floa
 void Timerun_SendZoneDebugToClient(int clientNum)
 {
 	int i, j;
+	int selGroup;
 
 	// speedrun mod: tell the client to drop any previously received zone
-	// geometry first, so a config change (map_restart re-sends the batch on
-	// ClientBegin) can't leave boxes of runs that are no longer allowed by the
-	// active config on screen.
+	// geometry first, so a group change (or map_restart re-send on ClientBegin)
+	// can't leave boxes/markers of runs from another group on screen.
 	trap_SendServerCommand(clientNum, "timerun_zones_clear");
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS || !g_entities[clientNum].client)
+	{
+		return;
+	}
+
+	// speedrun mod: only the runs of this client's selected group are pushed, so
+	// the client's markers/debug boxes always match what /speedrun lists.
+	selGroup = Timerun_ClientGroupValue(g_entities[clientNum].client);
 
 	for (i = 0; i < level.numTimeruns; i++)
 	{
 		timerunDef_t *def = &level.timeruns[i];
+
+		if (def->group != selGroup)
+		{
+			continue;
+		}
 
 		for (j = 0; j < def->numStarts; j++)
 		{
