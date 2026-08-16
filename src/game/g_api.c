@@ -133,6 +133,10 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 		return;
 	}
 
+	// g_apiUrl is the API base (e.g. http://127.0.0.1:8090/api); the records
+	// endpoint lives at <base>/speedruns on the backend (SpeedrunController).
+	Q_strcat(url, sizeof(url), "/speedruns");
+
 	Com_sprintf(header, sizeof(header), "X-SpeedRun-Key: %s", client->sess.speedrunKey);
 
 	off = Com_sprintf(body, sizeof(body), "{\"runId\":\"%s\",\"timeMs\":%d,\"checkpointsMs\":[",
