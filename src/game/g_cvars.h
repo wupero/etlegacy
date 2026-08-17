@@ -282,6 +282,7 @@ extern vmCvar_t g_mapConfigs;
 extern vmCvar_t g_customConfig;
 
 extern vmCvar_t g_apiUrl;
+extern vmCvar_t g_apiKey;
 
 extern vmCvar_t g_moverScale;
 

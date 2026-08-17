@@ -120,7 +120,8 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 {
 	gclient_t *client = ent->client;
 	char       url[MAX_STRING_CHARS];
-	char       header[192];
+	char       header[256];
+	char       apiKey[128];
 	char       body[1024];
 	int        i, off;
 
@@ -140,7 +141,12 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 	// endpoint lives at <base>/speedruns on the backend (SpeedrunController).
 	Q_strcat(url, sizeof(url), "/speedruns");
 
-	Com_sprintf(header, sizeof(header), "X-SpeedRun-Key: %s", client->sess.speedrunKey);
+	trap_Cvar_VariableStringBuffer("g_apiKey", apiKey, sizeof(apiKey));
+
+	// Send both the player key and the server's API key. libcurl splits a header
+	// string on CRLF into multiple headers, so both fit in the single customHeader.
+	Com_sprintf(header, sizeof(header), "X-SpeedRun-Key: %s\r\nX-Api-Key: %s",
+	           client->sess.speedrunKey, apiKey);
 
 	off = Com_sprintf(body, sizeof(body), "{\"runId\":\"%s\",\"timeMs\":%d,\"checkpointsMs\":[",
 	                 def->id, timeMs);
