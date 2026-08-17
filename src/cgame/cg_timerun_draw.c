@@ -109,7 +109,7 @@ void CG_DrawTimer(void)
 	}
 	else if (cg.timerunFinishedTime[clientNum])
 	{
-		int best = cg.timerunBestTime[clientNum][cg.currentTimerun];
+		int best = cg.timerunBestTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1];
 
 		// final time stays visible until the next run starts or an abort;
 		// show the delta vs the previous best run next to it when known

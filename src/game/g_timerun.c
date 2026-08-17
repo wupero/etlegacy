@@ -138,15 +138,17 @@ void notify_timerun_stop(gentity_t *ent, int time)
 		return;
 	}
 
-	trap_SendServerCommand(ent - g_entities, va("timerun_stop %d %d %d %d",
+	trap_SendServerCommand(ent - g_entities, va("timerun_stop %d %d %d %d %d",
 	                                             ent->client->sess.currentTimerun, time,
 	                                             ent->client->sess.timerunStopSpeed,
-	                                             ent->client->sess.timerunMaxSpeed));
+	                                             ent->client->sess.timerunMaxSpeed,
+	                                             ent->client->sess.speedrunMode));
 
-	Timerun_SendToSpectators(ent, va("timerun_stop_spec %d %d %d %d %d",
+	Timerun_SendToSpectators(ent, va("timerun_stop_spec %d %d %d %d %d %d",
 	                                 ent->client->sess.currentTimerun, (int)(ent - g_entities), time,
 	                                 ent->client->sess.timerunStopSpeed,
-	                                 ent->client->sess.timerunMaxSpeed));
+	                                 ent->client->sess.timerunMaxSpeed,
+	                                 ent->client->sess.speedrunMode));
 
 	ent->client->sess.timerunActive = qfalse;
 }
@@ -222,13 +224,15 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	client->sess.timerunCheckpointsPassed = 0;
 	memset(client->sess.timerunCheckpointTimes, 0, sizeof(client->sess.timerunCheckpointTimes));
 
-	trap_SendServerCommand(ent - g_entities, va("timerun_start %d %d %d",
+	trap_SendServerCommand(ent - g_entities, va("timerun_start %d %d %d %d",
 	                                             index, client->ps.commandTime + 500,
-	                                             client->sess.timerunStartSpeed));
+	                                             client->sess.timerunStartSpeed,
+	                                             client->sess.speedrunMode));
 
-	Timerun_SendToSpectators(ent, va("timerun_start_spec %d %d %d %d",
+	Timerun_SendToSpectators(ent, va("timerun_start_spec %d %d %d %d %d",
 	                                 index, (int)(ent - g_entities), client->ps.commandTime + 500,
-	                                 client->sess.timerunStartSpeed));
+	                                 client->sess.timerunStartSpeed,
+	                                 client->sess.speedrunMode));
 
 	// speedrun mod: private center-print confirmation (only the runner sees it;
 	// display gated client-side on speedrun_debug)
@@ -287,7 +291,7 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 
 	client->sess.timerunCheckpointTimes[cp] = time;
 
-	best = client->sess.timerunBestCheckpointTimes[index][cp];
+	best = client->sess.timerunBestCheckpointTimes[index][client->sess.speedrunMode - 1][cp];
 
 	if (best == 0)
 	{
@@ -350,24 +354,27 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 
 	time = client->ps.commandTime - client->sess.timerunStartTime;
 
-	client->sess.timerunLastTime[index] = time;
+	client->sess.timerunLastTime[index][client->sess.speedrunMode - 1] = time;
 	client->sess.timerunStopSpeed       = Timerun_HorizontalSpeed(ent);
 
-	if (client->sess.timerunBestTime[index] == 0 || time < client->sess.timerunBestTime[index])
+	if (client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] == 0 ||
+	    time < client->sess.timerunBestTime[index][client->sess.speedrunMode - 1])
 	{
-		client->sess.timerunBestTime[index] = time;
-		memcpy(client->sess.timerunBestCheckpointTimes[index],
+		client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] = time;
+		memcpy(client->sess.timerunBestCheckpointTimes[index][client->sess.speedrunMode - 1],
 		       client->sess.timerunCheckpointTimes,
 		       sizeof(client->sess.timerunCheckpointTimes));
 	}
 
-	trap_SendServerCommand(ent - g_entities, va("timerun_stop %d %d %d %d",
+	trap_SendServerCommand(ent - g_entities, va("timerun_stop %d %d %d %d %d",
 	                                             index, time, client->sess.timerunStopSpeed,
-	                                             client->sess.timerunMaxSpeed));
+	                                             client->sess.timerunMaxSpeed,
+	                                             client->sess.speedrunMode));
 
-	Timerun_SendToSpectators(ent, va("timerun_stop_spec %d %d %d %d %d",
+	Timerun_SendToSpectators(ent, va("timerun_stop_spec %d %d %d %d %d %d",
 	                                 index, (int)(ent - g_entities), time,
-	                                 client->sess.timerunStopSpeed, client->sess.timerunMaxSpeed));
+	                                 client->sess.timerunStopSpeed, client->sess.timerunMaxSpeed,
+	                                 client->sess.speedrunMode));
 
 	// speedrun mod: private center-print result (only the runner sees it)
 	{

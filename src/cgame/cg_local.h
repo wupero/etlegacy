@@ -1649,8 +1649,9 @@ typedef struct
 	int timerunCheckPointTime[MAX_TIMERUN_CHECKPOINTS];    ///< absolute time at checkpoint
 	int timerunCheckStatus[MAX_TIMERUN_CHECKPOINTS];       ///< 0 first / 1 equal / 2 faster / 3 slower
 	int timerunFinishedTime[MAX_CLIENTS];                  ///< last finish per player
-	int timerunBestTime[MAX_CLIENTS][MAX_TIMERUNS];        ///< personal best per player/run
-	int timerunLastTime[MAX_CLIENTS][MAX_TIMERUNS];        ///< last time per player/run
+	int timerunMode[MAX_CLIENTS];                          ///< speedrun mod: mode (1/2) of the last-started run per player
+	int timerunBestTime[MAX_CLIENTS][MAX_TIMERUNS][2];     ///< personal best per player/run/mode (mode-1 index)
+	int timerunLastTime[MAX_CLIENTS][MAX_TIMERUNS][2];     ///< last time per player/run/mode (mode-1 index)
 } cg_t;
 
 #define MAX_LOCKER_DEBRIS 5

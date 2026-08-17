@@ -3174,15 +3174,18 @@ static void CG_TimerunStartCommand(int spec)
 	cg.currentTimerun           = Q_atoi(CG_Argv(1));
 	cg.timerunStartTime         = Q_atoi(CG_Argv(spec ? 3 : 2));
 	cg.timerunStartSpeed        = Q_atoi(CG_Argv(spec ? 4 : 3));
+	cg.timerunMode[clientNum]   = Q_atoi(CG_Argv(spec ? 5 : 4));   // speedrun mod: the run's mode keys the per-mode best/last slots
 
 	cg.runMaxSpeed      = 0;
 	cg.timerunStopSpeed = 0;
 
 	// promote the last run's time to best so the HUD can compare during the run
-	if (!cg.timerunBestTime[clientNum][cg.currentTimerun] ||
-	    cg.timerunLastTime[clientNum][cg.currentTimerun] < cg.timerunBestTime[clientNum][cg.currentTimerun])
+	if (!cg.timerunBestTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1] ||
+	    cg.timerunLastTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1] <
+	    cg.timerunBestTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1])
 	{
-		cg.timerunBestTime[clientNum][cg.currentTimerun] = cg.timerunLastTime[clientNum][cg.currentTimerun];
+		cg.timerunBestTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1] =
+		    cg.timerunLastTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1];
 	}
 
 	CG_TimerunClickSound();   // speedrun mod: click on run start
@@ -3244,12 +3247,16 @@ static void CG_TimerunStopCommand(int spec)
 
 	cg.timerunActive = qfalse;
 
+	// speedrun mod: the run's mode (also sent at stop so a mid-join spectator
+	// following a runner knows the mode even without having seen the start)
+	cg.timerunMode[clientNum] = Q_atoi(CG_Argv(spec ? 6 : 5));
+
 	// time 0 = aborted run
 	time = Q_atoi(CG_Argv(spec ? 3 : 2));
 
 	if (time)
 	{
-		cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))] = time;
+		cg.timerunLastTime[clientNum][Q_atoi(CG_Argv(1))][cg.timerunMode[clientNum] - 1] = time;
 		cg.timerunFinishedTime[clientNum]                 = time;
 		cg.timerunStopSpeed                               = Q_atoi(CG_Argv(spec ? 4 : 3));
 		cg.runMaxSpeed                                    = Q_atoi(CG_Argv(spec ? 5 : 4));
@@ -3271,8 +3278,8 @@ static void CG_TimerunStopCommand(int spec)
 			int runIndex = Q_atoi(CG_Argv(1));
 
 			CG_Printf("speedrun_debug: delta %dms vs best %dms\n",
-			          time - cg.timerunBestTime[clientNum][runIndex],
-			          cg.timerunBestTime[clientNum][runIndex]);
+			          time - cg.timerunBestTime[clientNum][runIndex][cg.timerunMode[clientNum] - 1],
+			          cg.timerunBestTime[clientNum][runIndex][cg.timerunMode[clientNum] - 1]);
 		}
 		else
 		{

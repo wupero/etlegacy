@@ -772,9 +772,9 @@ typedef struct
 	int timerunMaxSpeed;                        ///< highest speed during the run
 	int timerunCheckpointsPassed;
 	int timerunCheckpointTimes[MAX_TIMERUN_CHECKPOINTS];
-	int timerunLastTime[MAX_TIMERUNS];
-	int timerunBestTime[MAX_TIMERUNS];
-	int timerunBestCheckpointTimes[MAX_TIMERUNS][MAX_TIMERUN_CHECKPOINTS];
+	int timerunLastTime[MAX_TIMERUNS][2];          ///< [run][mode-1]
+	int timerunBestTime[MAX_TIMERUNS][2];          ///< [run][mode-1]
+	int timerunBestCheckpointTimes[MAX_TIMERUNS][2][MAX_TIMERUN_CHECKPOINTS];  ///< [run][mode-1][cp]
 
 	// speedrun mod: player-selectable mode. 1 = default (vanilla stamina),
 	// 2 = infinite stamina. Default 1; persists across map changes via the
