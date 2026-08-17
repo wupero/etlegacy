@@ -222,10 +222,13 @@ void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 	if (!arg[0])
 	{
-		// console print of the current mode, like a cvar's bare help (cg_fov style)
-		trap_SendServerCommand(ent - g_entities, va("print \"^2speedrun_mode: ^7%d%s\n\"",
+		// console print of the current mode plus every possible value, like a
+		// cvar's bare help (cg_fov style)
+		trap_SendServerCommand(ent - g_entities, va("print \"^2speedrun_mode: ^7%d %s\n\"",
 		      ent->client->sess.speedrunMode,
-		      ent->client->sess.speedrunMode == 2 ? " (infinite stamina)" : " (default)"));
+		      ent->client->sess.speedrunMode == 2 ? "(infinite stamina)" : "(vanilla)"));
+		trap_SendServerCommand(ent - g_entities,
+		                      "print \"^7available: ^21 (vanilla), 2 (infinite stamina)\n\"");
 		return;
 	}
 
