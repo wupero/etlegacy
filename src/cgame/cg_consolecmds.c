@@ -3556,6 +3556,16 @@ static void CG_SpeedrunKey_f(void)
 	}
 }
 
+/**
+ * @brief speedrun mod: /speedrun_records - forwards to the server (the server
+ *        fetches the top records for the current mode and prints them).
+ */
+static void CG_SpeedrunRecords_f(void)
+{
+	trap_SendClientCommand("speedrun_records");
+}
+
+
 
 /**
  * @brief speedrun mod: /draw_box x y z radius yaw
@@ -3758,6 +3768,7 @@ static consoleCommand_t commands[] =
 	{ "speedrun",               CG_Speedrun_f                },
 	{ "speedrun_mode",         CG_SpeedrunMode_f           },
 	{ "speedrun_key",          CG_SpeedrunKey_f            },
+	{ "speedrun_records",      CG_SpeedrunRecords_f        },
 
 	{ NULL,                     NULL                         }
 };

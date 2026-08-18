@@ -767,6 +767,7 @@ typedef struct
 	qboolean timerunActive;
 	int currentTimerun;                         ///< index into level.timeruns
 	int timerunRecordRun;                       ///< speedrun mod: run index stashed at record-send (G_API_SendRecord), read when the async API response lands
+	int timerunRecordsMode;                     ///< speedrun mod: speedrun mode used for the pending /speedrun_records query (G_API_FetchServerBest -> G_API_PrintServerBest)
 	int timerunStartTime;                       ///< commandTime at run start
 	int timerunStartSpeed;                      ///< horizontal speed at start
 	int timerunStopSpeed;                       ///< horizontal speed at stop
@@ -2147,9 +2148,11 @@ qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize
 void G_API_Frame(void);                                                            ///< speedrun mod
 void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs);                ///< speedrun mod
 void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def);                       ///< speedrun mod: pull a keyed player's stored best run to seed deltas on first run
+void G_API_FetchServerBest(gentity_t *ent);                                              ///< speedrun mod: fetch the map's top server records for the player's current mode (/speedrun_records)
 void Timerun_SendToSpectators(gentity_t *ent, const char *cmd);                          ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod
+void Cmd_SpeedrunRecords_f(gentity_t *ent, unsigned int dwCommand, int value);       ///< speedrun mod: /speedrun_records
 void trap_SendConsoleCommand(int exec_when, const char *text);
 void trap_Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags);
 void trap_Cvar_Update(vmCvar_t *vmCvar);

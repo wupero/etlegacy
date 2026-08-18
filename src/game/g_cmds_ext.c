@@ -188,6 +188,7 @@ static const cmd_reference_t aCommandInfo[] =
 
 	{ "speedrun_list",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunList_f,                 " - lists the runs of the player's selected group (speedrun mod)"                        },
 	{ "speedrun_key",    CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunKey_f,                  " <key>:^7 Sets/prints the player's persistent key (speedrun mod)"                       },
+	{ "speedrun_records", CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunRecords_f,              " - shows the top server records for the current speedrun mode (speedrun mod)"          },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
 
@@ -306,6 +307,22 @@ void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value)
 	Q_strncpyz(ent->client->sess.speedrunKey, arg, sizeof(ent->client->sess.speedrunKey));
 
 	trap_SendServerCommand(ent - g_entities, "print \"^2speedrun_key: ^7set\n\"");
+}
+
+/**
+ * @brief speedrun mod: /speedrun_records - shows the top server records for the
+ *        player's current speedrun mode. The query is async; the list is printed
+ *        to the player's console when the API response arrives (G_API_PrintServerBest).
+ */
+void Cmd_SpeedrunRecords_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	if (!ent || !ent->client)
+	{
+		G_Printf("speedrun mod: speedrun_records is a player command\n");
+		return;
+	}
+
+	G_API_FetchServerBest(ent);
 }
 
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)

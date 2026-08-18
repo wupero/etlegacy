@@ -44,6 +44,7 @@
  * @brief speedrun mod: formats a millisecond duration as MM:SS.mmm
  */
 static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *text);   ///< speedrun mod
+static void G_API_PrintServerBest(gentity_t *ent, int httpCode, const char *text);      ///< speedrun mod
 
 static void Timerun_FormatTimeMs(char *buf, int len, int timeMs)
 {
@@ -67,6 +68,18 @@ void G_API_Frame(void)
 	while (trap_API_GetResult(&id, &httpCode, text, sizeof(text)))
 	{
 		cJSON *root;
+
+		// speedrun mod: a server-best list response (id = 2*MAX_CLIENTS + clientNum)
+		if (id >= 2 * MAX_CLIENTS)
+		{
+			int cn = id - 2 * MAX_CLIENTS;
+
+			if (cn >= 0 && cn < MAX_CLIENTS && g_entities[cn].client)
+			{
+				G_API_PrintServerBest(&g_entities[cn], httpCode, text);
+			}
+			continue;
+		}
 
 		// speedrun mod: a server-record fetch response (id = MAX_CLIENTS + clientNum)
 		if (id >= MAX_CLIENTS)
@@ -338,4 +351,93 @@ void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def)
 	// id = MAX_CLIENTS + clientNum marks this as a server-record fetch response
 	// in G_API_Frame (a record-send response uses id = clientNum). Empty body => GET.
 	trap_API_Request(MAX_CLIENTS + (ent - g_entities), ent - g_entities, header, url, "");
+}
+
+/**
+ * @brief speedrun mod: /speedrun_records - fetches the map's top server
+ *        records for the player's current speedrun mode. GET
+ *        <base>/speedruns/map/<mapname>/server-best?mode=<mode> with the server's
+ *        API key. The response (a JSON array of {runName,timeMs,playerName}) is
+ *        printed to the requesting player when it arrives.
+ */
+void G_API_FetchServerBest(gentity_t *ent)
+{
+	gclient_t *client = ent->client;
+	char       url[MAX_STRING_CHARS];
+	char       mapname[MAX_QPATH];
+
+	trap_Cvar_VariableStringBuffer("g_apiUrl", url, sizeof(url));
+	if (!url[0])
+	{
+		return;
+	}
+
+	trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
+
+	// GET <base>/speedruns/map/<mapname>/server-best?mode=<mode> (public, no auth)
+	Q_strcat(url, sizeof(url), va("/speedruns/map/%s/server-best?mode=%d", mapname, client->sess.speedrunMode));
+
+	// remember the mode this query used, so the response header is consistent
+	client->sess.timerunRecordsMode = client->sess.speedrunMode;
+
+	// id = 2*MAX_CLIENTS + clientNum marks this as a server-best list response
+	// (NULL header + empty body => a plain GET with no keys)
+	trap_API_Request(2 * MAX_CLIENTS + (ent - g_entities), ent - g_entities, NULL, url, "");
+}
+
+/**
+ * @brief speedrun mod: prints a server-best list response to the requesting player.
+ * @details Response is a JSON array of {runName,timeMs,playerName}. Prints a
+ *          header ("Top times for <Mode> mode:", with blank lines around it)
+ *          then one line per record. The mode label is Vanilla / Infinite
+ *          stamina (from the mode stashed at request time).
+ */
+static void G_API_PrintServerBest(gentity_t *ent, int httpCode, const char *text)
+{
+	gclient_t *client = ent->client;
+	cJSON     *root;
+
+	if (httpCode != 200)
+	{
+		trap_SendServerCommand(ent - g_entities, va("print \"^3Could not load server records (API http %d)\n\"", httpCode));
+		return;
+	}
+
+	root = cJSON_Parse(text);
+	if (!root || !cJSON_IsArray(root))
+	{
+		trap_SendServerCommand(ent - g_entities, "print \"^3Could not load server records (bad response)\n\"");
+		if (root)
+		{
+			cJSON_Delete(root);
+		}
+		return;
+	}
+
+	{
+		const char *modeLabel = (client->sess.timerunRecordsMode == 2) ? "Infinite stamina" : "Vanilla";
+		int         count     = cJSON_GetArraySize(root);
+		int         i;
+
+		trap_SendServerCommand(ent - g_entities, va("print \"\n^7Top times for %s mode:\n\n\"", modeLabel));
+
+		for (i = 0; i < count; i++)
+		{
+			cJSON *item  = cJSON_GetArrayItem(root, i);
+			cJSON *rItem = item ? cJSON_GetObjectItem(item, "runName") : NULL;
+			cJSON *tItem = item ? cJSON_GetObjectItem(item, "timeMs") : NULL;
+			cJSON *pItem = item ? cJSON_GetObjectItem(item, "playerName") : NULL;
+
+			if (rItem && rItem->valuestring && tItem && pItem && pItem->valuestring)
+			{
+				char timeStr[16];
+
+				Timerun_FormatTimeMs(timeStr, sizeof(timeStr), tItem->valueint);
+				trap_SendServerCommand(ent - g_entities, va("print \"^2%s^7 - %s - %s\n\"",
+				                            rItem->valuestring, timeStr, pItem->valuestring));
+			}
+		}
+	}
+
+	cJSON_Delete(root);
 }
