@@ -1797,6 +1797,18 @@ void ClientUserinfoChanged(int clientNum)
 
 	trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
 
+	// speedrun mod: the client persists speedrun_key locally (cgame CVAR_ARCHIVE)
+	// and sends it in userinfo; apply it here so it reaches the server even when
+	// it arrives via a userinfo update (after cgame loads on a fresh connect).
+	{
+		const char *sk = Info_ValueForKey(userinfo, "speedrun_key");
+
+		if (sk && sk[0])
+		{
+			Q_strncpyz(client->sess.speedrunKey, sk, sizeof(client->sess.speedrunKey));
+		}
+	}
+
 	if (!(ent->r.svFlags & SVF_BOT))
 	{
 		reason = CheckUserinfo(clientNum, userinfo);
@@ -2441,6 +2453,18 @@ char *ClientConnect(int clientNum, qboolean firstTime, qboolean isBot)
 	else
 	{
 		G_ReadSessionData(client);
+	}
+
+	// speedrun mod: the client persists speedrun_key locally (CVAR_ARCHIVE) and
+	// sends it in userinfo, so restore it here on EVERY connect (survives a full
+	// game restart — the session-file restore above only runs on map changes)
+	{
+		const char *sk = Info_ValueForKey(userinfo, "speedrun_key");
+
+		if (sk && sk[0])
+		{
+			Q_strncpyz(client->sess.speedrunKey, sk, sizeof(client->sess.speedrunKey));
+		}
 	}
 
 	// GeoIP

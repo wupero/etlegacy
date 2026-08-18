@@ -3545,6 +3545,9 @@ static void CG_SpeedrunKey_f(void)
 {
 	if (CG_Argv(1)[0])
 	{
+		// persist the key client-side (CVAR_ARCHIVE, also userinfo) so it survives
+		// a game restart and is sent to the server in userinfo on future connects
+		trap_Cvar_Set("speedrun_key", CG_Argv(1));
 		trap_SendClientCommand(va("speedrun_key %s", CG_Argv(1)));
 	}
 	else

@@ -326,6 +326,7 @@ vmCvar_t speedrun_debug;
 vmCvar_t speedrun_hidePlayers;
 vmCvar_t speedrun_markers;
 vmCvar_t speedrun_sounds;
+vmCvar_t speedrun_key;
 vmCvar_t isTimerun;
 
 typedef struct
@@ -640,6 +641,7 @@ static cvarTable_t cvarTable[] =
 	{ &speedrun_hidePlayers,                  "speedrun_hidePlayers",                  "0",           CVAR_ARCHIVE,                 0 },
 	{ &speedrun_markers,                      "speedrun_markers",                      "1",           CVAR_ARCHIVE,                 0 },
 	{ &speedrun_sounds,                      "speedrun_sounds",                      "1",           CVAR_ARCHIVE,                 0 },
+	{ &speedrun_key,                         "speedrun_key",                         "",            CVAR_ARCHIVE | CVAR_USERINFO, 0 },
 	{ &isTimerun,                             "isTimerun",                             "0",           0,                            0 },
 };
 
