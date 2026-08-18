@@ -652,7 +652,7 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 	}
 
 	// footer: make explicit the displayed list belongs to the selected group
-	trap_SendServerCommand(ent - g_entities, va("print \"^7Runs shown for group %d (of %d available) - /speedrun_group to switch\n\"",
+	trap_SendServerCommand(ent - g_entities, va("print \"\n^7Runs shown for group %d (of %d available) - /speedrun_group to switch\n\"",
 	      selGroup, level.numTimerunGroups));
 }
 
