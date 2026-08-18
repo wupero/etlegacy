@@ -642,7 +642,7 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 		}
 
 		n++;
-		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 %s\n\"", n, level.timeruns[i].name));
+		trap_SendServerCommand(ent - g_entities, va("print \"%s^2%d.^7 %s\n\"", n == 1 ? "\n" : "", n, level.timeruns[i].name));
 	}
 
 	if (!n)
