@@ -634,6 +634,26 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 	selGroup = Timerun_ClientGroupValue(ent->client);
 
+	// count the runs in the selected group first (the hint is printed once,
+	// only when there is at least one run)
+	for (i = 0; i < level.numTimeruns; i++)
+	{
+		if (level.timeruns[i].group == selGroup)
+		{
+			n++;
+		}
+	}
+
+	if (!n)
+	{
+		trap_SendServerCommand(ent - g_entities, va("print \"^3No runs in group %d on this map\n\"", selGroup));
+		return;
+	}
+
+	// hint printed once, before the run list
+	trap_SendServerCommand(ent - g_entities, "print \"\n^7Type /speedrun [num] to teleport\n\n\"");
+
+	n = 0;
 	for (i = 0; i < level.numTimeruns; i++)
 	{
 		if (level.timeruns[i].group != selGroup)
@@ -642,13 +662,7 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 		}
 
 		n++;
-		trap_SendServerCommand(ent - g_entities, va("print \"%s^2%d.^7 %s\n\"", n == 1 ? "\n" : "", n, level.timeruns[i].name));
-	}
-
-	if (!n)
-	{
-		trap_SendServerCommand(ent - g_entities, va("print \"^3No runs in group %d on this map\n\"", selGroup));
-		return;
+		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 %s\n\"", n, level.timeruns[i].name));
 	}
 
 	// footer: make explicit the displayed list belongs to the selected group
