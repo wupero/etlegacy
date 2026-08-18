@@ -3603,6 +3603,44 @@ static void CG_DrawBox_f(void)
 	          origin[0], origin[1], origin[2], cg.drawBoxRadius, cg.drawBoxYaw);
 }
 
+/**
+ * @brief speedrun mod: /draw_plane x y z hx hy hz yaw - draws a debug box with
+ *        per-axis {x,y,z} half-extents (the box shape used by the timerun zone
+ *        'size' option). Requires speedrun_debug 1. Replaces the previous
+ *        /draw_plane box (drawn magenta).
+ */
+static void CG_DrawPlane_f(void)
+{
+	vec3_t origin, halfExtent;
+
+	if (!speedrun_debug.integer)
+	{
+		CG_Printf("^3draw_plane: speedrun_debug must be 1\n");
+		return;
+	}
+
+	if (trap_Argc() != 8)
+	{
+		CG_Printf("^3draw_plane: usage: draw_plane x y z hx hy hz yaw\n");
+		return;
+	}
+
+	origin[0]     = Q_atof(CG_Argv(1));
+	origin[1]     = Q_atof(CG_Argv(2));
+	origin[2]     = Q_atof(CG_Argv(3));
+	halfExtent[0] = Q_atof(CG_Argv(4));
+	halfExtent[1] = Q_atof(CG_Argv(5));
+	halfExtent[2] = Q_atof(CG_Argv(6));
+
+	VectorCopy(origin, cg.drawPlaneOrigin);
+	VectorCopy(halfExtent, cg.drawPlaneHalfExtent);
+	cg.drawPlaneYaw   = Q_atof(CG_Argv(7));
+	cg.drawPlaneValid = qtrue;
+
+	CG_Printf("^2draw_plane: plane at (%.0f %.0f %.0f) size (%.0f %.0f %.0f) yaw %.0f\n",
+	          origin[0], origin[1], origin[2], halfExtent[0], halfExtent[1], halfExtent[2], cg.drawPlaneYaw);
+}
+
 static consoleCommand_t commands[] =
 {
 	{ "testgun",                CG_TestGun_f                 },
@@ -3613,6 +3651,7 @@ static consoleCommand_t commands[] =
 	{ "prevskin",               CG_TestModelPrevSkin_f       },
 	{ "viewpos",                CG_Viewpos_f                 },
 	{ "draw_box",               CG_DrawBox_f                  },   // speedrun mod
+	{ "draw_plane",             CG_DrawPlane_f                },   // speedrun mod
 	{ "+weapzoom",              CG_WeapzoomDown_f            },
 	{ "-weapzoom",              CG_WeapzoomUp_f              },
 	{ "toggleweapzoom",         CG_ToggleWeapzoom_f          },

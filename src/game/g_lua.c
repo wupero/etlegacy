@@ -2482,8 +2482,11 @@ static qboolean Lua_GetVec3(lua_State *L, int index, vec3_t out)
  * @return qtrue on success (origin/radius/yaw filled), qfalse otherwise.
  */
 static qboolean Lua_GetTimerunZone(lua_State *L, int index,
-                                   vec3_t origin, float *radius, float *yaw)
+                                   vec3_t origin, vec3_t halfExtent, float *yaw)
 {
+	float r;
+	int   hasRadius = qfalse, hasSize = qfalse;
+
 	if (!lua_istable(L, index))
 	{
 		return qfalse;
@@ -2497,22 +2500,56 @@ static qboolean Lua_GetTimerunZone(lua_State *L, int index,
 	}
 	lua_pop(L, 1);
 
+	// box shape: either a uniform 'radius' or per-axis 'size = {x,y,z}' - never both
 	lua_getfield(L, index, "radius");
-	if (!lua_isnumber(L, -1))
+	if (lua_isnumber(L, -1))
 	{
-		lua_pop(L, 1);
-		return qfalse;
+		r = (float)lua_tonumber(L, -1);
+		if (r < 8.0f)
+		{
+			r = 8.0f;
+		}
+		else if (r > 256.0f)
+		{
+			r = 256.0f;
+		}
+		VectorSet(halfExtent, r, r, r);
+		hasRadius = qtrue;
 	}
-	*radius = (float)lua_tonumber(L, -1);
 	lua_pop(L, 1);
 
-	if (*radius < 8.0f)
+	lua_getfield(L, index, "size");
+	if (lua_istable(L, -1))
 	{
-		*radius = 8.0f;
+		if (Lua_GetVec3(L, -1, halfExtent))
+		{
+			int k;
+
+			for (k = 0; k < 3; k++)
+			{
+				if (halfExtent[k] < 8.0f)
+				{
+					halfExtent[k] = 8.0f;
+				}
+				else if (halfExtent[k] > 256.0f)
+				{
+					halfExtent[k] = 256.0f;
+				}
+			}
+			hasSize = qtrue;
+		}
 	}
-	else if (*radius > 256.0f)
+	lua_pop(L, 1);
+
+	if (hasRadius && hasSize)
 	{
-		*radius = 256.0f;
+		G_Printf(S_COLOR_YELLOW "speedrun mod: zone cannot define both radius and size\n");
+		return qfalse;
+	}
+	if (!hasRadius && !hasSize)
+	{
+		G_Printf(S_COLOR_YELLOW "speedrun mod: zone must define radius or size\n");
+		return qfalse;
 	}
 
 	lua_getfield(L, index, "yaw");
@@ -2629,7 +2666,7 @@ static int _et_TimerunRegister(lua_State *L)
 			lua_pop(L, 1);
 
 			if (!Lua_GetTimerunZone(L, -1, def->startOrigins[0],
-			                        &def->startRadius[0], &def->startYaw[0]))
+			                        def->startHalfExtent[0], &def->startYaw[0]))
 			{
 				G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'start'\n", def->id);
 				lua_pop(L, 1);
@@ -2650,7 +2687,7 @@ static int _et_TimerunRegister(lua_State *L)
 			while (lua_next(L, -2) && n < MAX_TIMERUN_STARTS)
 			{
 				if (Lua_GetTimerunZone(L, -1, def->startOrigins[n],
-				                       &def->startRadius[n], &def->startYaw[n]))
+				                       def->startHalfExtent[n], &def->startYaw[n]))
 				{
 					n++;
 				}
@@ -2679,7 +2716,7 @@ static int _et_TimerunRegister(lua_State *L)
 
 	// stop (required): { pos = {x,y,z}, radius = N, yaw = deg }
 	lua_getfield(L, 1, "stop");
-	if (!Lua_GetTimerunZone(L, -1, def->stopOrigin, &def->stopRadius, &def->stopYaw))
+	if (!Lua_GetTimerunZone(L, -1, def->stopOrigin, def->stopHalfExtent, &def->stopYaw))
 	{
 		G_Printf("Timeruns: registration '%s' rejected - missing/invalid 'stop'\n", def->id);
 		lua_pop(L, 1);
@@ -2710,7 +2747,7 @@ static int _et_TimerunRegister(lua_State *L)
 		while (lua_next(L, -2) && n < MAX_TIMERUN_CHECKPOINTS)
 		{
 			if (Lua_GetTimerunZone(L, -1, def->checkpointOrigins[n],
-			                       &def->checkpointRadius[n], &def->checkpointYaw[n]))
+			                       def->checkpointHalfExtent[n], &def->checkpointYaw[n]))
 			{
 				n++;
 			}

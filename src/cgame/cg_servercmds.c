@@ -3424,8 +3424,8 @@ static void CG_TimerunZonesCommand(void)
 	}
 
 	VectorSet(cg.timerunDebugZoneOrigins[run][count], Q_atof(CG_Argv(3)), Q_atof(CG_Argv(4)), Q_atof(CG_Argv(5)));
-	cg.timerunDebugZoneRadius[run][count] = Q_atof(CG_Argv(6));
-	cg.timerunDebugZoneYaw[run][count]    = Q_atof(CG_Argv(7));
+	VectorSet(cg.timerunDebugZoneHalfExtent[run][count], Q_atof(CG_Argv(6)), Q_atof(CG_Argv(7)), Q_atof(CG_Argv(8)));
+	cg.timerunDebugZoneYaw[run][count]    = Q_atof(CG_Argv(9));
 	cg.timerunDebugZoneTypes[run][count]  = type;
 	cg.timerunDebugZoneCount[run]++;
 }

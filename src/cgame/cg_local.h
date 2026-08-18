@@ -1621,7 +1621,7 @@ typedef struct
 	// speedrun mod: zone geometry for the speedrun_debug blue-box overlay
 	// (server 'timerun_zones' commands, sent on ClientBegin)
 	vec3_t timerunDebugZoneOrigins[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
-	float timerunDebugZoneRadius[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
+	vec3_t timerunDebugZoneHalfExtent[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	float timerunDebugZoneYaw[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	byte timerunDebugZoneTypes[MAX_TIMERUNS][MAX_TIMERUN_STARTS + MAX_TIMERUN_CHECKPOINTS + 1];
 	int timerunDebugZoneCount[MAX_TIMERUNS];
@@ -1634,6 +1634,15 @@ typedef struct
 	float drawBoxRadius;
 	float drawBoxYaw;
 	qboolean drawBoxWasInside;    ///< previous frame's containment (touch edge-trigger)
+
+	// speedrun mod: single debug box set via the /draw_plane client command
+	// (origin + per-axis {x,y,z} half-extents + yaw). Replaces on redraw; cleared
+	// on level load (cg is zeroed).
+	qboolean drawPlaneValid;
+	vec3_t drawPlaneOrigin;
+	vec3_t drawPlaneHalfExtent;
+	float drawPlaneYaw;
+	qboolean drawPlaneWasInside;  ///< previous frame's containment (touch edge-trigger)
 
 	// timerun state (server commands from g_timerun.c)
 	qboolean timerunActive;

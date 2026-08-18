@@ -640,16 +640,16 @@ typedef struct
 	char name[TIMERUN_MAX_NAME];
 	int group;               ///< speedrun mod: numeric run group (e.g. 1 = short, 2 = full); 1 if unset
 	vec3_t startOrigins[MAX_TIMERUN_STARTS];
-	float startRadius[MAX_TIMERUN_STARTS];   ///< speedrun mod: per-zone half-extent
+	vec3_t startHalfExtent[MAX_TIMERUN_STARTS];   ///< speedrun mod: per-zone box half-extents (x,y,z)
 	float startYaw[MAX_TIMERUN_STARTS];      ///< speedrun mod: per-zone rotation around Z (degrees)
 	int numStarts;
 	vec3_t stopOrigin;
-	float stopRadius;                        ///< speedrun mod: per-zone half-extent
+	vec3_t stopHalfExtent;                   ///< speedrun mod: per-zone box half-extents (x,y,z)
 	float stopYaw;                           ///< speedrun mod: rotation around Z (degrees)
 	vec3_t teleportOrigin;///< speedrun mod: optional spot for /speedrun <num> teleport
 	qboolean hasTeleport; ///< speedrun mod: true when the lua 'teleport' property was given
 	vec3_t checkpointOrigins[MAX_TIMERUN_CHECKPOINTS];
-	float checkpointRadius[MAX_TIMERUN_CHECKPOINTS];   ///< speedrun mod: per-zone half-extent
+	vec3_t checkpointHalfExtent[MAX_TIMERUN_CHECKPOINTS];   ///< speedrun mod: per-zone box half-extents (x,y,z)
 	float checkpointYaw[MAX_TIMERUN_CHECKPOINTS];      ///< speedrun mod: rotation around Z (degrees)
 	int numCheckpoints;
 	float radius;         ///< zone half-extent in units (fallback when a zone has no explicit radius)

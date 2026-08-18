@@ -202,7 +202,7 @@ void CG_DrawTimer(void)
  * Each cube face is a 4-vertex poly; the box is centered on the given origin
  * with the given radius (cube half-extent) and yaw (rotation around Z).
  */
-static void CG_AddDebugBox(const vec3_t center, float radius, float yaw,
+static void CG_AddDebugBox(const vec3_t center, const vec3_t halfExtent, float yaw,
                     const vec3_t color)
 {
 	float c, s;
@@ -234,9 +234,9 @@ static void CG_AddDebugBox(const vec3_t center, float radius, float yaw,
 	// 8 corners of the (possibly rotated) cube around the box origin
 	for (corner = 0; corner < 8; corner++)
 	{
-		float x = (corner & 1) ? radius : -radius;
-		float y = (corner & 2) ? radius : -radius;
-		float z = (corner & 4) ? radius : -radius;
+		float x = (corner & 1) ? halfExtent[0] : -halfExtent[0];
+		float y = (corner & 2) ? halfExtent[1] : -halfExtent[1];
+		float z = (corner & 4) ? halfExtent[2] : -halfExtent[2];
 
 		corners[corner][0] = center[0] + c * x - s * y;
 		corners[corner][1] = center[1] + s * x + c * y;
@@ -326,6 +326,35 @@ static qboolean CG_DrawBoxContains(const vec3_t point)
 }
 
 /**
+ * @brief speedrun mod: per-axis containment test for the /draw_plane box.
+ * @details Same as CG_DrawBoxContains but compares against the per-axis
+ *          half-extents (drawPlaneHalfExtent) instead of a uniform radius.
+ */
+static qboolean CG_DrawPlaneContains(const vec3_t point)
+{
+	vec3_t local;
+	float  yaw, c, s;
+
+	VectorSubtract(point, cg.drawPlaneOrigin, local);
+	yaw = cg.drawPlaneYaw;
+
+	if (yaw != 0.0f)
+	{
+		c = cosf(DEG2RAD(yaw));
+		s = sinf(DEG2RAD(yaw));
+
+		float x = local[0], y = local[1];
+
+		local[0] =  c * x + s * y;
+		local[1] = -s * x + c * y;
+	}
+
+	return (fabs(local[0]) <= cg.drawPlaneHalfExtent[0]
+	        && fabs(local[1]) <= cg.drawPlaneHalfExtent[1]
+	        && fabs(local[2]) <= cg.drawPlaneHalfExtent[2]);
+}
+
+/**
  * @brief speedrun mod: draws the timerun zones (start/stop/checkpoints) as blue
  * cubes when speedrun_debug is 1, so their covered area is visible in-game.
  * @details The zone geometry is pushed by the server (timerun_zones commands on
@@ -348,7 +377,7 @@ void CG_DrawTimerunZones(void)
 			vec3_t blue = { 0, 0, 255 };
 
 			CG_AddDebugBox(cg.timerunDebugZoneOrigins[run][i],
-			              cg.timerunDebugZoneRadius[run][i],
+			              cg.timerunDebugZoneHalfExtent[run][i],
 			              cg.timerunDebugZoneYaw[run][i], blue);
 		}
 	}
@@ -358,9 +387,10 @@ void CG_DrawTimerunZones(void)
 	if (cg.drawBoxValid)
 	{
 		vec3_t  red = { 255, 0, 0 };
+		vec3_t  he  = { cg.drawBoxRadius, cg.drawBoxRadius, cg.drawBoxRadius };
 		qboolean inside = CG_DrawBoxContains(cg.predictedPlayerState.origin);
 
-		CG_AddDebugBox(cg.drawBoxOrigin, cg.drawBoxRadius, cg.drawBoxYaw, red);
+		CG_AddDebugBox(cg.drawBoxOrigin, he, cg.drawBoxYaw, red);
 
 		// edge-triggered center print on entry, like the timerun zone touches
 		if (inside && !cg.drawBoxWasInside)
@@ -369,6 +399,23 @@ void CG_DrawTimerunZones(void)
 			CG_PriorityCenterPrint("^1draw_box touched\n", 1);
 		}
 		cg.drawBoxWasInside = inside;
+	}
+
+	// speedrun mod: /draw_plane helper box (per-axis half-extents). Drawn magenta
+	// to stand apart from the draw_box red box and the mapped lua zones (blue).
+	if (cg.drawPlaneValid)
+	{
+		vec3_t  magenta = { 255, 0, 255 };
+		qboolean inside  = CG_DrawPlaneContains(cg.predictedPlayerState.origin);
+
+		CG_AddDebugBox(cg.drawPlaneOrigin, cg.drawPlaneHalfExtent, cg.drawPlaneYaw, magenta);
+
+		if (inside && !cg.drawPlaneWasInside)
+		{
+			CG_Printf("speedrun_debug: draw_plane touched\n");
+			CG_PriorityCenterPrint("^1draw_plane touched\n", 1);
+		}
+		cg.drawPlaneWasInside = inside;
 	}
 }
 
