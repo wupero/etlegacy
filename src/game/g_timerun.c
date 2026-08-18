@@ -48,7 +48,7 @@ static int Timerun_HorizontalSpeed(gentity_t *ent)
  * @param[in] ent
  * @param[in] cmd
  */
-static void Timerun_SendToSpectators(gentity_t *ent, const char *cmd)
+void Timerun_SendToSpectators(gentity_t *ent, const char *cmd)
 {
 	int i;
 

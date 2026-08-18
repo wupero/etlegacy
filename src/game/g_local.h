@@ -2147,6 +2147,7 @@ qboolean trap_API_GetResult(int *id, int *httpCode, char *buffer, int bufferSize
 void G_API_Frame(void);                                                            ///< speedrun mod
 void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs);                ///< speedrun mod
 void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def);                       ///< speedrun mod: pull a keyed player's stored best run to seed deltas on first run
+void Timerun_SendToSpectators(gentity_t *ent, const char *cmd);                          ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod
 void trap_SendConsoleCommand(int exec_when, const char *text);

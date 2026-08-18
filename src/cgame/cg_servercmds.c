@@ -3130,6 +3130,7 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_ZONES_CLEAR_HASH 260876
 #define TIMERUN_RECORD_HASH     188906
 #define TIMERUN_NOKEY_HASH      177127
+#define TIMERUN_BEST_HASH       161454
 // -----------
 
 /**
@@ -3355,6 +3356,32 @@ static void CG_TimerunNoKeyCommand(void)
 
 	trap_Print(va("%s", msg));   // msg already ends with \n
 	CPri(msg);                     // same center-print path as before (CG_CenterPrint)
+}
+
+/**
+ * @brief speedrun mod: the server loaded the player's stored best for a run+mode
+ *        from the backend (server-record fetch on first run). Seeds the client's
+ *        per-run best array so the end-of-run delta display works — checkpoint
+ *        deltas already come from the server, but the finish delta reads
+ *        cg.timerunBestTime on the client.
+ */
+static void CG_TimerunBestCommand(void)
+{
+	int clientNum = Q_atoi(CG_Argv(1));
+	int run       = Q_atoi(CG_Argv(2));
+	int mode      = Q_atoi(CG_Argv(3));
+	int time      = Q_atoi(CG_Argv(4));
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS || run < 0 || run >= MAX_TIMERUNS ||
+	    mode < 1 || mode > 2 || time <= 0)
+	{
+		return;
+	}
+
+	// arg 1 is the runner's clientNum: the runner seeds their own slot, and a
+	// spectator following them seeds that same runner's slot (so the spectator's
+	// finish-delta display, which reads the followed player's clientNum, works).
+	cg.timerunBestTime[clientNum][run][mode - 1] = time;
 }
 
 /**
@@ -4078,6 +4105,9 @@ static void CG_ServerCommand(void)
 		break;
 	case TIMERUN_NOKEY_HASH:          // "timerun_nokey"
 		CG_TimerunNoKeyCommand();
+		break;
+	case TIMERUN_BEST_HASH:           // "timerun_best"
+		CG_TimerunBestCommand();
 		break;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

@@ -286,6 +286,15 @@ static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *te
 				}
 			}
 		}
+
+				// push the loaded best to the runner AND any spectator following them so
+		// the end-of-run delta display works (it reads cg.timerunBestTime on the
+		// client, indexed by the runner's clientNum — which is arg 1). Checkpoint
+		// deltas already come from the server.
+		trap_SendServerCommand(ent - g_entities, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
+		                         client->sess.timerunBestTime[index][mode - 1]));
+		Timerun_SendToSpectators(ent, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
+		                         client->sess.timerunBestTime[index][mode - 1]));
 	}
 
 	cJSON_Delete(root);
