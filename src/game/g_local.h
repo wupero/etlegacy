@@ -766,6 +766,7 @@ typedef struct
 	// timerun state
 	qboolean timerunActive;
 	int currentTimerun;                         ///< index into level.timeruns
+	int timerunRecordRun;                       ///< speedrun mod: run index stashed at record-send (G_API_SendRecord), read when the async API response lands
 	int timerunStartTime;                       ///< commandTime at run start
 	int timerunStartSpeed;                      ///< horizontal speed at start
 	int timerunStopSpeed;                       ///< horizontal speed at stop

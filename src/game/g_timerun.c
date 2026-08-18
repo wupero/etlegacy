@@ -392,8 +392,10 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	}
 	else
 	{
+		// targeted to the finishing player only; client center-prints AND logs it
+		// to that player's console (never broadcast, so the console line is private)
 		trap_SendServerCommand(ent - g_entities,
-		                       "cp \"^3Time not recorded^7 - set /speedrun_key to record runs (get one at TO_BE_DECIDED after logging in)\n\"");
+		                       "timerun_nokey \"^3Time not recorded^7 - set /speedrun_key to record runs (get one at TO_BE_DECIDED after logging in)\n\"");
 	}
 
 	client->sess.timerunActive = qfalse;

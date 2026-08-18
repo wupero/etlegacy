@@ -3128,6 +3128,8 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_CP_HASH         133074
 #define TIMERUN_ZONES_HASH     178252
 #define TIMERUN_ZONES_CLEAR_HASH 260876
+#define TIMERUN_RECORD_HASH     188906
+#define TIMERUN_NOKEY_HASH      177127
 // -----------
 
 /**
@@ -3300,6 +3302,59 @@ static void CG_TimerunCpCommand(void)
 		CG_Printf("speedrun_debug: %s\n", CG_Argv(1));
 		CG_PriorityCenterPrint(CG_Argv(1), 1);
 	}
+}
+
+/**
+ * @brief speedrun mod: a timerun record (world record / personal best) was
+ *        set - shows the announcement in the player feed (like kills), visible
+ *        to every player. The full, pre-formatted message is a single quoted
+ *        server command arg (CG_Argv(1)).
+ */
+static void CG_TimerunRecordCommand(void)
+{
+	const char     *msg = CG_Argv(1);
+	hudComponent_t *pmComp;
+	int            i;
+
+	if (!msg || !*msg)
+	{
+		return;
+	}
+
+	// also log it to every player's console (the message already carries ^ color codes)
+	trap_Print(va("%s\n", msg));
+
+	for (i = 0; i < 3; ++i)
+	{
+		pmComp = (hudComponent_t *)((byte *)&CG_GetActiveHUD()->popupmessages + i * sizeof(hudComponent_t));
+
+		if (!pmComp->visible)
+		{
+			continue;
+		}
+
+		// PM_DEATH type + shader 0 => a plain text line in the kill feed, no icon
+		CG_AddPMItemEx(PM_DEATH, msg, " ", 0, 0, 0, colorYellow, i);
+	}
+}
+
+/**
+ * @brief speedrun mod: the finisher has no /speedrun_key set, so the run was not
+ *        recorded. Center-prints the notice AND logs it to that player's console.
+ *        The command is targeted to the finishing player only (never broadcast),
+ *        so the console line stays private to whoever triggered it.
+ */
+static void CG_TimerunNoKeyCommand(void)
+{
+	const char *msg = CG_Argv(1);
+
+	if (!msg || !*msg)
+	{
+		return;
+	}
+
+	trap_Print(va("%s", msg));   // msg already ends with \n
+	CPri(msg);                     // same center-print path as before (CG_CenterPrint)
 }
 
 /**
@@ -4017,6 +4072,12 @@ static void CG_ServerCommand(void)
 		break;
 	case TIMERUN_ZONES_CLEAR_HASH:    // "timerun_zones_clear"
 		CG_TimerunZonesClearCommand();
+		break;
+	case TIMERUN_RECORD_HASH:         // "timerun_record"
+		CG_TimerunRecordCommand();
+		break;
+	case TIMERUN_NOKEY_HASH:          // "timerun_nokey"
+		CG_TimerunNoKeyCommand();
 		break;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

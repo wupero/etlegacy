@@ -41,6 +41,16 @@
 #include "json.h"
 
 /**
+ * @brief speedrun mod: formats a millisecond duration as MM:SS.mmm
+ */
+static void Timerun_FormatTimeMs(char *buf, int len, int timeMs)
+{
+	int min = timeMs / 60000, t = timeMs - min * 60000, sec = t / 1000, milli = t - sec * 1000;
+
+	Com_sprintf(buf, len, "%02d:%02d.%03d", min, sec, milli);
+}
+
+/**
  * @brief speedrun mod: polls completed backend API requests and dispatches them.
  * @details Called every frame from G_RunFrame. The request id is the finishing
  * player's clientNum, so a response can be reported back to that player. A 200
@@ -86,13 +96,30 @@ void G_API_Frame(void)
 				int        place = pItem->valueint;
 				int        total = tItem->valueint;
 
-				if (!Q_stricmp(kind, "WORLD_RECORD"))
 				{
-					trap_SendServerCommand(id, va("cp \"^2World record! ^7Place 1 of %d\n\"", total));
-				}
-				else if (!Q_stricmp(kind, "PERSONAL_BEST"))
-				{
-					trap_SendServerCommand(id, va("cp \"^2New personal best - ^7place %d of %d\n\"", place, total));
+					int run = g_entities[id].client->sess.timerunRecordRun;
+
+					if (run >= 0 && run < level.numTimeruns)
+					{
+						const char *netname = g_entities[id].client->pers.netname;
+						const char *runName = level.timeruns[run].name;
+						const char *mode    = (g_entities[id].client->sess.speedrunMode == 2) ? "infinite stamina" : "vanilla";
+						char       timeStr[16];
+						int        timeMs  = g_entities[id].client->sess.timerunLastTime[run][g_entities[id].client->sess.speedrunMode - 1];
+
+						Timerun_FormatTimeMs(timeStr, sizeof(timeStr), timeMs);
+
+						if (!Q_stricmp(kind, "WORLD_RECORD"))
+						{
+							trap_SendServerCommand(-1, va("timerun_record \"New ^1WR^7 in %s (%s): ^5%s^7 for ^3%s\"",
+							                            runName, mode, timeStr, netname));
+						}
+						else if (!Q_stricmp(kind, "PERSONAL_BEST"))
+						{
+							trap_SendServerCommand(-1, va("timerun_record \"New ^4PB^7 %d/%d in %s (%s): ^5%s^7 for ^3%s\"",
+							                            place, total, runName, mode, timeStr, netname));
+						}
+					}
 				}
 			}
 
@@ -156,6 +183,10 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 		                  client->sess.timerunCheckpointTimes[i]);
 	}
 	Com_sprintf(body + off, sizeof(body) - off, "],\"mode\":%d}", client->sess.speedrunMode);
+
+	// Stash the finished run so the async response (G_API_Frame, keyed by clientNum)
+	// can format the record notification even if the player has since started a new run.
+	client->sess.timerunRecordRun = client->sess.currentTimerun;
 
 	trap_API_Request(ent - g_entities, ent - g_entities, header, url, body);
 }
