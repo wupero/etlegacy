@@ -289,7 +289,8 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 	cp   = client->sess.timerunCheckpointsPassed++;
 	time = client->ps.commandTime - client->sess.timerunStartTime;
 
-	client->sess.timerunCheckpointTimes[cp] = time;
+	client->sess.timerunCheckpointTimes[cp]     = time;
+	client->sess.timerunCheckpointStamina[cp]   = (int)(100.0f * client->ps.stats[STAT_SPRINTTIME] / SPRINTTIME);
 
 	best = client->sess.timerunBestCheckpointTimes[index][client->sess.speedrunMode - 1][cp];
 
@@ -356,6 +357,7 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 
 	client->sess.timerunLastTime[index][client->sess.speedrunMode - 1] = time;
 	client->sess.timerunStopSpeed       = Timerun_HorizontalSpeed(ent);
+	client->sess.timerunStopStamina     = (int)(100.0f * client->ps.stats[STAT_SPRINTTIME] / SPRINTTIME);
 
 	if (client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] == 0 ||
 	    time < client->sess.timerunBestTime[index][client->sess.speedrunMode - 1])

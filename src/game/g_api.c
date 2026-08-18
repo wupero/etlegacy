@@ -182,7 +182,16 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 		off += Com_sprintf(body + off, sizeof(body) - off, "%s%d", i ? "," : "",
 		                  client->sess.timerunCheckpointTimes[i]);
 	}
-	Com_sprintf(body + off, sizeof(body) - off, "],\"mode\":%d}", client->sess.speedrunMode);
+	off += Com_sprintf(body + off, sizeof(body) - off, "],\"staminaPercents\":[");
+	for (i = 0; i < def->numCheckpoints && off < (int)sizeof(body) - 2; i++)
+	{
+		off += Com_sprintf(body + off, sizeof(body) - off, "%s%d", i ? "," : "",
+		                  client->sess.timerunCheckpointStamina[i]);
+	}
+	// append the run-end stamina percent after the checkpoint percents
+	Com_sprintf(body + off, sizeof(body) - off, "%s%d],\"mode\":%d}",
+	           def->numCheckpoints ? "," : "", client->sess.timerunStopStamina,
+	           client->sess.speedrunMode);
 
 	// Stash the finished run so the async response (G_API_Frame, keyed by clientNum)
 	// can format the record notification even if the player has since started a new run.

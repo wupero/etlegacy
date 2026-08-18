@@ -773,6 +773,8 @@ typedef struct
 	int timerunMaxSpeed;                        ///< highest speed during the run
 	int timerunCheckpointsPassed;
 	int timerunCheckpointTimes[MAX_TIMERUN_CHECKPOINTS];
+	int timerunCheckpointStamina[MAX_TIMERUN_CHECKPOINTS];  ///< speedrun mod: stamina percent (0..100) at each checkpoint
+	int timerunStopStamina;                                 ///< speedrun mod: stamina percent (0..100) at run stop
 	int timerunLastTime[MAX_TIMERUNS][2];          ///< [run][mode-1]
 	int timerunBestTime[MAX_TIMERUNS][2];          ///< [run][mode-1]
 	int timerunBestCheckpointTimes[MAX_TIMERUNS][2][MAX_TIMERUN_CHECKPOINTS];  ///< [run][mode-1][cp]
