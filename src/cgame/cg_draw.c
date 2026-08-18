@@ -2605,36 +2605,6 @@ void CG_DrawDebugArtillery(centity_t *cent)
 //==============================================================================
 
 /**
- * @brief CG_DrawSpectator
- */
-void CG_DrawSpectator(hudComponent_t *comp)
-{
-	const char *s;
-
-#ifdef FEATURE_EDV
-	if (cgs.demoCamera.renderingWeaponCam)
-	{
-		s = CG_TranslateString("WEAPONCAM");
-	}
-	else if (cgs.demoCamera.renderingFreeCam)
-	{
-		s = CG_TranslateString("FREECAM");
-	}
-	else
-#endif
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.generatingNoiseHud)
-	{
-		s = CG_TranslateString(va("%s", "SPECTATOR"));
-	}
-	else
-	{
-		return;
-	}
-
-	CG_DrawCompText(comp, s, comp->colorMain, comp->styleText, &cgs.media.limboFont2);
-}
-
-/**
  * @brief CG_GetBindingKeyForVote
  * @param[in] str1
  * @param[in] str2

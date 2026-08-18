@@ -82,7 +82,6 @@ const hudComponentFields_t hudComponentFields[] =
 	{ HUDF(lagometer),          CG_DrawLagometer,                 HUD_COMP_TYPE_SPECIFIC,  0.19f, { 0 } },
 	{ HUDF(disconnect),         CG_DrawDisconnect,                HUD_COMP_TYPE_SPECIFIC,  0.35f, { "No Text" } },
 	{ HUDF(chat),               CG_DrawTeamInfo,                  HUD_COMP_TYPE_FEED,      0.20f, { "No Team Flag" } },// FIXME: outside cg_draw_hud
-	{ HUDF(spectatorstatus),    CG_DrawSpectator,                 HUD_COMP_TYPE_TEXT,      0.35f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(pmitemsbig),         CG_DrawPMItemsBig,                HUD_COMP_TYPE_FEED,      0.22f, { "No Skill",      "No Rank",      "No Prestige" } },// FIXME: outside cg_draw_hud
 	{ HUDF(warmuptitle),        CG_DrawWarmupTitle,               HUD_COMP_TYPE_TEXT,      0.35f, { 0 } },           // FIXME: outside cg_draw_hud
 	{ HUDF(warmuptext),         CG_DrawWarmupText,                HUD_COMP_TYPE_MULTITEXT, 0.22f, { 0 } },           // FIXME: outside cg_draw_hud
@@ -212,7 +211,6 @@ void CG_setDefaultHudValues(hudStucture_t *hud)
 	hud->lagometer          = CG_getComponent(SCREEN_WIDTH - 60, 216, 57, 57, qfalse, 0, 0, 100.f, HUD_Text, HUD_Text, qtrue, HUD_Background, qtrue, HUD_Border, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_CENTER, qfalse, 0.19f, 0, 0, 0, CG_DrawLagometer);
 	hud->disconnect         = CG_getComponent(SCREEN_WIDTH - 60, 216, 57, 57, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qtrue, HUD_Background, qtrue, HUD_Border, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_CENTER, qfalse, 0.35f, 0, 0, 0, CG_DrawDisconnect);
 	hud->chat               = CG_getComponent(165, 406, 364, 72, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.20f, 0, 0, 0, CG_DrawTeamInfo);
-	hud->spectatorstatus    = CG_getComponent(SCREEN_WIDTH * .5f - 70, 421, 140, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.35f, 0, 0, 0, CG_DrawSpectator);
 	hud->pmitemsbig         = CG_getComponent(347, 292, 290, 57, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, qfalse, 0.22f, 2500, 2000, 2500, CG_DrawPMItemsBig);
 	hud->warmuptitle        = CG_getComponent(SCREEN_WIDTH * .5f - 211, 120, 422, 24, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.35f, 0, 0, 0, CG_DrawWarmupTitle);
 	hud->warmuptext         = CG_getComponent(SCREEN_WIDTH * .5f - 211, 310, 422, 39, qtrue, 0, 0, 100.f, colorWhite, colorWhite, qfalse, HUD_Background, qfalse, HUD_Border, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, qfalse, 0.22f, 0, 0, 0, CG_DrawWarmupText);

@@ -4201,7 +4201,7 @@ typedef struct
  * NOTE : Keep this in sync with the concrete HUD component members in
  * hudStucture_t and the non-alias entries in hudComponentFields[].
  */
-#define HUD_COMPONENTS_NUM 63
+#define HUD_COMPONENTS_NUM 62
 
 typedef struct hudComponent_s
 {
@@ -4290,7 +4290,6 @@ typedef struct hudStructure_s
 	hudComponent_t lagometer;
 	hudComponent_t disconnect;
 	hudComponent_t chat;
-	hudComponent_t spectatorstatus;
 	hudComponent_t pmitemsbig;
 	hudComponent_t warmuptitle;
 	hudComponent_t warmuptext;
@@ -4399,7 +4398,6 @@ void CG_DrawTimerunMarkers(void);   // speedrun mod: diamond markers above all z
 void CG_DrawTimerunMarkerLabels(void);   // speedrun mod: run number inside start marker diamonds
 void CG_DrawMissileCamera(hudComponent_t *comp);
 void CG_DrawTeamInfo(hudComponent_t *comp);
-void CG_DrawSpectator(hudComponent_t *comp);
 void CG_DrawPMItemsBig(hudComponent_t *comp);
 void CG_DrawWarmupTitle(hudComponent_t *comp);
 void CG_DrawWarmupText(hudComponent_t *comp);
