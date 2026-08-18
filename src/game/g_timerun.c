@@ -237,6 +237,15 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	// speedrun mod: private center-print confirmation (only the runner sees it;
 	// display gated client-side on speedrun_debug)
 	trap_SendServerCommand(ent - g_entities, "timerun_cp \"^2Run started\n\"");
+
+	// speedrun mod: on the first run of this run+mode this session, if the player
+	// has a key and no best is recorded yet, pull their stored PB from the backend
+	// so checkpoint/end deltas work immediately. Once a best is set (loaded or
+	// beaten server-side) the guard below keeps this from firing again.
+	if (client->sess.speedrunKey[0] && client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] == 0)
+	{
+		G_API_FetchServerRecord(ent, def);
+	}
 }
 
 /**

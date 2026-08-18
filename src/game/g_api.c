@@ -43,6 +43,8 @@
 /**
  * @brief speedrun mod: formats a millisecond duration as MM:SS.mmm
  */
+static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *text);   ///< speedrun mod
+
 static void Timerun_FormatTimeMs(char *buf, int len, int timeMs)
 {
 	int min = timeMs / 60000, t = timeMs - min * 60000, sec = t / 1000, milli = t - sec * 1000;
@@ -65,6 +67,18 @@ void G_API_Frame(void)
 	while (trap_API_GetResult(&id, &httpCode, text, sizeof(text)))
 	{
 		cJSON *root;
+
+		// speedrun mod: a server-record fetch response (id = MAX_CLIENTS + clientNum)
+		if (id >= MAX_CLIENTS)
+		{
+			int cn = id - MAX_CLIENTS;
+
+			if (cn >= 0 && cn < MAX_CLIENTS && g_entities[cn].client)
+			{
+				G_API_ApplyServerRecord(&g_entities[cn], httpCode, text);
+			}
+			continue;
+		}
 
 		if (httpCode != 200)
 		{
@@ -198,4 +212,121 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs)
 	client->sess.timerunRecordRun = client->sess.currentTimerun;
 
 	trap_API_Request(ent - g_entities, ent - g_entities, header, url, body);
+}
+
+/**
+ * @brief speedrun mod: applies a server-record fetch response to the player's
+ *        per-run best arrays (sess.timerunBestTime / BestCheckpointTimes) so
+ *        checkpoint/end deltas work from the first run. Only acts on HTTP 200;
+ *        404 (no stored record yet) leaves the arrays at 0 (they get set on the
+ *        first finish, server-side).
+ */
+static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *text)
+{
+	gclient_t *client = ent->client;
+	cJSON     *root;
+
+	if (httpCode != 200)
+	{
+		return;   // 404 = no record; best stays 0 until the first finish
+	}
+
+	root = cJSON_Parse(text);
+	if (!root)
+	{
+		G_Printf("speedrun mod: server-record response not parseable: %s\n", text);
+		return;
+	}
+
+	{
+		cJSON *rItem = cJSON_GetObjectItem(root, "runId");
+		cJSON *mItem = cJSON_GetObjectItem(root, "mode");
+		cJSON *tItem = cJSON_GetObjectItem(root, "timeMs");
+		cJSON *cItem = cJSON_GetObjectItem(root, "checkpointsMs");
+		int   index;
+		int   mode;
+
+		for (index = 0; index < level.numTimeruns; index++)
+		{
+			if (rItem && rItem->valuestring && !Q_stricmp(level.timeruns[index].id, rItem->valuestring))
+			{
+				break;
+			}
+		}
+
+		if (index >= level.numTimeruns || !tItem)
+		{
+			cJSON_Delete(root);
+			return;
+		}
+
+		mode = (mItem && mItem->valueint >= 1 && mItem->valueint <= 2) ? mItem->valueint : client->sess.speedrunMode;
+
+		// don't clobber a best set server-side since the fetch fired
+		if (client->sess.timerunBestTime[index][mode - 1] != 0)
+		{
+			cJSON_Delete(root);
+			return;
+		}
+
+		client->sess.timerunBestTime[index][mode - 1] = tItem->valueint;
+
+		if (cItem)
+		{
+			int count = cJSON_GetArraySize(cItem);
+			int i;
+
+			for (i = 0; i < count && i < MAX_TIMERUN_CHECKPOINTS; i++)
+			{
+				cJSON *cp = cJSON_GetArrayItem(cItem, i);
+
+				if (cp)
+				{
+					client->sess.timerunBestCheckpointTimes[index][mode - 1][i] = cp->valueint;
+				}
+			}
+		}
+	}
+
+	cJSON_Delete(root);
+}
+
+/**
+ * @brief speedrun mod: fetches a keyed player's stored best run (end time +
+ *        checkpoint times) for a run+mode, to seed the server-side best arrays
+ *        on their first run this session. GET <base>/speedruns/<runId>/server-record?mode=N
+ *        with the player's key in X-SpeedRun-Key. A 404 (no record) is ignored.
+ * @param[in] ent the player
+ * @param[in] def the run definition (for its id)
+ */
+void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def)
+{
+	gclient_t *client = ent->client;
+	char       url[MAX_STRING_CHARS];
+	char       header[256];
+	char       apiKey[128];
+
+	if (!client->sess.speedrunKey[0])
+	{
+		return;
+	}
+
+	trap_Cvar_VariableStringBuffer("g_apiUrl", url, sizeof(url));
+	if (!url[0])
+	{
+		return;
+	}
+
+	// GET <base>/speedruns/<runId>/server-record?mode=<mode>
+	Q_strcat(url, sizeof(url), va("/speedruns/%s/server-record?mode=%d", def->id, client->sess.speedrunMode));
+
+	trap_Cvar_VariableStringBuffer("g_apiKey", apiKey, sizeof(apiKey));
+
+	// player key + server API key (libcurl splits a header string on CRLF)
+	Com_sprintf(header, sizeof(header), "X-SpeedRun-Key: %s\r\nX-Api-Key: %s",
+	            client->sess.speedrunKey, apiKey);
+
+	// id = MAX_CLIENTS + clientNum marks this as a server-record fetch response
+	// in G_API_Frame (a record-send response uses id = clientNum). Empty body => GET.
+	trap_API_Request(MAX_CLIENTS + (ent - g_entities), ent - g_entities, header, url, "");
 }
