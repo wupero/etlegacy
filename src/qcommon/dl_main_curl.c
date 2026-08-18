@@ -742,9 +742,10 @@ unsigned int Web_CreateRequest(const char *url, const char *authToken, webUpload
 	ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_PROGRESSDATA, (void *)request);
 	ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_FORBID_REUSE, 1L);
 
-	if (upload)
+	if (upload && upload->bufferSize > 0)
 	{
-		// ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_POST, 1L);
+		// a non-empty body makes this a POST; a header-only upload (bufferSize 0,
+		// e.g. the speedrun server-record GET) stays a plain GET
 		ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_CUSTOMREQUEST, "POST");
 		ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_UPLOAD, 1L);
 		ETL_curl_easy_setopt(status, request->rawHandle, CURLOPT_TCP_KEEPALIVE, 0L);
