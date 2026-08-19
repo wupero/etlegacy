@@ -59,6 +59,11 @@ RUN if [ -n "${GITHUB_TOKEN}" ]; then \
         git clone --depth 1 git@github.com:wupero/etlegacy.git /src/etlegacy; \
     fi \
     && git -C /src/etlegacy checkout "${REF}" \
+    # fetch the bundled-libs submodule the build needs (libs/) - it is the
+    # PUBLIC etlegacy-libs repo, so use the plain public URL (the repo-scoped
+    # GITHUB_TOKEN does not cover it). app/libs/joystick is client-only, skip.
+    && git -C /src/etlegacy config submodule.libs.url https://github.com/etlegacy/etlegacy-libs.git \
+    && git -C /src/etlegacy submodule update --init --depth 1 libs \
     && git -C /src/etlegacy rev-parse --short HEAD > /src/.git-short-sha
 
 # --- 2. Clone the runtime configs repo --------------------------------------
