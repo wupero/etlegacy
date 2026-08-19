@@ -116,8 +116,8 @@ RUN set -e; \
     if [ "$TARGETARCH" = "arm64" ]; then NATIVE=aarch64; else NATIVE=x86_64; fi; \
     \
     mkdir -p /legacy/server/speedrun && \
-    # the dedicated server binary (ninja etlded outputs it to the build root)
-    cp /src/etlegacy/build/etlded /legacy/server/etlded && \
+    # the dedicated server binary (BIN_SUFFIX = .<arch>, so etlded.x86_64 / .aarch64)
+    cp /src/etlegacy/build/etlded.${NATIVE} /legacy/server/etlded && \
     cp /src/etlegacy/build/legacy/qagame.mp.${NATIVE}.so /legacy/server/speedrun/qagame.mp.${NATIVE}.so && \
     \
     # timerun definitions: configs repo keeps them under luascripts/, the
