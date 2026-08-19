@@ -21,22 +21,25 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Read from the VPS environment; required for the private repo clones.
+        # GITHUB_TOKEN is build-time-only (cloning the private repos); it is NOT
+        # needed at runtime. All runtime settings live in `environment` below.
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-        API_KEY: ${API_KEY:-}
-        RCON_PASSWORD: ${RCON_PASSWORD:-}
-        HOSTNAME: etlspeedrun.cc
         # REF: ${REF:-master}
-        # CONFIG_REF: ${CONFIG_REF:-main}
+        # CONFIG_REF: ${CONFIG_REF:-master}
     image: etl-speedrun-server:latest
     container_name: etl-speedrun-server
     environment:
+      # Server hostname (+set sv_hostname).
+      - HOSTNAME=${HOSTNAME:-etlspeedrun.cc}
+      # rcon password (+set rconPassword).
+      - RCON_PASSWORD=${RCON_PASSWORD:-}
+      # Backend API key used by the server's HTTP calls (+set g_apiKey).
+      - API_KEY=${API_KEY:-}
       # Speedrun API endpoint, reached over the shared network as `api:8090`
       # (the etl-speedrun-api container). Override if the api is elsewhere.
       - G_API_URL=${G_API_URL:-http://api:8090/api}
       # Game UDP port. Change to match a host port mapping if desired.
       - PORT=27960
-      # - RCON_PASSWORD=${RCON_PASSWORD:-}
       # For fast pk3 downloads over HTTP, set a base URL and a www port, e.g.
       #   SV_WWW_BASE_URL=http://<host>:8080
       # and serve /legacy/server over HTTP on that port.
