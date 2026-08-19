@@ -159,7 +159,8 @@ RUN apt-get update && \
         ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -Ms /bin/bash legacy \
-    && mkdir -p /legacy/homepath
+    && mkdir -p /legacy/homepath \
+    && chown legacy:legacy /legacy/homepath
 
 COPY --from=build --chown=legacy:legacy /legacy /legacy/
 
