@@ -147,7 +147,7 @@ cd /legacy/server
 sed -i "/seta g_apiUrl/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true
 exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +map radar
 ENTRYPOINT
-chmod +x /legacy/server/entrypoint.sh
+RUN chmod +x /legacy/server/entrypoint.sh
 
 # --- Runtime stage: minimal, non-root --------------------------------------
 FROM debian:stable-slim
