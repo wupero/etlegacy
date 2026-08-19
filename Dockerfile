@@ -146,8 +146,8 @@ RUN cat > /legacy/server/entrypoint.sh <<'ENTRYPOINT'
 set -e
 cd /legacy/server
 # drop any stale archived cvars so the env values below always win
-sed -i -e "/seta g_apiUrl/d" -e "/seta sv_wwwDownload/d" -e "/seta sv_wwwBaseURL/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true
-exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiKey "${API_KEY:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +set sv_wwwDownload 1 +set sv_wwwBaseURL "${SV_WWW_BASE_URL:-http://159.195.205.23:8000}" +map radar
+sed -i -e "/seta g_apiUrl/d" -e "/seta sv_maxclients/d" -e "/seta sv_wwwDownload/d" -e "/seta sv_wwwBaseURL/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true
+exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_maxclients 32 +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiKey "${API_KEY:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +set sv_wwwDownload 1 +set sv_wwwBaseURL "${SV_WWW_BASE_URL:-http://159.195.205.23:8000}" +map radar
 ENTRYPOINT
 RUN chmod +x /legacy/server/entrypoint.sh
 
