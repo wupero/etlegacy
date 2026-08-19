@@ -78,8 +78,11 @@ RUN if [ -n "${GITHUB_TOKEN}" ]; then \
 # Configure still generates version_generated.h (needed by the pk3's ui/).
 ARG TARGETARCH
 WORKDIR /src/etlegacy/build
+# CROSS_COMPILE32 defaults ON on x86_64 hosts and forces a 32-bit (-m32) build
+# that fails without 32-bit libc in the slim stage - force OFF (64-bit server).
 RUN cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCROSS_COMPILE32=OFF \
         -DBUILD_CLIENT=OFF \
         -DBUILD_SERVER=ON \
         -DBUILD_MOD=ON \
