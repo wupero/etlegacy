@@ -139,14 +139,15 @@ RUN set -e; \
 # first so the env value always wins. G_API_URL points at the speedrun API on the
 # shared etl-speedrun-net (api:8090). The allruns config forces sv_pure 1 /
 # g_gameType 3.
-RUN printf '%s\n' \
-    '#!/bin/sh' \
-    'set -e' \
-    'cd /legacy/server' \
-    '# drop any stale archived g_apiUrl so the env value below always wins' \
-    'sed -i "/seta g_apiUrl/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true' \
-    'exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +map radar}"' \
-    > /legacy/server/entrypoint.sh && chmod +x /legacy/server/entrypoint.sh
+RUN cat > /legacy/server/entrypoint.sh <<'ENTRYPOINT'
+#!/bin/sh
+set -e
+cd /legacy/server
+# drop any stale archived g_apiUrl so the env value below always wins
+sed -i "/seta g_apiUrl/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true
+exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +map radar
+ENTRYPOINT
+chmod +x /legacy/server/entrypoint.sh
 
 # --- Runtime stage: minimal, non-root --------------------------------------
 FROM debian:stable-slim
