@@ -1,8 +1,7 @@
 # speedrun server Docker image — building/deploying
 
-Build + run (Linux VPS, Docker + docker compose):
+Build + run (Linux VPS, Docker + docker compose) — from the REPO ROOT:
 
-    cd misc/docker
     export GITHUB_TOKEN=<repo-scoped token>   # or a .env file
     docker compose up -d --build
 
@@ -43,9 +42,9 @@ client modules - only the etlegacy repo source (qagame) and the configs repo
 
 ## Deploying to a VPS
 
-Copy this `misc/docker/` directory to the VPS (Dockerfile + compose are enough;
-no mac/ context needed anymore), set GITHUB_TOKEN in the environment, and run
-`docker compose up -d --build` from it. Game UDP port 27960 is published; logs
+Copy `Dockerfile` + `docker-compose.yml` (repo root) to the VPS (those two are enough;
+no mac/ context needed anymore), set GITHUB_TOKEN in the environment, and and run
+`docker compose up -d --build` from that directory. Game UDP port 27960 is published; logs
 and configs persist in the named `etl-speedrun-homepath` volume.
 
 ## Talking to the speedrun API

@@ -19,7 +19,7 @@ services:
   server:
     build:
       context: .
-      dockerfile: speedrun-server.Dockerfile
+      dockerfile: Dockerfile
       args:
         # Read from the VPS environment; required for the private repo clones.
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}

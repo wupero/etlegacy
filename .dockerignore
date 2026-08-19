@@ -1,0 +1,14 @@
+# Keep the Docker build context tiny: the image CLONES its sources (wupero
+# repos) and does not COPY anything from the context, so none of these are needed.
+.git
+.gitignore
+build/
+build-*/
+cmake-build-*/
+*.pk3
+*.dll
+*.so
+*.tgz
+.idea
+*.iml
+.DS_Store
