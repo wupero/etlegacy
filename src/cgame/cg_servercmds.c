@@ -3131,6 +3131,7 @@ void CG_AddToBannerPrint(const char *str)
 #define TIMERUN_RECORD_HASH     188906
 #define TIMERUN_NOKEY_HASH      177127
 #define TIMERUN_BEST_HASH       161454
+#define TIMERUN_MODE_CLEAR_HASH 242256
 // -----------
 
 /**
@@ -3382,6 +3383,40 @@ static void CG_TimerunBestCommand(void)
 	// spectator following them seeds that same runner's slot (so the spectator's
 	// finish-delta display, which reads the followed player's clientNum, works).
 	cg.timerunBestTime[clientNum][run][mode - 1] = time;
+}
+
+/**
+ * @brief speedrun mod: the player changed speedrun mode — clear this player's
+ *        locally-kept timerun time state (per-run best/last times, finished
+ *        time, and the checkpoint diff line) so the next run in the new mode
+ *        shows fresh deltas. The server wipes its own sess arrays and sends
+ *        this so the client-side copies don't keep stale values across the
+ *        mode switch (the per-mode arrays live on both sides; without a clear
+ *        the client would keep comparing against the old mode's bests).
+ */
+static void CG_TimerunModeClearCommand(void)
+{
+	int clientNum = Q_atoi(CG_Argv(1));
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+	{
+		return;
+	}
+
+	memset(cg.timerunBestTime[clientNum], 0, sizeof(cg.timerunBestTime[clientNum]));
+	memset(cg.timerunLastTime[clientNum], 0, sizeof(cg.timerunLastTime[clientNum]));
+	cg.timerunFinishedTime[clientNum] = 0;
+	cg.timerunMode[clientNum]         = 0;
+
+	// the checkpoint line is the local player's only (single set), so only
+	// reset it when the clear targets the local player
+	if (clientNum == cg.clientNum)
+	{
+		cg.timerunCheckPointChecked = 0;
+		memset(cg.timerunCheckPointDiff, 0, sizeof(cg.timerunCheckPointDiff));
+		memset(cg.timerunCheckPointTime, 0, sizeof(cg.timerunCheckPointTime));
+		memset(cg.timerunCheckStatus, 0, sizeof(cg.timerunCheckStatus));
+	}
 }
 
 /**
@@ -4108,6 +4143,9 @@ static void CG_ServerCommand(void)
 		break;
 	case TIMERUN_BEST_HASH:           // "timerun_best"
 		CG_TimerunBestCommand();
+		break;
+	case TIMERUN_MODE_CLEAR_HASH:     // "timerun_mode_clear"
+		CG_TimerunModeClearCommand();
 		break;
 	default:
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);

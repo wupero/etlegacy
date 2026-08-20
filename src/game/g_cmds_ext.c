@@ -267,7 +267,23 @@ void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
-	ent->client->sess.speedrunMode = mode;
+	// speedrun mod: on a real mode change, wipe this player's timerun time
+	// data (server session AND the client's locally-kept best/last/finished
+	// arrays) so the next run in the new mode re-downloads their PB from the
+	// backend — the same fresh state they get when first joining the server.
+	// The per-mode best arrays are what the run-start API-fetch guard tests
+	// (== 0 => fetch), so zeroing them guarantees a re-fetch for the new mode.
+	if (mode != ent->client->sess.speedrunMode)
+	{
+		ent->client->sess.speedrunMode = mode;
+
+		memset(ent->client->sess.timerunLastTime, 0, sizeof(ent->client->sess.timerunLastTime));
+		memset(ent->client->sess.timerunBestTime, 0, sizeof(ent->client->sess.timerunBestTime));
+		memset(ent->client->sess.timerunBestCheckpointTimes, 0, sizeof(ent->client->sess.timerunBestCheckpointTimes));
+
+		// tell the client to clear its per-player best/last/finished/diff state
+		trap_SendServerCommand(ent - g_entities, va("timerun_mode_clear %d\n", (int)(ent - g_entities)));
+	}
 
 	if (mode == 2)
 	{
