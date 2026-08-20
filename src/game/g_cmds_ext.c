@@ -372,6 +372,14 @@ void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
+	// speedrun mod: only the default save slot (0) is allowed — multiple-slot
+	// save is disabled
+	if (posNum != 0)
+	{
+		CP("print \"^nOnly the ^ndefault ^nsave slot is available\n\"");
+		return;
+	}
+
 	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR)
 	{
 		CP("cp \"^dYou can not ^nsave ^das a spectator\n\"");
@@ -450,6 +458,14 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	else
 	{
 		CP("print \"^nUsage: ^nload ^d[position]\n\"");
+		return;
+	}
+
+	// speedrun mod: only the default save slot (0) is allowed — multiple-slot
+	// load is disabled
+	if (posNum != 0)
+	{
+		CP("print \"^nOnly the ^ndefault ^nsave slot is available\n\"");
 		return;
 	}
 
