@@ -2509,9 +2509,9 @@ static qboolean Lua_GetTimerunZone(lua_State *L, int index,
 		{
 			r = 8.0f;
 		}
-		else if (r > 256.0f)
+		else if (r > 512.0f)
 		{
-			r = 256.0f;
+			r = 512.0f;
 		}
 		VectorSet(halfExtent, r, r, r);
 		hasRadius = qtrue;
@@ -2531,9 +2531,9 @@ static qboolean Lua_GetTimerunZone(lua_State *L, int index,
 				{
 					halfExtent[k] = 8.0f;
 				}
-				else if (halfExtent[k] > 256.0f)
+				else if (halfExtent[k] > 512.0f)
 				{
-					halfExtent[k] = 256.0f;
+					halfExtent[k] = 512.0f;
 				}
 			}
 			hasSize = qtrue;
@@ -2570,7 +2570,7 @@ static qboolean Lua_GetTimerunZone(lua_State *L, int index,
  * Fields: id (required, unique), name, start (required), stop (required),
  * checkpoints (max 16). Each start/stop/checkpoint
  * zone is strictly { pos = {x,y,z}, radius = N, yaw = deg } - all three fields
- * required (radius clamped 8..256). The run-level 'radius' is kept for
+ * required (radius clamped 8..512). The run-level 'radius' is kept for
  * compatibility but no longer used as a fallback. 'teleport' (optional) is a
  * plain vec3. A run only counts when ALL checkpoints were reached.
  */
@@ -2635,7 +2635,7 @@ static int _et_TimerunRegister(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	// radius (optional, default 64, clamped 8..256)
+	// radius (optional, default 64, clamped 8..512)
 	lua_getfield(L, 1, "radius");
 	if (lua_isnumber(L, -1))
 	{
@@ -2647,9 +2647,9 @@ static int _et_TimerunRegister(lua_State *L)
 	{
 		def->radius = 8.0f;
 	}
-	else if (def->radius > 256.0f)
+	else if (def->radius > 512.0f)
 	{
-		def->radius = 256.0f;
+		def->radius = 512.0f;
 	}
 
 	// start (required): a single zone or a list of zones, each strictly
