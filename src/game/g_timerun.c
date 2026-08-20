@@ -412,7 +412,7 @@ static void Timerun_StopRun(gentity_t *ent, gentity_t *zone, int index, timerunD
 	client->sess.timerunActive = qfalse;
 }
 
-static qboolean Timerun_ZoneContains(const gentity_t *zone, const vec3_t point);   // speedrun mod
+static qboolean Timerun_ZoneOverlapsBox(const gentity_t *zone, const vec3_t boxMins, const vec3_t boxMaxs);   // speedrun mod
 
 /**
  * @brief Zone touch: starts, checkpoints or stops runs based on the zone type
@@ -446,10 +446,21 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 	}
 
 	// speedrun mod: the engine's contact test only sees the enclosing AABB of a
-	// rotated zone - re-check the player against the real cube
-	if (!Timerun_ZoneContains(self, other->client->ps.origin))
+	// rotated zone - re-check the player against the real cube. ps.origin sits at
+	// hip height (the player box spans origin-24 .. origin+48), so a low/thin zone
+	// can be walked through without the single origin point ever entering it.
+	// Test the player's full bounding box instead so the checkpoint registers
+	// when any part of the body overlaps the zone.
 	{
-		return;
+		vec3_t boxMins, boxMaxs;
+
+		VectorAdd(other->client->ps.origin, other->r.mins, boxMins);
+		VectorAdd(other->client->ps.origin, other->r.maxs, boxMaxs);
+
+		if (!Timerun_ZoneOverlapsBox(self, boxMins, boxMaxs))
+		{
+			return;
+		}
 	}
 
 	switch (self->count2)
@@ -469,35 +480,72 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 }
 
 /**
- * @brief speedrun mod: precise containment test for a (possibly rotated) cube
- *        zone. The engine's trigger contact only sees the axis-aligned bounds
- *        enclosing the rotated cube, so the touch handler re-checks the player
- *        against the real cube (inverse-rotated by yaw).
- * @return qtrue when the point lies inside the zone's cube.
+ * @brief speedrun mod: overlap test between the player's world-space bounding
+ *        box and a (possibly yaw-rotated) timerun zone cube.
+ * @param[in] zone    the timerun zone (rotate[0..2] = half-extent, TargetAngles[2] = yaw)
+ * @param[in] boxMins player box min corner (world space)
+ * @param[in] boxMaxs player box max corner (world space)
+ *
+ * @details The engine's contact test (G_TouchTriggers) sees the player's FULL
+ *          body bounding box, but Timerun_ZoneTouch previously re-checked only
+ *          the single point ps.origin (which sits ~24 units above the feet). A
+ *          low or thin zone could therefore be walked through without the
+ *          origin point ever entering it - the whole model visibly crossed the
+ *          checkpoint but it never registered. This tests the whole box: each
+ *          of the 8 player-box corners is transformed into the zone's local
+ *          frame (inverse-yaw rotation about the zone origin), and the AABB of
+ *          those transformed corners is checked against the zone cube. If any
+ *          part of the player's body overlaps the cube, it returns qtrue.
+ * @return qtrue when the player box intersects the zone cube.
  */
-static qboolean Timerun_ZoneContains(const gentity_t *zone, const vec3_t point)
+static qboolean Timerun_ZoneOverlapsBox(const gentity_t *zone, const vec3_t boxMins, const vec3_t boxMaxs)
 {
-	vec3_t local;
-	float  yaw, c, s;
+	vec3_t  localCorners[8];
+	vec3_t  localMins, localMaxs;
+	vec3_t  corner;
+	float   yaw, c, s;
+	int     i;
 
-	VectorSubtract(point, zone->r.currentOrigin, local);
 	yaw = zone->TargetAngles[2];
+	c   = cosf(DEG2RAD(yaw));
+	s   = sinf(DEG2RAD(yaw));
 
-	if (yaw != 0.0f)
+	// transform each of the 8 player-box corners into the zone's local frame
+	for (i = 0; i < 8; i++)
 	{
-		// rotate the offset back into the zone's local frame (yaw around Z)
-		c = cosf(DEG2RAD(yaw));
-		s = sinf(DEG2RAD(yaw));
+		corner[0] = (i & 1) ? boxMaxs[0] : boxMins[0];
+		corner[1] = (i & 2) ? boxMaxs[1] : boxMins[1];
+		corner[2] = (i & 4) ? boxMaxs[2] : boxMins[2];
 
-		float x = local[0], y = local[1];
+		VectorSubtract(corner, zone->r.currentOrigin, localCorners[i]);
 
-		local[0] =  c * x + s * y;
-		local[1] = -s * x + c * y;
+		if (yaw != 0.0f)
+		{
+			float x = localCorners[i][0], y = localCorners[i][1];
+
+			localCorners[i][0] =  c * x + s * y;
+			localCorners[i][1] = -s * x + c * y;
+		}
 	}
 
-	return (fabs(local[0]) <= zone->rotate[0]
-	        && fabs(local[1]) <= zone->rotate[1]
-	        && fabs(local[2]) <= zone->rotate[2]);
+	// AABB of the transformed corners (the zone cube is axis-aligned in its
+	// local frame, so the overlap test below is a plain AABB-vs-AABB compare)
+	VectorCopy(localCorners[0], localMins);
+	VectorCopy(localCorners[0], localMaxs);
+
+	for (i = 1; i < 8; i++)
+	{
+		localMins[0] = localCorners[i][0] < localMins[0] ? localCorners[i][0] : localMins[0];
+		localMins[1] = localCorners[i][1] < localMins[1] ? localCorners[i][1] : localMins[1];
+		localMins[2] = localCorners[i][2] < localMins[2] ? localCorners[i][2] : localMins[2];
+		localMaxs[0] = localCorners[i][0] > localMaxs[0] ? localCorners[i][0] : localMaxs[0];
+		localMaxs[1] = localCorners[i][1] > localMaxs[1] ? localCorners[i][1] : localMaxs[1];
+		localMaxs[2] = localCorners[i][2] > localMaxs[2] ? localCorners[i][2] : localMaxs[2];
+	}
+
+	return (localMins[0] <= zone->rotate[0] && localMaxs[0] >= -zone->rotate[0]
+	        && localMins[1] <= zone->rotate[1] && localMaxs[1] >= -zone->rotate[1]
+	        && localMins[2] <= zone->rotate[2] && localMaxs[2] >= -zone->rotate[2]);
 }
 
 /**
@@ -510,9 +558,9 @@ static qboolean Timerun_ZoneContains(const gentity_t *zone, const vec3_t point)
  * @param[in] ordinal  checkpoint ordinal (definition order)
  *
  * @details The trigger's linked bounds are the axis-aligned box enclosing the
- * (possibly rotated) cube so the engine fires the touch; Timerun_ZoneContains
- * does the exact rotated-cube test before dispatching. The real radius and yaw
- * are kept on the entity (rotate[0] / TargetAngles[2]).
+ * (possibly rotated) cube so the engine fires the touch; Timerun_ZoneOverlapsBox
+ * does the exact rotated-cube vs player-box test before dispatching. The real
+ * radius and yaw are kept on the entity (rotate[0] / TargetAngles[2]).
  */
 static void Timerun_SpawnZone(int index, int zoneType, const vec3_t origin, const vec3_t halfExtent, float yaw, int ordinal)
 {
