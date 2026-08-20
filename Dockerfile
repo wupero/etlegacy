@@ -145,6 +145,17 @@ RUN cat > /legacy/server/entrypoint.sh <<'ENTRYPOINT'
 #!/bin/sh
 set -e
 cd /legacy/server
+# Add host-provided map pk3s. The maps dir is bind-mounted read-only at
+# /legacy/maps (see docker-compose: MAPS_DIR on the host). We symlink each
+# *.pk3 into etmain/ so the base paks (pak0/1/2) that were baked into the
+# image stay intact — a direct bind-mount onto etmain/ would hide them.
+# Symlinking (not copying) means new maps dropped into the host dir are
+# picked up on the next container start without an image rebuild.
+if [ -d /legacy/maps ]; then
+    for m in /legacy/maps/*.pk3; do
+        [ -e "$m" ] && ln -sf "$m" /legacy/server/etmain/"$(basename "$m")"
+    done
+fi
 # drop any stale archived cvars so the env values below always win
 sed -i -e "/seta g_apiUrl/d" -e "/seta sv_maxclients/d" -e "/seta sv_wwwDownload/d" -e "/seta sv_wwwBaseURL/d" /legacy/homepath/etconfig_server.cfg 2>/dev/null || true
 exec ./etlded +set dedicated 2 +set fs_basepath /legacy/server +set fs_homepath /legacy/homepath +set fs_game speedrun +set g_customConfig allruns +set sv_maxclients 32 +set sv_hostname "${HOSTNAME:-ETLHost}" +set net_port "${PORT:-27960}" +set rconPassword "${RCON_PASSWORD:-}" +set g_apiKey "${API_KEY:-}" +set g_apiUrl "${G_API_URL:-http://api:8090/api}" +set sv_wwwDownload 1 +set sv_wwwBaseURL "${SV_WWW_BASE_URL:-http://159.195.205.23:8000}" +map radar
@@ -160,7 +171,9 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -Ms /bin/bash legacy \
     && mkdir -p /legacy/homepath \
-    && chown legacy:legacy /legacy/homepath
+    && mkdir -p /legacy/maps \
+    && chown legacy:legacy /legacy/homepath \
+    && chown legacy:legacy /legacy/maps
 
 COPY --from=build --chown=legacy:legacy /legacy /legacy/
 

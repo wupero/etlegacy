@@ -50,6 +50,11 @@ services:
     volumes:
       # Persist logs/configs written to the homepath across restarts.
       - etl-speedrun-homepath:/legacy/homepath
+      # Host map pk3s, bind-mounted read-only into the container at /legacy/maps.
+      # The entrypoint symlinks each *.pk3 into /legacy/server/etmain/ at startup
+      # (a direct mount onto etmain/ would hide the baked-in base paks). Point
+      # MAPS_DIR at the host dir holding the map pk3s, e.g. ~/httpfiles/maps.
+      - ${MAPS_DIR:-~/httpfiles/maps}:/legacy/maps:ro
     # Reach the speedrun API (etl-speedrun-api) on the shared network by the
     # service name `api` at :8090 (same pattern as etl-speedrun-web).
     networks:
