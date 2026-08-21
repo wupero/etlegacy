@@ -410,6 +410,8 @@ void ClientImpacts(gentity_t *ent, pmove_t *pm)
  *
  * Spectators will only interact with teleporters.
  */
+#define MAX_TRIGGER_SWEEP 400.0f   ///< speedrun mod: max per-axis box expansion for swept trigger detection (covers any realistic one-frame movement)
+
 void G_TouchTriggers(gentity_t *ent)
 {
 	int           i, num;
@@ -417,6 +419,8 @@ void G_TouchTriggers(gentity_t *ent)
 	gentity_t     *hit;
 	trace_t       trace;
 	vec3_t        mins, maxs;
+	vec3_t        broadMins, broadMaxs;
+	vec3_t        sweptMins, sweptMaxs;
 	static vec3_t range = { 40, 40, 52 };
 
 	if (!ent->client)
@@ -433,14 +437,63 @@ void G_TouchTriggers(gentity_t *ent)
 		return;
 	}
 
-	VectorSubtract(ent->client->ps.origin, range, mins);
-	VectorAdd(ent->client->ps.origin, range, maxs);
-
-	num = trap_EntitiesInBox(mins, maxs, touch, MAX_GENTITIES);
-
 	// can't use ent->absmin, because that has a one unit pad
 	VectorAdd(ent->client->ps.origin, ent->r.mins, mins);
 	VectorAdd(ent->client->ps.origin, ent->r.maxs, maxs);
+
+	// speedrun mod: swept trigger detection. The engine contact test is a single
+	// instant static overlap, so a fast-moving player (rocket jump, etc.) can
+	// tunnel entirely past a thin trigger in one server frame — the player visibly
+	// passes through the zone but no discrete sample lands inside it. Build a
+	// "swept box" (union of the current and previous-frame player boxes, clamped)
+	// and use it for the broad-phase query AND as a box-mode fallback contact test,
+	// so a trigger fires whenever the player crossed it.
+	{
+		int i;
+
+		VectorAdd(ent->client->oldOrigin, ent->r.mins, sweptMins);
+		VectorAdd(ent->client->oldOrigin, ent->r.maxs, sweptMaxs);
+
+		// union with the current box, clamped so a stale oldOrigin (spectator
+		// free-cam never updates it) can't blow the box up across the map
+		for (i = 0; i < 3; i++)
+		{
+			if (sweptMins[i] > mins[i])
+			{
+				sweptMins[i] = mins[i];
+			}
+			if (sweptMaxs[i] < maxs[i])
+			{
+				sweptMaxs[i] = maxs[i];
+			}
+			if (sweptMins[i] < mins[i] - MAX_TRIGGER_SWEEP)
+			{
+				sweptMins[i] = mins[i] - MAX_TRIGGER_SWEEP;
+			}
+			if (sweptMaxs[i] > maxs[i] + MAX_TRIGGER_SWEEP)
+			{
+				sweptMaxs[i] = maxs[i] + MAX_TRIGGER_SWEEP;
+			}
+		}
+
+		// broad-phase: original +/-range margin unioned with the swept volume, so a
+		// fast mover that crossed a zone this frame still finds it
+		VectorSubtract(ent->client->ps.origin, range, broadMins);
+		VectorAdd(ent->client->ps.origin, range, broadMaxs);
+		for (i = 0; i < 3; i++)
+		{
+			if (sweptMins[i] < broadMins[i])
+			{
+				broadMins[i] = sweptMins[i];
+			}
+			if (sweptMaxs[i] > broadMaxs[i])
+			{
+				broadMaxs[i] = sweptMaxs[i];
+			}
+		}
+
+		num = trap_EntitiesInBox(broadMins, broadMaxs, touch, MAX_GENTITIES);
+	}
 
 	for (i = 0 ; i < num ; i++)
 	{
@@ -496,7 +549,14 @@ void G_TouchTriggers(gentity_t *ent)
 			if (!trap_EntityContactCapsule(mins, maxs, hit))
 			{
 				//if ( !trap_EntityContact( mins, maxs, hit ) ) {
-				continue;
+				// speedrun mod: swept fallback — a fast mover that crossed this zone
+				// between frames misses the single-instant capsule test. Check the
+				// swept volume in BOX mode (capsule mode would balloon to
+				// min(halfwidth,halfheight), so box is the correct interpretation).
+				if (!trap_EntityContact(sweptMins, sweptMaxs, hit))
+				{
+					continue;
+				}
 			}
 		}
 

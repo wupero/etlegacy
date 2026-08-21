@@ -490,10 +490,31 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 	// Test the player's full bounding box instead so the checkpoint registers
 	// when any part of the body overlaps the zone.
 	{
-		vec3_t boxMins, boxMaxs;
+		vec3_t boxMins, boxMaxs, prevMins, prevMaxs;
+		int    i;
 
 		VectorAdd(other->client->ps.origin, other->r.mins, boxMins);
 		VectorAdd(other->client->ps.origin, other->r.maxs, boxMaxs);
+
+		// speedrun mod: sweep the player's box over this frame's movement (prev ->
+		// current origin) so a fast-moving player who crosses the zone between
+		// server frames still registers the checkpoint. Mirrors the swept fallback
+		// in G_TouchTriggers; live players have a fresh oldOrigin (set pre-pmove in
+		// ClientThink).
+		VectorAdd(other->client->oldOrigin, other->r.mins, prevMins);
+		VectorAdd(other->client->oldOrigin, other->r.maxs, prevMaxs);
+
+		for (i = 0; i < 3; i++)
+		{
+			if (prevMins[i] < boxMins[i])
+			{
+				boxMins[i] = prevMins[i];
+			}
+			if (prevMaxs[i] > boxMaxs[i])
+			{
+				boxMaxs[i] = prevMaxs[i];
+			}
+		}
 
 		if (!Timerun_ZoneOverlapsBox(self, boxMins, boxMaxs))
 		{
