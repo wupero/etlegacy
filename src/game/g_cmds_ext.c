@@ -638,12 +638,55 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
+	// speedrun mod: /speedrun_group x steps to the next available group higher
+	// than the current selection, wrapping back to the lowest available group
+	// when there is no higher value.
+	if (!Q_stricmp(arg, "x"))
+	{
+		if (level.numTimerunGroups <= 0)
+		{
+			trap_SendServerCommand(ent - g_entities, "print \"^3speedrun_group: no run groups available on this map\n\"");
+			return;
+		}
+
+		int cur    = Timerun_ClientGroupValue(ent->client);
+		int lowest = level.timerunGroups[0];
+		int best   = 0;   // 0 = none found yet
+
+		for (i = 0; i < level.numTimerunGroups; i++)
+		{
+			int g = level.timerunGroups[i];
+
+			if (g < lowest)
+			{
+				lowest = g;
+			}
+			if (g > cur && (best == 0 || g < best))
+			{
+				best = g;
+			}
+		}
+
+		group = best ? best : lowest;
+
+		if (ent->client->sess.timerunActive)
+		{
+			CP("cp \"^dYou can not change speedrun group during a run\n\"");
+			return;
+		}
+
+		ent->client->sess.speedrunGroup = group;
+		Timerun_SendZoneDebugToClient(ent - g_entities);
+		CP(va("cp \"^2Speedrun group: ^7%d\n\"", group));
+		return;
+	}
+
 	group = Q_atoi(arg);
 
 	if (level.numTimerunGroups <= 0 || !Timerun_GroupAvailable(group))
 	{
 		trap_SendServerCommand(ent - g_entities, va("print \"^3speedrun_group: %d is not an available group on this map\n\"", group));
-		trap_SendServerCommand(ent - g_entities, va("print \"^3speedrun_group: usage: /speedrun_group [%d|%d]\n\"",
+		trap_SendServerCommand(ent - g_entities, va("print \"^3speedrun_group: usage: /speedrun_group [%d|%d] or /speedrun_group x\n\"",
 		      level.timerunGroups[0], level.timerunGroups[level.numTimerunGroups - 1]));
 		return;
 	}

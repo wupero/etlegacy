@@ -489,6 +489,12 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 	// can be walked through without the single origin point ever entering it.
 	// Test the player's full bounding box instead so the checkpoint registers
 	// when any part of the body overlaps the zone.
+	//
+	// Check the box at EVERY real pmove waypoint recorded this frame (plus the
+	// oldOrigin box as a safety net). bhop/strafe movement is curved, and a single
+	// server frame under load can span ~200ms of it, so a single straight-line
+	// sweep between old and new origin can miss a zone the body actually crossed.
+	// The actual substep positions cover the true path.
 	{
 		vec3_t boxMins, boxMaxs, prevMins, prevMaxs;
 		int    i;
@@ -496,14 +502,9 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 		VectorAdd(other->client->ps.origin, other->r.mins, boxMins);
 		VectorAdd(other->client->ps.origin, other->r.maxs, boxMaxs);
 
-		// speedrun mod: sweep the player's box over this frame's movement (prev ->
-		// current origin) so a fast-moving player who crosses the zone between
-		// server frames still registers the checkpoint. Mirrors the swept fallback
-		// in G_TouchTriggers; live players have a fresh oldOrigin (set pre-pmove in
-		// ClientThink).
+		// old->current straight sweep, kept as a fallback for the common case
 		VectorAdd(other->client->oldOrigin, other->r.mins, prevMins);
 		VectorAdd(other->client->oldOrigin, other->r.maxs, prevMaxs);
-
 		for (i = 0; i < 3; i++)
 		{
 			if (prevMins[i] < boxMins[i])
@@ -516,9 +517,30 @@ static void Timerun_ZoneTouch(gentity_t *self, gentity_t *other, trace_t *trace)
 			}
 		}
 
-		if (!Timerun_ZoneOverlapsBox(self, boxMins, boxMaxs))
+		if (Timerun_ZoneOverlapsBox(self, boxMins, boxMaxs))
 		{
-			return;
+			// fall through to dispatch
+		}
+		else
+		{
+			// no straight-line overlap — test each recorded real waypoint's box.
+			// If the body passed through the zone on its actual (curved) path,
+			// one of these overlaps.
+			qboolean hit = qfalse;
+
+			for (i = 0; i < other->client->sess.timerunPathCount && !hit; i++)
+			{
+				vec3_t pmin, pmax;
+
+				VectorAdd(other->client->sess.timerunPathPoints[i], other->r.mins, pmin);
+				VectorAdd(other->client->sess.timerunPathPoints[i], other->r.maxs, pmax);
+				hit = Timerun_ZoneOverlapsBox(self, pmin, pmax);
+			}
+
+			if (!hit)
+			{
+				return;
+			}
 		}
 	}
 

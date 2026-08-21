@@ -5484,6 +5484,15 @@ int Pmove(pmove_t *pmove)
 		PM_AdjustAimSpreadScale();
 		PmoveSingle(pmove);
 
+		// speedrun mod: record the real position after each substep so the game
+		// can test checkpoints against the actual (curved) path rather than a
+		// straight-line old->new sweep. No-op on the client (pathPoints is NULL).
+		if (pmove->pathPoints && pmove->pathPointsCount < pmove->pathPointsMax)
+		{
+			VectorCopy(pmove->ps->origin, pmove->pathPoints[pmove->pathPointsCount]);
+			pmove->pathPointsCount++;
+		}
+
 		if (pmove->ps->pm_flags & PMF_JUMP_HELD)
 		{
 			pmove->cmd.upmove = 20;

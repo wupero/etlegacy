@@ -355,6 +355,7 @@ extern const int aReinfSeeds[MAX_REINFSEEDS];
 
 #define MAX_TIMERUNS            32  ///< max timeruns per map (also CS_TIMERUNS configstring slots)
 #define MAX_TIMERUN_CHECKPOINTS 16  ///< max checkpoints per timerun
+#define MAX_TIMERUN_PATH_POINTS 32  ///< speedrun mod: max recorded pmove waypoints per frame (curved-path detection)
 #define MAX_TIMERUN_STARTS      8   ///< max start zones per timerun
 
 #ifdef FEATURE_MULTIVIEW
@@ -646,6 +647,13 @@ typedef struct
 	// for fixed msec Pmove
 	int pmove_fixed;
 	int pmove_msec;
+
+	// speedrun mod: server-side path recording — Pmove appends ps->origin after each
+	// substep so the game can test checkpoints against the REAL curved path (not a
+	// straight-line sweep). NULL on the client (prediction never records).
+	vec3_t *pathPoints;      ///< buffer to append each substep's origin to (game only)
+	int     pathPointsMax;   ///< capacity of pathPoints
+	int     pathPointsCount; ///< number of origins recorded this frame
 
 	// callbacks to test the world
 	// these will be different functions during game and cgame

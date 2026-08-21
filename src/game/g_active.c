@@ -476,6 +476,32 @@ void G_TouchTriggers(gentity_t *ent)
 			}
 		}
 
+		// speedrun mod: also union in every real pmove waypoint recorded this frame.
+		// The old->current swept box is a straight line; bhop/strafe movement is
+		// curved, and under load a single server frame can process up to ~200ms of
+		// it, so the straight box can miss a checkpoint the player's actual body
+		// passed through. Testing the real substep positions (and the contact test
+		// below, which uses this same box) covers the true path.
+		for (i = 0; i < ent->client->sess.timerunPathCount; i++)
+		{
+			vec3_t pmin, pmax;
+			int    j;
+
+			VectorAdd(ent->client->sess.timerunPathPoints[i], ent->r.mins, pmin);
+			VectorAdd(ent->client->sess.timerunPathPoints[i], ent->r.maxs, pmax);
+			for (j = 0; j < 3; j++)
+			{
+				if (pmin[j] < sweptMins[j])
+				{
+					sweptMins[j] = pmin[j];
+				}
+				if (pmax[j] > sweptMaxs[j])
+				{
+					sweptMaxs[j] = pmax[j];
+				}
+			}
+		}
+
 		// broad-phase: original +/-range margin unioned with the swept volume, so a
 		// fast mover that crossed a zone this frame still finds it
 		VectorSubtract(ent->client->ps.origin, range, broadMins);
@@ -1504,6 +1530,13 @@ void ClientThink_real(gentity_t *ent)
 	VectorCopy(ent->r.mins, pm.mins);
 	VectorCopy(ent->r.maxs, pm.maxs);
 
+	// speedrun mod: record this frame's real pmove waypoints so checkpoints can be
+	// tested against the actual (curved) path, not a straight-line sweep. Server-only.
+	pm.pathPoints      = client->sess.timerunPathPoints;
+	pm.pathPointsMax   = MAX_TIMERUN_PATH_POINTS;
+	pm.pathPointsCount = 0;
+	client->sess.timerunPathCount = 0;
+
 	pm.gametype           = g_gametype.integer;
 	pm.ltChargeTime       = level.fieldopsChargeTime[client->sess.sessionTeam - 1];
 	pm.soldierChargeTime  = level.soldierChargeTime[client->sess.sessionTeam - 1];
@@ -1539,6 +1572,9 @@ void ClientThink_real(gentity_t *ent)
 	pm.activateLean = client->pers.activateLean;
 
 	Pmove(&pm); // monsterslick
+
+	// speedrun mod: record how many real waypoints Pmove produced this frame
+	client->sess.timerunPathCount = pm.pathPointsCount;
 
 	// server cursor hints
 	// bots don't need to check for cursor hints

@@ -773,6 +773,11 @@ typedef struct
 	int timerunStopSpeed;                       ///< horizontal speed at stop
 	int timerunMaxSpeed;                        ///< highest speed during the run
 	int timerunCheckpointsPassed;
+	// speedrun mod: recorded real pmove waypoints for the current frame (curved-path
+	// checkpoint detection). Filled by Pmove via pmove_t.pathPoints; read by
+	// G_TouchTriggers/Timerun_ZoneTouch.
+	vec3_t timerunPathPoints[MAX_TIMERUN_PATH_POINTS];
+	int    timerunPathCount;
 	int timerunCheckpointTimes[MAX_TIMERUN_CHECKPOINTS];
 	int timerunCheckpointStamina[MAX_TIMERUN_CHECKPOINTS];  ///< speedrun mod: stamina percent (0..100) at each checkpoint
 	int timerunStopStamina;                                 ///< speedrun mod: stamina percent (0..100) at run stop
