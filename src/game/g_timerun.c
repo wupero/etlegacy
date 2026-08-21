@@ -240,27 +240,16 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	client->sess.currentTimerun           = index;
 	client->sess.timerunStartTime         = client->ps.commandTime;
 
-	// speedrun mod: re-arm this run's checkpoint zones for the new run
-	{
-		int i;
-
-		for (i = 0; i < MAX_GENTITIES; i++)
-		{
-			gentity_t *zone = &g_entities[i];
-
-			if (zone->inuse && zone->classname && !Q_stricmp(zone->classname, "timerun_zone")
-			    && zone->count == index && zone->count2 == TIMERUN_ZONE_CHECKPOINT)
-			{
-				zone->s.time  = 0;
-				zone->s.time2 = 0;   // speedrun mod: re-arm the no-run touch message too
-			}
-		}
-	}
 	client->sess.timerunStartSpeed        = Timerun_HorizontalSpeed(ent);
 	client->sess.timerunStopSpeed         = 0;
 	client->sess.timerunMaxSpeed          = 0;
 	client->sess.timerunCheckpointsPassed = 0;
 	memset(client->sess.timerunCheckpointTimes, 0, sizeof(client->sess.timerunCheckpointTimes));
+	// speedrun mod: per-client fire-once + no-run message flags are re-armed for
+	// THIS player's new run. (No zone-entity state to reset — ETrun keeps this
+	// state per client so simultaneous runners don't interfere.)
+	memset(client->sess.timerunCheckpointFired, 0, sizeof(client->sess.timerunCheckpointFired));
+	memset(client->sess.timerunCheckpointNotified, 0, sizeof(client->sess.timerunCheckpointNotified));
 
 	trap_SendServerCommand(ent - g_entities, va("timerun_start %d %d %d %d",
 	                                             index, client->ps.commandTime + 500,
@@ -299,13 +288,13 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 
 	// speedrun mod: checkpoint touched with NO active run — private center-print,
 	// once per zone per run cycle (no time: there is no run being timed). The
-	// s.time2 flag edge-triggers it (the touch fires every frame while the zone
-	// is overlapped) and is re-armed when a run starts.
+	// per-client timerunCheckpointNotified flag edge-triggers it (the touch fires
+	// every frame while the zone is overlapped) and is re-armed when a run starts.
 	if (!client->sess.timerunActive)
 	{
-		if (!zone->s.time2)
+		if (!client->sess.timerunCheckpointNotified[zone->count3])
 		{
-			zone->s.time2 = 1;
+			client->sess.timerunCheckpointNotified[zone->count3] = qtrue;
 			trap_SendServerCommand(ent - g_entities, va("timerun_cp \"^2Checkpoint ^n%d^7 touched - ^dno run started\n\"",
 			                                            zone->count3 + 1));
 		}
@@ -319,19 +308,22 @@ static void Timerun_Checkpoint(gentity_t *ent, gentity_t *zone)
 
 	// sequential checkpoints: only the checkpoint whose ordinal equals the
 	// count reached so far may fire (cp0 first, then cp1, ...). Out-of-order
-	// touches leave the zone armed (s.time stays 0) so it can fire later
-	// when its turn comes.
+	// touches leave the zone armed so it can fire later when its turn comes.
 	if (client->sess.timerunCheckpointsPassed != zone->count3)
 	{
 		return;
 	}
 
-	// fire once per run: the touch repeats every frame while overlapping
-	if (zone->s.time)
+	// fire once per run per PLAYER: the touch repeats every frame while
+	// overlapping. This state is per-client (timerunCheckpointFired), not on the
+	// shared zone entity — ETrun marks timerunCheckpointTimes[count] nonzero per
+	// client, and a shared flag here would let one player's touch silently
+	// reject another player running the same run until the zone is re-armed.
+	if (client->sess.timerunCheckpointFired[zone->count3])
 	{
 		return;
 	}
-	zone->s.time = 1;
+	client->sess.timerunCheckpointFired[zone->count3] = qtrue;
 
 	cp   = client->sess.timerunCheckpointsPassed++;
 	time = client->ps.commandTime - client->sess.timerunStartTime;

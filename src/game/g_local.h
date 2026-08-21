@@ -773,6 +773,12 @@ typedef struct
 	int timerunStopSpeed;                       ///< horizontal speed at stop
 	int timerunMaxSpeed;                        ///< highest speed during the run
 	int timerunCheckpointsPassed;
+	// speedrun mod: per-client fire-once state for checkpoints, indexed by ordinal.
+	// Stored per player (NOT on the shared zone entity) so several players can run
+	// the same run simultaneously without one player's touch rejecting another's
+	// (mirrors ETrun, which marks timerunCheckpointTimes[count] nonzero per client).
+	qboolean timerunCheckpointFired[MAX_TIMERUN_CHECKPOINTS];
+	qboolean timerunCheckpointNotified[MAX_TIMERUN_CHECKPOINTS];  ///< per-client no-run 'touched' message edge-trigger
 	// speedrun mod: recorded real pmove waypoints for the current frame (curved-path
 	// checkpoint detection). Filled by Pmove via pmove_t.pathPoints; read by
 	// G_TouchTriggers/Timerun_ZoneTouch.
