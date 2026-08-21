@@ -106,6 +106,18 @@ void CG_DrawTimer(void)
 	{
 		// server sent startTime+500; keep the ETrun +/-500 symmetry
 		t = cg.time - (cg.timerunStartTime - 500);
+
+		// speedrun mod: once the current run passes the locally kept best
+		// time for this specific run, turn the timer red (same color as the
+		// end-of-run "slower than best" display)
+		{
+			int best = cg.timerunBestTime[clientNum][cg.currentTimerun][cg.timerunMode[clientNum] - 1];
+
+			if (best > 0 && t > best)
+			{
+				Vector4Set(color, 1.f, 0.2f, 0.2f, 1.f);
+			}
+		}
 	}
 	else if (cg.timerunFinishedTime[clientNum])
 	{
