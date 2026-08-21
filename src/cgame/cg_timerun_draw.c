@@ -202,23 +202,16 @@ void CG_DrawTimer(void)
  * Each cube face is a 4-vertex poly; the box is centered on the given origin
  * with the given radius (cube half-extent) and yaw (rotation around Z).
  */
-static void CG_AddDebugBox(const vec3_t center, const vec3_t halfExtent, float yaw,
-                    const vec3_t color)
+/**
+ * @brief speedrun mod: fills corners[8] with the (possibly rotated) cube corners
+ *        around center, half-extent per axis, yaw around Z. Shared by the box
+ *        renderer and the 4-wall plane renderer so both use identical geometry.
+ */
+static void CG_ComputeBoxCorners(const vec3_t center, const vec3_t halfExtent, float yaw,
+                                 vec3_t corners[8])
 {
 	float c, s;
-	vec3_t    corners[8];
-	polyVert_t verts[4];
-	int       face, v;
-	static const int faceVerts[6][4] =
-	{
-		{ 0, 1, 2, 3 },   // bottom
-		{ 4, 5, 6, 7 },   // top
-		{ 0, 1, 5, 4 },   // front
-		{ 1, 2, 6, 5 },   // right
-		{ 2, 3, 7, 6 },   // back
-		{ 3, 0, 4, 7 }    // left
-	};
-	int k, corner;
+	int   corner;
 
 	if (yaw != 0.0f)
 	{
@@ -231,7 +224,6 @@ static void CG_AddDebugBox(const vec3_t center, const vec3_t halfExtent, float y
 		s = 0.0f;
 	}
 
-	// 8 corners of the (possibly rotated) cube around the box origin
 	for (corner = 0; corner < 8; corner++)
 	{
 		float x = (corner & 1) ? halfExtent[0] : -halfExtent[0];
@@ -242,24 +234,109 @@ static void CG_AddDebugBox(const vec3_t center, const vec3_t halfExtent, float y
 		corners[corner][1] = center[1] + s * x + c * y;
 		corners[corner][2] = center[2] + z;
 	}
+}
+
+/**
+ * @brief speedrun mod: emits one filled quad for a 4-corner face, tinted color.
+ * @details Fills verts from the faceVerts corner indices then draws it as a
+ *          single 4-vertex poly. A 4-vert poly is fanned into 2 triangles by
+ *          the renderer; keeping the fan diagonal along the SHORT face edge and
+ *          matching the quad's convex winding gives a clean filled wall.
+ */
+static void CG_AddBoxFace(const vec3_t corners[8], const int faceVerts[4],
+                          qhandle_t shader, const vec3_t color)
+{
+	polyVert_t verts[4];
+	int        v, k;
+
+	for (v = 0; v < 4; v++)
+	{
+		k = faceVerts[v];
+		VectorCopy(corners[k], verts[v].xyz);
+		verts[v].st[0] = 0;
+		verts[v].st[1] = 0;
+		verts[v].modulate[0] = (byte)color[0];
+		verts[v].modulate[1] = (byte)color[1];
+		verts[v].modulate[2] = (byte)color[2];
+		verts[v].modulate[3] = 255;
+	}
+
+	trap_R_AddPolyToScene(shader, 4, verts);
+}
+
+/**
+ * @brief speedrun mod: emits a solid 6-face cube as filled quads.
+ * @details Shared by the timerun zone overlay and the /draw_box command.
+ *          Each cube face is a 4-vertex poly; the box is centered on the given
+ *          origin with the given per-axis half-extents and yaw (rotation around Z).
+ */
+static void CG_AddDebugBox(const vec3_t center, const vec3_t halfExtent, float yaw,
+                           const vec3_t color)
+{
+	vec3_t corners[8];
+	int    face;
+	static const int faceVerts[6][4] =
+	{
+		{ 0, 1, 2, 3 },   // bottom
+		{ 4, 5, 6, 7 },   // top
+		{ 0, 1, 5, 4 },   // front
+		{ 1, 2, 6, 5 },   // right
+		{ 2, 3, 7, 6 },   // back
+		{ 3, 0, 4, 7 }    // left
+	};
+
+	CG_ComputeBoxCorners(center, halfExtent, yaw, corners);
 
 	for (face = 0; face < 6; face++)
 	{
-		for (v = 0; v < 4; v++)
-		{
-			k = faceVerts[face][v];
-			VectorCopy(corners[k], verts[v].xyz);
-			verts[v].st[0] = 0;
-			verts[v].st[1] = 0;
-			verts[v].modulate[0] = (byte)color[0];
-			verts[v].modulate[1] = (byte)color[1];
-			verts[v].modulate[2] = (byte)color[2];
-			verts[v].modulate[3] = 255;
-		}
-		trap_R_AddPolyToScene(cgs.media.timerunDebugShader, 4, verts);
+		CG_AddBoxFace(corners, faceVerts[face], cgs.media.timerunDebugShader, color);
 	}
 }
 
+/**
+ * @brief speedrun mod: emits ONLY the four vertical walls of the box (front,
+ *        right, back, left) as filled quads - no top, no bottom.
+ * @details Used by /draw_plane (a zone-footprint perimeter: hx/hy are the
+ *          half-size, hz is the wall height). Each wall is a filled quad so the
+ *          perimeter reads as solid walls instead of a flat sheet or a hollow box.
+ */
+/**
+ * @brief speedrun mod: emits the four vertical walls of the box (front, right,
+ *        back, left) as filled translucent quads - no top, no bottom.
+ * @details Used by /draw_plane (hx/hy footprint half-size, hz = wall height).
+ *          Uses the translucent plane shader so the walls are see-through and
+ *          the shared triangle edge of each quad barely double-brightens
+ *          (normal alpha blend, not additive) - no harsh diagonal line.
+ */
+static void CG_AddDebugBoxWalls(const vec3_t center, const vec3_t halfExtent, float yaw,
+                                const vec3_t color)
+{
+	vec3_t corners[8];
+	int    face;
+	static const int wallVerts[4][4] =
+	{
+		{ 0, 1, 5, 4 },   // front  (y-)
+		{ 1, 2, 6, 5 },   // right  (x+)
+		{ 2, 3, 7, 6 },   // back   (y+)
+		{ 3, 0, 4, 7 }    // left   (x-)
+	};
+
+	CG_ComputeBoxCorners(center, halfExtent, yaw, corners);
+
+	for (face = 0; face < 4; face++)
+	{
+		CG_AddBoxFace(corners, wallVerts[face], cgs.media.timerunPlaneShader, color);
+	}
+}
+
+/**
+ * @brief speedrun mod: emits the 12 edges of the (possibly rotated) box as thin
+ *        filled quads - a clean wireframe outline, no filled faces, no top/bottom.
+ * @details Used by /draw_plane so the touchable volume reads as a box you can
+ *          stand in, with crisp solid lines (solid opaque plane shader) instead
+ *          of translucent faces whose fan-triangle diagonal shows through.
+ *          edgeHalf = half the line thickness; edges connect the 8 cube corners.
+ */
 /**
  * @brief speedrun mod: emits ONE camera-facing 2D diamond (billboard) at origin.
  * @details Separate function on purpose: the marker look (shape/size) will
@@ -330,28 +407,64 @@ static qboolean CG_DrawBoxContains(const vec3_t point)
  * @details Same as CG_DrawBoxContains but compares against the per-axis
  *          half-extents (drawPlaneHalfExtent) instead of a uniform radius.
  */
-static qboolean CG_DrawPlaneContains(const vec3_t point)
+/**
+ * @brief speedrun mod: qtrue if the player's BODY BOUNDING BOX overlaps the
+ *        /draw_plane volume (any touch, not just the feet-origin point inside).
+ * @details Mirrors the server's Timerun_ZoneOverlapsBox: the player box
+ *          (playerMins..playerMaxs around ps.origin) is transformed into the
+ *          plane's local frame (yaw around Z), its AABB computed, then compared
+ *          against the plane half-extents. Triggers on minimal touch so the
+ *          runner doesn't have to fully enter the box.
+ */
+static qboolean CG_DrawPlaneOverlapsBox(void)
 {
-	vec3_t local;
-	float  yaw, c, s;
+	vec3_t  boxMins, boxMaxs;
+	vec3_t  localCorners[8], localMins, localMaxs, corner;
+	vec3_t  origin;
+	float   yaw, c, s;
+	int     i;
 
-	VectorSubtract(point, cg.drawPlaneOrigin, local);
+	VectorCopy(cg.predictedPlayerState.origin, origin);
+	// player collision box around the origin (playerMins/playerMaxs from g_client.c)
+	boxMins[0] = origin[0] - 18.0f; boxMins[1] = origin[1] - 18.0f; boxMins[2] = origin[2] - 24.0f;
+	boxMaxs[0] = origin[0] + 18.0f; boxMaxs[1] = origin[1] + 18.0f; boxMaxs[2] = origin[2] + 48.0f;
+
 	yaw = cg.drawPlaneYaw;
+	c   = cosf(DEG2RAD(yaw));
+	s   = sinf(DEG2RAD(yaw));
 
-	if (yaw != 0.0f)
+	for (i = 0; i < 8; i++)
 	{
-		c = cosf(DEG2RAD(yaw));
-		s = sinf(DEG2RAD(yaw));
+		corner[0] = (i & 1) ? boxMaxs[0] : boxMins[0];
+		corner[1] = (i & 2) ? boxMaxs[1] : boxMins[1];
+		corner[2] = (i & 4) ? boxMaxs[2] : boxMins[2];
 
-		float x = local[0], y = local[1];
+		VectorSubtract(corner, cg.drawPlaneOrigin, localCorners[i]);
 
-		local[0] =  c * x + s * y;
-		local[1] = -s * x + c * y;
+		if (yaw != 0.0f)
+		{
+			float x = localCorners[i][0], y = localCorners[i][1];
+
+			localCorners[i][0] =  c * x + s * y;
+			localCorners[i][1] = -s * x + c * y;
+		}
 	}
 
-	return (fabs(local[0]) <= cg.drawPlaneHalfExtent[0]
-	        && fabs(local[1]) <= cg.drawPlaneHalfExtent[1]
-	        && fabs(local[2]) <= cg.drawPlaneHalfExtent[2]);
+	VectorCopy(localCorners[0], localMins);
+	VectorCopy(localCorners[0], localMaxs);
+	for (i = 1; i < 8; i++)
+	{
+		localMins[0] = localCorners[i][0] < localMins[0] ? localCorners[i][0] : localMins[0];
+		localMins[1] = localCorners[i][1] < localMins[1] ? localCorners[i][1] : localMins[1];
+		localMins[2] = localCorners[i][2] < localMins[2] ? localCorners[i][2] : localMins[2];
+		localMaxs[0] = localCorners[i][0] > localMaxs[0] ? localCorners[i][0] : localMaxs[0];
+		localMaxs[1] = localCorners[i][1] > localMaxs[1] ? localCorners[i][1] : localMaxs[1];
+		localMaxs[2] = localCorners[i][2] > localMaxs[2] ? localCorners[i][2] : localMaxs[2];
+	}
+
+	return (localMins[0] <= cg.drawPlaneHalfExtent[0] && localMaxs[0] >= -cg.drawPlaneHalfExtent[0]
+	        && localMins[1] <= cg.drawPlaneHalfExtent[1] && localMaxs[1] >= -cg.drawPlaneHalfExtent[1]
+	        && localMins[2] <= cg.drawPlaneHalfExtent[2] && localMaxs[2] >= -cg.drawPlaneHalfExtent[2]);
 }
 
 /**
@@ -376,9 +489,13 @@ void CG_DrawTimerunZones(void)
 		{
 			vec3_t blue = { 0, 0, 255 };
 
-			CG_AddDebugBox(cg.timerunDebugZoneOrigins[run][i],
-			              cg.timerunDebugZoneHalfExtent[run][i],
-			              cg.timerunDebugZoneYaw[run][i], blue);
+			// speedrun mod: zones render exactly like /draw_plane - the four
+			// vertical walls as filled translucent quads (see-through, no
+			// diagonal fan artifact), so the touchable volume reads the same
+			// as the magenta draw_plane box. Blue to distinguish from it.
+			CG_AddDebugBoxWalls(cg.timerunDebugZoneOrigins[run][i],
+			                    cg.timerunDebugZoneHalfExtent[run][i],
+			                    cg.timerunDebugZoneYaw[run][i], blue);
 		}
 	}
 
@@ -406,9 +523,9 @@ void CG_DrawTimerunZones(void)
 	if (cg.drawPlaneValid)
 	{
 		vec3_t  magenta = { 255, 0, 255 };
-		qboolean inside  = CG_DrawPlaneContains(cg.predictedPlayerState.origin);
+		qboolean inside  = CG_DrawPlaneOverlapsBox();
 
-		CG_AddDebugBox(cg.drawPlaneOrigin, cg.drawPlaneHalfExtent, cg.drawPlaneYaw, magenta);
+		CG_AddDebugBoxWalls(cg.drawPlaneOrigin, cg.drawPlaneHalfExtent, cg.drawPlaneYaw, magenta);
 
 		if (inside && !cg.drawPlaneWasInside)
 		{

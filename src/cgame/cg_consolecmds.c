@@ -3525,6 +3525,23 @@ static void CG_Speedrun_f(void)
 /**
  * @brief speedrun mod: /speedrun_mode [1|2] - forwards to the server.
  */
+/**
+ * @brief speedrun mod: /speedrun_group [num] - forwards to the server, which
+ *        lists the available group numbers (bare) or selects a group. Client
+ *        forwarder so the command appears in the client /commands list.
+ */
+static void CG_SpeedrunGroup_f(void)
+{
+	if (CG_Argv(1)[0])
+	{
+		trap_SendClientCommand(va("speedrun_group %s", CG_Argv(1)));
+	}
+	else
+	{
+		trap_SendClientCommand("speedrun_group");
+	}
+}
+
 static void CG_SpeedrunMode_f(void)
 {
 	if (CG_Argv(1)[0])
@@ -3805,6 +3822,7 @@ static consoleCommand_t commands[] =
 
 	// speedrun mod
 	{ "speedrun",               CG_Speedrun_f                },
+	{ "speedrun_group",        CG_SpeedrunGroup_f           },
 	{ "speedrun_mode",         CG_SpeedrunMode_f           },
 	{ "speedrun_key",          CG_SpeedrunKey_f            },
 	{ "speedrun_records",      CG_SpeedrunRecords_f        },

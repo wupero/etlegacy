@@ -1567,6 +1567,7 @@ void notify_timerun_stop(gentity_t *ent, int time);
 qboolean Timerun_ClientIsRunning(gentity_t *ent);
 int Timerun_ClientGroupValue(const gclient_t *client);
 qboolean Timerun_GroupAvailable(int group);
+const char *Timerun_GroupsListString(void);   // speedrun mod
 int Timerun_ClientMarkerGroup(int clientNum);   // speedrun mod
 void Timerun_UpdateClientMarkers(int clientNum);   // speedrun mod
 void Timerun_StopAllRuns(void);

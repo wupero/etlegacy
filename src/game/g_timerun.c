@@ -127,6 +127,44 @@ qboolean Timerun_GroupAvailable(int group)
 }
 
 /**
+ * @brief speedrun mod: returns a static string of the available group NUMBERS
+ *        only, space-separated (e.g. "1 2"). Used by /speedrun_group so the
+ *        console lists just the selectable numbers, no names.
+ * @return pointer to a static buffer (single call site per command).
+ */
+const char *Timerun_GroupsListString(void)
+{
+	static char buf[128];
+	static int  sorted[MAX_TIMERUN_GROUPS];
+	int         i, j, tmp, len = 0;
+
+	// copy so we don't disturb level.timerunGroups (which is in first-seen/lua
+	// order and used elsewhere), then insertion-sort ascending for display.
+	for (i = 0; i < level.numTimerunGroups; i++)
+	{
+		sorted[i] = level.timerunGroups[i];
+	}
+
+	for (i = 1; i < level.numTimerunGroups; i++)
+	{
+		tmp = sorted[i];
+		for (j = i; j > 0 && sorted[j - 1] > tmp; j--)
+		{
+			sorted[j] = sorted[j - 1];
+		}
+		sorted[j] = tmp;
+	}
+
+	buf[0] = '\0';
+
+	for (i = 0; i < level.numTimerunGroups && len < (int)sizeof(buf) - 8; i++)
+	{
+		len += Com_sprintf(buf + len, sizeof(buf) - len, "%d ", sorted[i]);
+	}
+
+	return buf;
+}
+/**
  * @brief Aborts (time 0) or ends a timerun, notifying the client and its spectators
  * @param[in] ent
  * @param[in] time final time, or 0 when the run was aborted

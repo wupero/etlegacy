@@ -630,12 +630,9 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 		trap_SendServerCommand(ent - g_entities, va("print \"^2speedrun_group: ^7currently %d\n\"",
 		      Timerun_ClientGroupValue(ent->client)));
-		trap_SendServerCommand(ent - g_entities, "print \"^7Available groups:\n\"");
-
-		for (i = 0; i < level.numTimerunGroups; i++)
-		{
-			trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 group %d\n\"", i + 1, level.timerunGroups[i]));
-		}
+		// console list of the available group NUMBERS only (no names)
+		trap_SendServerCommand(ent - g_entities, va("print \"^7Available groups: ^2%s\n\"",
+		      Timerun_GroupsListString()));
 
 		trap_SendServerCommand(ent - g_entities, "print \"^7Use /speedrun_group <num> to switch (locked during a run)\n\"");
 		return;
