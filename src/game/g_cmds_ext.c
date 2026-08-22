@@ -281,8 +281,13 @@ void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value)
 		memset(ent->client->sess.timerunBestTime, 0, sizeof(ent->client->sess.timerunBestTime));
 		memset(ent->client->sess.timerunBestCheckpointTimes, 0, sizeof(ent->client->sess.timerunBestCheckpointTimes));
 
-		// tell the client to clear its per-player best/last/finished/diff state
-		trap_SendServerCommand(ent - g_entities, va("timerun_mode_clear %d\n", (int)(ent - g_entities)));
+		// tell EVERY client (runner + any spectator following them) to clear this
+		// player's per-player best/last/finished/diff state. Broadcast (-1): the
+		// command's arg is the runner's clientNum, so each client clears exactly
+		// that slot — a spectator who was following the runner must drop the stale
+		// best too, or their finish-delta display would keep the old mode's best
+		// (runner white, spectator red) after the runner's own was wiped.
+		trap_SendServerCommand(-1, va("timerun_mode_clear %d\n", (int)(ent - g_entities)));
 	}
 
 	if (mode == 2)
@@ -618,8 +623,13 @@ static void Speedrun_ClearTimesOnGroupChange(gentity_t *ent)
 	memset(ent->client->sess.timerunBestTime, 0, sizeof(ent->client->sess.timerunBestTime));
 	memset(ent->client->sess.timerunBestCheckpointTimes, 0, sizeof(ent->client->sess.timerunBestCheckpointTimes));
 
-	// tell the client to clear its per-player best/last/finished/diff state too
-	trap_SendServerCommand(ent - g_entities, va("timerun_group_clear %d\n", (int)(ent - g_entities)));
+	// tell EVERY client (runner + any spectator following them) to clear this
+	// player's per-player best/last/finished/diff state too. Broadcast (-1): the
+	// command's arg is the runner's clientNum, so each client clears exactly that
+	// slot — a spectator following the runner must drop the stale group-scoped
+	// best as well, or their finish-delta would keep comparing against the old
+	// group's best (runner white, spectator red).
+	trap_SendServerCommand(-1, va("timerun_group_clear %d\n", (int)(ent - g_entities)));
 }
 
 void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)

@@ -265,11 +265,31 @@ static void Timerun_StartRun(gentity_t *ent, int index, timerunDef_t *def)
 	// display gated client-side on speedrun_debug)
 	trap_SendServerCommand(ent - g_entities, "timerun_cp \"^2Run started\n\"");
 
-	// speedrun mod: on the first run of this run+mode this session, if the player
-	// has a key and no best is recorded yet, pull their stored PB from the backend
-	// so checkpoint/end deltas work immediately. Once a best is set (loaded or
-	// beaten server-side) the guard below keeps this from firing again.
-	if (client->sess.speedrunKey[0] && client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] == 0)
+	// speedrun mod: at EVERY run start, re-push the current known best for this
+	// run+mode to the runner AND any spectator following them. The client's
+	// finish-delta/red-timer reads cg.timerunBestTime[runnerClientNum][run][mode-1],
+	// which is only ever seeded by a "timerun_best" packet. Those packets are sent
+	// by the fetch path (G_API_ApplyServerRecord) — but the fetch only fires when
+	// sess.timerunBestTime is 0. Once the server holds a cached best (from an
+	// earlier fetch or a finished run this session, which survives /load), starting
+	// the run again fires NO fetch and the client is never re-seeded -> white timer.
+	// Pushing here unconditionally guarantees the client is in sync with the server
+	// at the start of every run. Harmless when already seeded (idempotent write).
+	if (client->sess.timerunBestTime[index][client->sess.speedrunMode - 1] != 0)
+	{
+		int btime = client->sess.timerunBestTime[index][client->sess.speedrunMode - 1];
+
+		trap_SendServerCommand(ent - g_entities, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index,
+		                         client->sess.speedrunMode, btime));
+		Timerun_SendToSpectators(ent, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index,
+		                         client->sess.speedrunMode, btime));
+	}
+	// otherwise, on the first run of this run+mode this session, if the player has
+	// a key, pull their stored PB from the backend so checkpoint/end deltas work
+	// immediately. Once a best is set (loaded or beaten server-side) the guard
+	// below keeps this from firing again (and the re-push above keeps the client
+	// seeded on every subsequent start).
+	else if (client->sess.speedrunKey[0])
 	{
 		G_API_FetchServerRecord(ent, def);
 	}

@@ -275,39 +275,47 @@ static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *te
 
 		mode = (mItem && mItem->valueint >= 1 && mItem->valueint <= 2) ? mItem->valueint : client->sess.speedrunMode;
 
-		// don't clobber a best set server-side since the fetch fired
-		if (client->sess.timerunBestTime[index][mode - 1] != 0)
+		// Apply the fetched PB only when it beats anything set server-side since
+		// the fetch fired (e.g. the player finished first and promoted their time).
+		// Keep the better (lower) of the two; a fetched value must never clobber a
+		// fresh run that was faster.
+		if (client->sess.timerunBestTime[index][mode - 1] == 0 ||
+		    tItem->valueint < client->sess.timerunBestTime[index][mode - 1])
 		{
-			cJSON_Delete(root);
-			return;
-		}
+			client->sess.timerunBestTime[index][mode - 1] = tItem->valueint;
 
-		client->sess.timerunBestTime[index][mode - 1] = tItem->valueint;
-
-		if (cItem)
-		{
-			int count = cJSON_GetArraySize(cItem);
-			int i;
-
-			for (i = 0; i < count && i < MAX_TIMERUN_CHECKPOINTS; i++)
+			if (cItem)
 			{
-				cJSON *cp = cJSON_GetArrayItem(cItem, i);
+				int count = cJSON_GetArraySize(cItem);
+				int i;
 
-				if (cp)
+				for (i = 0; i < count && i < MAX_TIMERUN_CHECKPOINTS; i++)
 				{
-					client->sess.timerunBestCheckpointTimes[index][mode - 1][i] = cp->valueint;
+					cJSON *cp = cJSON_GetArrayItem(cItem, i);
+
+					if (cp)
+					{
+						client->sess.timerunBestCheckpointTimes[index][mode - 1][i] = cp->valueint;
+					}
 				}
 			}
 		}
 
-				// push the loaded best to the runner AND any spectator following them so
-		// the end-of-run delta display works (it reads cg.timerunBestTime on the
-		// client, indexed by the runner's clientNum — which is arg 1). Checkpoint
-		// deltas already come from the server.
-		trap_SendServerCommand(ent - g_entities, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
-		                         client->sess.timerunBestTime[index][mode - 1]));
-		Timerun_SendToSpectators(ent, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
-		                         client->sess.timerunBestTime[index][mode - 1]));
+		// ALWAYS push the (possibly run-set) best to the runner AND any spectator
+		// following them so the end-of-run delta display works (it reads
+		// cg.timerunBestTime on the client, indexed by the runner's clientNum —
+		// which is arg 1). Checkpoint deltas already come from the server. Sending
+		// unconditionally fixes the fetch race where the player finishes before the
+		// response lands: without it the client is never seeded, its finish delta
+		// stays blank ("white"), and later runs compare against the just-finished
+		// run's time instead of the stored best.
+		if (client->sess.timerunBestTime[index][mode - 1] != 0)
+		{
+			trap_SendServerCommand(ent - g_entities, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
+			                         client->sess.timerunBestTime[index][mode - 1]));
+			Timerun_SendToSpectators(ent, va("timerun_best %d %d %d %d", (int)(ent - g_entities), index, mode,
+			                         client->sess.timerunBestTime[index][mode - 1]));
+		}
 	}
 
 	cJSON_Delete(root);
