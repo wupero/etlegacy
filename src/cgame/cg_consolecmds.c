@@ -3574,12 +3574,20 @@ static void CG_SpeedrunKey_f(void)
 }
 
 /**
- * @brief speedrun mod: /speedrun_records - forwards to the server (the server
- *        fetches the top records for the current mode and prints them).
+ * @brief speedrun mod: /speedrun_records [num] - forwards to the server (the
+ *        server fetches either the map's top records, or with a number the
+ *        selected run's leaderboard, and prints them).
  */
 static void CG_SpeedrunRecords_f(void)
 {
-	trap_SendClientCommand("speedrun_records");
+	if (CG_Argv(1)[0])
+	{
+		trap_SendClientCommand(va("speedrun_records %s", CG_Argv(1)));
+	}
+	else
+	{
+		trap_SendClientCommand("speedrun_records");
+	}
 }
 
 

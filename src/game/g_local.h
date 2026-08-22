@@ -2163,10 +2163,12 @@ void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs);           
 void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def);                       ///< speedrun mod: pull a keyed player's stored best run to seed deltas on first run
 void G_API_FetchServerBest(gentity_t *ent);                                              ///< speedrun mod: fetch the map's top server records for the player's current mode (/speedrun_records)
 void G_API_FetchRunLeaderboard(gentity_t *ent, timerunDef_t *def);                          ///< speedrun mod: fetch a single run's leaderboard for the player's current mode (/speedrun_records <num>)
+void G_API_FetchServerElo(gentity_t *ent);                                                    ///< speedrun mod: fetch the server-wide ELO leaderboard for the player's current mode (/speedrun_leaderboard)
 void Timerun_SendToSpectators(gentity_t *ent, const char *cmd);                          ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod
 void Cmd_SpeedrunRecords_f(gentity_t *ent, unsigned int dwCommand, int value);       ///< speedrun mod: /speedrun_records
+void Cmd_SpeedrunLeaderboard_f(gentity_t *ent, unsigned int dwCommand, int value);   ///< speedrun mod: /speedrun_leaderboard
 void trap_SendConsoleCommand(int exec_when, const char *text);
 void trap_Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags);
 void trap_Cvar_Update(vmCvar_t *vmCvar);

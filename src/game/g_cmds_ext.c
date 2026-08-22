@@ -189,6 +189,7 @@ static const cmd_reference_t aCommandInfo[] =
 	{ "speedrun_list",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunList_f,                 " - lists all runs across all groups (speedrun mod)"                        },
 	{ "speedrun_key",    CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunKey_f,                  " <key>:^7 Sets/prints the player's persistent key (speedrun mod)"                       },
 	{ "speedrun_records", CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunRecords_f,              " - shows the top server records for the current speedrun mode (speedrun mod)"          },
+	{ "speedrun_leaderboard", CMD_USAGE_ANY_TIME,     qtrue,       qfalse, Cmd_SpeedrunLeaderboard_f,            " - shows the server-wide ELO leaderboard for the current speedrun mode (speedrun mod)" },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
 };
 
@@ -366,6 +367,23 @@ void Cmd_SpeedrunRecords_f(gentity_t *ent, unsigned int dwCommand, int value)
 	{
 		G_API_FetchServerBest(ent);
 	}
+}
+
+/**
+ * @brief speedrun mod: /speedrun_leaderboard - fetches the server-wide ELO
+ *        leaderboard for the player's current speedrun mode. The query is async;
+ *        the table is printed to the player's console when the API response
+ *        arrives (G_API_PrintServerElo).
+ */
+void Cmd_SpeedrunLeaderboard_f(gentity_t *ent, unsigned int dwCommand, int value)
+{
+	if (!ent || !ent->client)
+	{
+		G_Printf("speedrun mod: speedrun_leaderboard is a player command\n");
+		return;
+	}
+
+	G_API_FetchServerElo(ent);
 }
 
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
