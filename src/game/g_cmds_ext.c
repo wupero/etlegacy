@@ -716,12 +716,12 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 	// hint printed once, before the run list
 	trap_SendServerCommand(ent - g_entities, "print \"\n^7Type /speedrun [num] to select and teleport\n\n\"");
 
-	// speedrun mod: list EVERY run across all groups, annotated with its group,
-	// numbered globally so /speedrun <num> can target any run regardless of the
-	// player's current group selection.
+	// speedrun mod: list EVERY run across all groups, numbered globally so
+	// /speedrun <num> can target any run regardless of the player's current
+	// group selection.
 	for (i = 0; i < level.numTimeruns; i++)
 	{
-		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 [^3group %d^7] %s\n\"", i + 1, level.timeruns[i].group, level.timeruns[i].name));
+		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 %s\n\"", i + 1, level.timeruns[i].name));
 	}
 
 	// footer: show the total run count and the number of distinct groups
