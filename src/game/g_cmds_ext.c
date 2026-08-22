@@ -511,6 +511,8 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
 	}
 }
 
+static void Speedrun_ClearTimesOnGroupChange(gentity_t *ent);   // speedrun mod
+
 /**
  * @brief Teleports the player to a run's teleport spot (speedrun mod)
  * @param[in] ent
@@ -551,9 +553,11 @@ void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
 
 	// speedrun mod: selecting a run also switches the player's group to the
 	// run's group, so the run can actually be started (zones of other groups
-	// are inert). Re-push the zone markers for the newly selected group.
+	// are inert). Switching groups clears the locally-held best times (they're
+	// group-scoped), then re-pushes the zone markers for the new group.
 	if (ent->client->sess.speedrunGroup != level.timeruns[target].group)
 	{
+		Speedrun_ClearTimesOnGroupChange(ent);
 		ent->client->sess.speedrunGroup = level.timeruns[target].group;
 		Timerun_SendZoneDebugToClient(ent - g_entities);
 	}
@@ -593,6 +597,31 @@ void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
  * /speedrun list. Default 1; persists across map changes via the session file.
  * Denied during an active run.
  */
+/**
+ * @brief speedrun mod: clears a player's locally-held timerun time state after a
+ *        speedrun_group change. A run's best/last/checkpoint bests are only valid
+ *        within the group they were recorded in, so switching groups must wipe them
+ *        (server arrays AND the client's copies) or the next run would diff against
+ *        a stale best from the previous group. Zeroing the server arrays also makes
+ *        the run-start backend-fetch guard re-download the new group's PB (== 0).
+ *        The client re-fetches via the normal G_API_FetchServerRecord path on the
+ *        next run start.
+ */
+static void Speedrun_ClearTimesOnGroupChange(gentity_t *ent)
+{
+	if (!ent || !ent->client)
+	{
+		return;
+	}
+
+	memset(ent->client->sess.timerunLastTime, 0, sizeof(ent->client->sess.timerunLastTime));
+	memset(ent->client->sess.timerunBestTime, 0, sizeof(ent->client->sess.timerunBestTime));
+	memset(ent->client->sess.timerunBestCheckpointTimes, 0, sizeof(ent->client->sess.timerunBestCheckpointTimes));
+
+	// tell the client to clear its per-player best/last/finished/diff state too
+	trap_SendServerCommand(ent - g_entities, va("timerun_group_clear %d\n", (int)(ent - g_entities)));
+}
+
 void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 {
 	char arg[MAX_TOKEN_CHARS];
@@ -662,7 +691,12 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 			return;
 		}
 
-		ent->client->sess.speedrunGroup = group;
+		if (ent->client->sess.speedrunGroup != group)
+		{
+			Speedrun_ClearTimesOnGroupChange(ent);
+			ent->client->sess.speedrunGroup = group;
+		}
+
 		Timerun_SendZoneDebugToClient(ent - g_entities);
 		CP(va("cp \"^2Speedrun group: ^7%d\n\"", group));
 		return;
@@ -684,7 +718,11 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
-	ent->client->sess.speedrunGroup = group;
+	if (ent->client->sess.speedrunGroup != group)
+	{
+		Speedrun_ClearTimesOnGroupChange(ent);
+		ent->client->sess.speedrunGroup = group;
+	}
 
 	// speedrun mod: re-push the zone geometry/markers for the newly selected
 	// group so the client's markers immediately match the /speedrun list.
