@@ -186,7 +186,7 @@ static const cmd_reference_t aCommandInfo[] =
 
 	{ "speedrun_group",  CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunGroup_f,                " [num]:^7 Selects which run group /speedrun lists (default 1, speedrun mod)"              },
 
-	{ "speedrun_list",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunList_f,                 " - lists the runs of the player's selected group (speedrun mod)"                        },
+	{ "speedrun_list",   CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunList_f,                 " - lists all runs across all groups (speedrun mod)"                        },
 	{ "speedrun_key",    CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunKey_f,                  " <key>:^7 Sets/prints the player's persistent key (speedrun mod)"                       },
 	{ "speedrun_records", CMD_USAGE_ANY_TIME,         qtrue,       qfalse, Cmd_SpeedrunRecords_f,              " - shows the top server records for the current speedrun mode (speedrun mod)"          },
 	{ NULL,             CMD_USAGE_ANY_TIME,          qtrue,       qfalse, NULL,                                ""                                                                                           }
@@ -518,13 +518,13 @@ void Cmd_Load_f(gentity_t *ent, unsigned int dwCommand, int value)
  * @param[in] value - unused
  *
  * Backs the client-side \"/speedrun <num>\" command. The number is 1-based,
- * matching the order shown by /speedrun (the runs of the player's selected
- * group, in lua definition order).
+ * indexing the GLOBAL run list shown by /speedrun (all runs across all
+ * groups, in lua definition order). Selecting a run also switches the
+ * player's speedrun_group to the run's group so it can actually be run.
  */
 void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
 {
-	int selGroup;
-	int num, i, found = 0, target = -1;
+	int num, target = -1;
 
 	if (!ent->client || ent->client->sess.sessionTeam == TEAM_SPECTATOR)
 	{
@@ -539,36 +539,23 @@ void Cmd_SpeedrunTp_f(gentity_t *ent, unsigned int dwCommand, int value)
 		num = atoi(arg) - 1;   // user-facing numbers are 1-based
 	}
 
-	if (num < 0)
+	if (num < 0 || num >= level.numTimeruns)
 	{
 		CP(va("cp \"^dNo such speedrun: ^n%d\n\"", num + 1));
 		return;
 	}
 
-	// speedrun mod: the run list is grouped by the player's selected group, so
-	// <num> indexes into the selected group's runs (matches /speedrun output)
-	selGroup = Timerun_ClientGroupValue(ent->client);
+	// speedrun mod: /speedrun now lists runs from ALL groups, so <num> indexes
+	// the global run list directly (matches /speedrun output).
+	target = num;
 
-	for (i = 0; i < level.numTimeruns; i++)
+	// speedrun mod: selecting a run also switches the player's group to the
+	// run's group, so the run can actually be started (zones of other groups
+	// are inert). Re-push the zone markers for the newly selected group.
+	if (ent->client->sess.speedrunGroup != level.timeruns[target].group)
 	{
-		if (level.timeruns[i].group != selGroup)
-		{
-			continue;
-		}
-
-		if (found == num)
-		{
-			target = i;
-			break;
-		}
-
-		found++;
-	}
-
-	if (target < 0)
-	{
-		CP(va("cp \"^dNo such speedrun: ^n%d\n\"", num + 1));
-		return;
+		ent->client->sess.speedrunGroup = level.timeruns[target].group;
+		Timerun_SendZoneDebugToClient(ent - g_entities);
 	}
 
 	if (!level.timeruns[target].hasTeleport)
@@ -707,13 +694,12 @@ void Cmd_SpeedrunGroup_f(gentity_t *ent, unsigned int dwCommand, int value)
 }
 
 /**
- * @brief speedrun mod: /speedrun (bare) forwards here - lists the runs in the
- *        player's selected group, numbered, with a footer noting the group.
+ * @brief speedrun mod: /speedrun (bare) forwards here - lists EVERY run
+ *        across all groups, annotated with its group, numbered globally.
  */
 void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 {
-	int selGroup;
-	int i, n = 0;
+	int i;
 
 	if (!ent || !ent->client)
 	{
@@ -721,42 +707,26 @@ void Cmd_SpeedrunList_f(gentity_t *ent, unsigned int dwCommand, int value)
 		return;
 	}
 
-	selGroup = Timerun_ClientGroupValue(ent->client);
-
-	// count the runs in the selected group first (the hint is printed once,
-	// only when there is at least one run)
-	for (i = 0; i < level.numTimeruns; i++)
+	if (!level.numTimeruns)
 	{
-		if (level.timeruns[i].group == selGroup)
-		{
-			n++;
-		}
-	}
-
-	if (!n)
-	{
-		trap_SendServerCommand(ent - g_entities, va("print \"^3No runs in group %d on this map\n\"", selGroup));
+		trap_SendServerCommand(ent - g_entities, "print \"^3No runs defined on this map\n\"");
 		return;
 	}
 
 	// hint printed once, before the run list
-	trap_SendServerCommand(ent - g_entities, "print \"\n^7Type /speedrun [num] to teleport\n\n\"");
+	trap_SendServerCommand(ent - g_entities, "print \"\n^7Type /speedrun [num] to select and teleport\n\n\"");
 
-	n = 0;
+	// speedrun mod: list EVERY run across all groups, annotated with its group,
+	// numbered globally so /speedrun <num> can target any run regardless of the
+	// player's current group selection.
 	for (i = 0; i < level.numTimeruns; i++)
 	{
-		if (level.timeruns[i].group != selGroup)
-		{
-			continue;
-		}
-
-		n++;
-		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 %s\n\"", n, level.timeruns[i].name));
+		trap_SendServerCommand(ent - g_entities, va("print \"^2%d.^7 [^3group %d^7] %s\n\"", i + 1, level.timeruns[i].group, level.timeruns[i].name));
 	}
 
-	// footer: make explicit the displayed list belongs to the selected group
-	trap_SendServerCommand(ent - g_entities, va("print \"\n^7Runs shown for group %d (of %d available) - /speedrun_group to switch\n\"",
-	      selGroup, level.numTimerunGroups));
+	// footer: show the total run count and the number of distinct groups
+	trap_SendServerCommand(ent - g_entities, va("print \"\n^7%d runs across %d groups - /speedrun_group to switch\n\"",
+	      level.numTimeruns, level.numTimerunGroups));
 }
 
 /**

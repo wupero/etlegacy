@@ -3501,22 +3501,22 @@ static void CG_ShoutcasterSwapTeamLabels(void)
 }
 
 /**
- * @brief speedrun mod: /speedrun — bare lists the runs of the player's selected
- *        group (forwarded to the server, which prints them), /speedrun <num>
- *        teleports to that run. Server-driven so the numbering always matches
- *        the group-filtered list.
+ * @brief speedrun mod: /speedrun — bare lists all runs across all groups
+ *        (forwarded to the server, which prints them), /speedrun <num> switches
+ *        the player's group to that run's group and teleports to it. Server-driven
+ *        so the numbering always matches the global list.
  */
 static void CG_Speedrun_f(void)
 {
-	// speedrun mod: /speedrun <num> forwards to the server, which teleports to
-	// the run's 'teleport' spot (see Cmd_SpeedrunTp_f in g_cmds_ext.c)
+	// speedrun mod: /speedrun <num> forwards to the server, which switches the
+	// player's group to the run's group and teleports to its spot (see Cmd_SpeedrunTp_f)
 	if (trap_Argc() >= 2)
 	{
 		trap_SendClientCommand(va("speedrun_tp %s", CG_Argv(1)));
 		return;
 	}
 
-	// bare /speedrun: let the server build and print the group-filtered list
+	// bare /speedrun: let the server build and print the all-groups run list
 	trap_SendClientCommand("speedrun_list");
 }
 
