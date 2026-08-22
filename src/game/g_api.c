@@ -45,6 +45,7 @@
  */
 static void G_API_ApplyServerRecord(gentity_t *ent, int httpCode, const char *text);   ///< speedrun mod
 static void G_API_PrintServerBest(gentity_t *ent, int httpCode, const char *text);      ///< speedrun mod
+static void G_API_PrintRunLeaderboard(gentity_t *ent, int httpCode, const char *text);    ///< speedrun mod
 
 static void Timerun_FormatTimeMs(char *buf, int len, int timeMs)
 {
@@ -68,6 +69,18 @@ void G_API_Frame(void)
 	while (trap_API_GetResult(&id, &httpCode, text, sizeof(text)))
 	{
 		cJSON *root;
+
+		// speedrun mod: a run-leaderboard response (id = 3*MAX_CLIENTS + clientNum)
+		if (id >= 3 * MAX_CLIENTS)
+		{
+			int cn = id - 3 * MAX_CLIENTS;
+
+			if (cn >= 0 && cn < MAX_CLIENTS && g_entities[cn].client)
+			{
+				G_API_PrintRunLeaderboard(&g_entities[cn], httpCode, text);
+			}
+			continue;
+		}
 
 		// speedrun mod: a server-best list response (id = 2*MAX_CLIENTS + clientNum)
 		if (id >= 2 * MAX_CLIENTS)
@@ -444,6 +457,201 @@ static void G_API_PrintServerBest(gentity_t *ent, int httpCode, const char *text
 				trap_SendServerCommand(ent - g_entities, va("print \"^2%s^7 - %s - %s\n\"",
 				                            rItem->valuestring, timeStr, pItem->valuestring));
 			}
+		}
+	}
+
+	cJSON_Delete(root);
+}
+
+
+/**
+ * @brief speedrun mod: /speedrun_records <num> - fetches a single run's
+ *        leaderboard for the player's current speedrun mode. GET
+ *        <base>/speedruns/<runId>/leaderboard?mode=<mode> with the player's key
+ *        in X-SpeedRun-Key (so the API can flag isCurrentPlayer). The response
+ *        (a JSON array of {place,timeMs,playerName,isCurrentPlayer}) is printed
+ *        to the requesting player when it arrives.
+ * @param[in] ent the player
+ * @param[in] def the run definition (for its id)
+ */
+void G_API_FetchRunLeaderboard(gentity_t *ent, timerunDef_t *def)
+{
+	gclient_t *client = ent->client;
+	char       url[MAX_STRING_CHARS];
+	char       header[256];
+	char       apiKey[128];
+
+	trap_Cvar_VariableStringBuffer("g_apiUrl", url, sizeof(url));
+	if (!url[0])
+	{
+		return;
+	}
+
+	// GET <base>/speedruns/<runId>/leaderboard?mode=<mode>
+	Q_strcat(url, sizeof(url), va("/speedruns/%s/leaderboard?mode=%d", def->id, client->sess.speedrunMode));
+
+	trap_Cvar_VariableStringBuffer("g_apiKey", apiKey, sizeof(apiKey));
+
+	// The player's key lets the API flag isCurrentPlayer (green row); include it
+	// when present so a keyed player's row is highlighted. Without a key the
+	// leaderboard still loads, just with no green highlight. libcurl splits a
+	// header string on CRLF into multiple headers.
+	if (client->sess.speedrunKey[0])
+	{
+		Com_sprintf(header, sizeof(header), "X-SpeedRun-Key: %s\r\nX-Api-Key: %s",
+		            client->sess.speedrunKey, apiKey);
+	}
+	else
+	{
+		Com_sprintf(header, sizeof(header), "X-Api-Key: %s", apiKey);
+	}
+
+	// remember the run + mode this query used, so the response is labelled right
+	client->sess.timerunRecordsMode = client->sess.speedrunMode;
+	client->sess.timerunRecordsRun  = def - level.timeruns;
+
+	// id = 3*MAX_CLIENTS + clientNum marks this as a leaderboard response in
+	// G_API_Frame. Empty body => GET.
+	trap_API_Request(3 * MAX_CLIENTS + (ent - g_entities), ent - g_entities, header, url, "");
+}
+
+/**
+ * @brief speedrun mod: prints a single run's leaderboard response to the
+ *        requesting player.
+ * @details Response is a JSON array of {place,timeMs,playerName,isCurrentPlayer}.
+ *          Prints a dashed table with a header line (run name + mode), column
+ *          widths sized to the content, and the row for the current player
+ *          rendered entirely in green.
+ */
+static void G_API_PrintRunLeaderboard(gentity_t *ent, int httpCode, const char *text)
+{
+	gclient_t *client = ent->client;
+	cJSON     *root;
+
+	if (httpCode != 200)
+	{
+		trap_SendServerCommand(ent - g_entities, va("print \"^3Could not load leaderboard (API http %d)\n\"", httpCode));
+		return;
+	}
+
+	root = cJSON_Parse(text);
+	if (!root || !cJSON_IsArray(root))
+	{
+		trap_SendServerCommand(ent - g_entities, "print \"^3Could not load leaderboard (bad response)\n\"");
+		if (root)
+		{
+			cJSON_Delete(root);
+		}
+		return;
+	}
+
+	{
+		const char *modeLabel = (client->sess.timerunRecordsMode == 2) ? "Infinite stamina" : "Vanilla";
+		const char *runName   = "";
+		int         count     = cJSON_GetArraySize(root);
+		int         i;
+		int         placeW = 5, timeW = 9, playerW = 6;   // start from header widths
+
+		if (client->sess.timerunRecordsRun >= 0 && client->sess.timerunRecordsRun < level.numTimeruns)
+		{
+			runName = level.timeruns[client->sess.timerunRecordsRun].name;
+		}
+
+		// first pass: size the columns to the widest cell
+		for (i = 0; i < count; i++)
+		{
+			cJSON     *item  = cJSON_GetArrayItem(root, i);
+			cJSON     *pItem = item ? cJSON_GetObjectItem(item, "place") : NULL;
+			cJSON     *tItem = item ? cJSON_GetObjectItem(item, "timeMs") : NULL;
+			cJSON     *nItem = item ? cJSON_GetObjectItem(item, "playerName") : NULL;
+			char       buf[16];
+			int        len;
+
+			if (pItem)
+			{
+				Com_sprintf(buf, sizeof(buf), "%d", pItem->valueint);
+				len = strlen(buf);
+				if (len > placeW)
+				{
+					placeW = len;
+				}
+			}
+
+			if (tItem)
+			{
+				Timerun_FormatTimeMs(buf, sizeof(buf), tItem->valueint);
+				len = strlen(buf);
+				if (len > timeW)
+				{
+					timeW = len;
+				}
+			}
+
+			if (nItem && nItem->valuestring)
+			{
+				len = strlen(nItem->valuestring);
+				if (len > playerW)
+				{
+					playerW = len;
+				}
+			}
+		}
+
+		{
+			// column separator line: +-----+----------+--------+
+			char sep[160];
+			int  o = 0;
+			int  c;
+
+			sep[o++] = '+';
+			for (c = 0; c < placeW + 2 && o < (int)sizeof(sep) - 1; c++)
+			{
+				sep[o++] = '-';
+			}
+			sep[o++] = '+';
+			for (c = 0; c < timeW + 2 && o < (int)sizeof(sep) - 1; c++)
+			{
+				sep[o++] = '-';
+			}
+			sep[o++] = '+';
+			for (c = 0; c < playerW + 2 && o < (int)sizeof(sep) - 1; c++)
+			{
+				sep[o++] = '-';
+			}
+			sep[o++] = '+';
+			sep[o] = '\0';
+
+			trap_SendServerCommand(ent - g_entities, va("print \"\n^7%s^7 (%s)\n\"", runName, modeLabel));
+			trap_SendServerCommand(ent - g_entities, va("print \"^7%s\n\"", sep));
+			trap_SendServerCommand(ent - g_entities, va("print \"^7| %-*s | %-*s | %-*s |\n\"", placeW, "Place", timeW, "Time", playerW, "Player"));
+			trap_SendServerCommand(ent - g_entities, va("print \"^7%s\n\"", sep));
+
+			for (i = 0; i < count; i++)
+			{
+				cJSON     *item  = cJSON_GetArrayItem(root, i);
+				cJSON     *pItem = item ? cJSON_GetObjectItem(item, "place") : NULL;
+				cJSON     *tItem = item ? cJSON_GetObjectItem(item, "timeMs") : NULL;
+				cJSON     *nItem = item ? cJSON_GetObjectItem(item, "playerName") : NULL;
+				cJSON     *cItem = item ? cJSON_GetObjectItem(item, "isCurrentPlayer") : NULL;
+				char       placeBuf[16], timeBuf[16];
+				const char *color;
+				const char *name;
+
+				if (!pItem || !tItem)
+				{
+					continue;
+				}
+
+				Com_sprintf(placeBuf, sizeof(placeBuf), "%d", pItem->valueint);
+				Timerun_FormatTimeMs(timeBuf, sizeof(timeBuf), tItem->valueint);
+				name  = (nItem && nItem->valuestring) ? nItem->valuestring : "";
+				color = (cItem && cJSON_IsTrue(cItem)) ? "^2" : "^7";
+
+				trap_SendServerCommand(ent - g_entities, va("print \"%s| %-*s | %-*s | %-*s |\n\"", color,
+				                                     placeW, placeBuf, timeW, timeBuf, playerW, name));
+			}
+
+			trap_SendServerCommand(ent - g_entities, va("print \"^7%s\n\"", sep));
 		}
 	}
 

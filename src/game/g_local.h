@@ -768,6 +768,7 @@ typedef struct
 	int currentTimerun;                         ///< index into level.timeruns
 	int timerunRecordRun;                       ///< speedrun mod: run index stashed at record-send (G_API_SendRecord), read when the async API response lands
 	int timerunRecordsMode;                     ///< speedrun mod: speedrun mode used for the pending /speedrun_records query (G_API_FetchServerBest -> G_API_PrintServerBest)
+	int timerunRecordsRun;                      ///< speedrun mod: run index stashed at /speedrun_records <num> query time (G_API_FetchRunLeaderboard -> G_API_PrintRunLeaderboard)
 	int timerunStartTime;                       ///< commandTime at run start
 	int timerunStartSpeed;                      ///< horizontal speed at start
 	int timerunStopSpeed;                       ///< horizontal speed at stop
@@ -2161,6 +2162,7 @@ void G_API_Frame(void);                                                         
 void G_API_SendRecord(gentity_t *ent, timerunDef_t *def, int timeMs);                ///< speedrun mod
 void G_API_FetchServerRecord(gentity_t *ent, timerunDef_t *def);                       ///< speedrun mod: pull a keyed player's stored best run to seed deltas on first run
 void G_API_FetchServerBest(gentity_t *ent);                                              ///< speedrun mod: fetch the map's top server records for the player's current mode (/speedrun_records)
+void G_API_FetchRunLeaderboard(gentity_t *ent, timerunDef_t *def);                          ///< speedrun mod: fetch a single run's leaderboard for the player's current mode (/speedrun_records <num>)
 void Timerun_SendToSpectators(gentity_t *ent, const char *cmd);                          ///< speedrun mod
 void Cmd_SpeedrunMode_f(gentity_t *ent, unsigned int dwCommand, int value);        ///< speedrun mod
 void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value);         ///< speedrun mod

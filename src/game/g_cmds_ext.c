@@ -331,19 +331,41 @@ void Cmd_SpeedrunKey_f(gentity_t *ent, unsigned int dwCommand, int value)
 }
 
 /**
- * @brief speedrun mod: /speedrun_records - shows the top server records for the
- *        player's current speedrun mode. The query is async; the list is printed
- *        to the player's console when the API response arrives (G_API_PrintServerBest).
+ * @brief speedrun mod: /speedrun_records [num] - shows a leaderboard.
+ *        With a number (indexing the /speedrun list, 1-based), fetches that
+ *        single run's leaderboard (G_API_FetchRunLeaderboard). Bare command
+ *        shows the map's top server records (G_API_FetchServerBest). Both are
+ *        async; the result is printed to the player's console when it arrives.
  */
 void Cmd_SpeedrunRecords_f(gentity_t *ent, unsigned int dwCommand, int value)
 {
+	char arg[MAX_TOKEN_CHARS];
+	int  num;
+
 	if (!ent || !ent->client)
 	{
 		G_Printf("speedrun mod: speedrun_records is a player command\n");
 		return;
 	}
 
-	G_API_FetchServerBest(ent);
+	trap_Argv(1, arg, sizeof(arg));
+
+	if (arg[0])
+	{
+		num = atoi(arg) - 1;   // user-facing numbers are 1-based (matches /speedrun)
+
+		if (num < 0 || num >= level.numTimeruns)
+		{
+			CP(va("cp \"^dNo such speedrun: ^n%d\n\"", num + 1));
+			return;
+		}
+
+		G_API_FetchRunLeaderboard(ent, &level.timeruns[num]);
+	}
+	else
+	{
+		G_API_FetchServerBest(ent);
+	}
 }
 
 void Cmd_Save_f(gentity_t *ent, unsigned int dwCommand, int value)
