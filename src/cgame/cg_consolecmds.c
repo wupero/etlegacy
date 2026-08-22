@@ -3590,6 +3590,16 @@ static void CG_SpeedrunRecords_f(void)
 	}
 }
 
+/**
+ * @brief speedrun mod: /speedrun_leaderboard - forwards to the server (the
+ *        server fetches the server-wide ELO leaderboard and prints it). Client
+ *        forwarder so the command shows up in the console /commands list.
+ */
+static void CG_SpeedrunLeaderboard_f(void)
+{
+	trap_SendClientCommand("speedrun_leaderboard");
+}
+
 
 
 /**
@@ -3834,6 +3844,7 @@ static consoleCommand_t commands[] =
 	{ "speedrun_mode",         CG_SpeedrunMode_f           },
 	{ "speedrun_key",          CG_SpeedrunKey_f            },
 	{ "speedrun_records",      CG_SpeedrunRecords_f        },
+	{ "speedrun_leaderboard", CG_SpeedrunLeaderboard_f    },
 
 	{ NULL,                     NULL                         }
 };
